@@ -8,13 +8,14 @@ class Incomplete_Cooperative_Game(gym.Env):
 	def __init__(self):#, args):
 		super(Incomplete_Cooperative_Game, self).__init__()
 
-		self.num_players = 4#args.num_players
+		self.num_players = 3#args.num_players
 		self.game_type = 'superadditive'  # Other types will be supported later
-		self.singleton_values = [1, 2, 3, 4]#args.singleton_values
+		self.singleton_values = [1, 2, 3]#args.singleton_values
 
 		# Create the set of all subsets of players (omitting the empty set, since its values is fixed)
 		player_list = [i for i in range(self.num_players)]
 		self.powerset = list(chain.from_iterable(combinations(player_list, r) for r in range(1, self.num_players + 1)))
+		self.explorable_coalitions = self.powerset[self.num_players:-1]
 
 		# For each element of the powerset, we will have:
 		# (0) if it is known,
@@ -41,6 +42,11 @@ class Incomplete_Cooperative_Game(gym.Env):
 			self.nodes[self.powerset[-1]][0] = 1
 			self.nodes[self.powerset[-1]][1:] = self.nodes[self.powerset[-1]][1]
 
+			# Normalize values to [0, 1]
+			grand_coalition_value = self.nodes[self.powerset[-1]][1]
+			for p in self.powerset:
+				self.nodes[p][1:] /= grand_coalition_value
+
 			self.compute_bounds()
 
 		else:
@@ -50,11 +56,11 @@ class Incomplete_Cooperative_Game(gym.Env):
 		for s, v in self.nodes.items():
 			self.initial_nodes[s] = v.copy()
 
-		self.observation_space = gym.spaces.Box(low=np.zeros(len(self.powerset)),
-												high=np.ones(len(self.powerset)),
+		self.observation_space = gym.spaces.Box(low=np.zeros(len(self.explorable_coalitions)),
+												high=np.ones(len(self.explorable_coalitions)),
 												dtype=np.float32)
 
-		self.action_space = gym.spaces.Discrete(len(self.powerset) - self.num_players - 1)
+		self.action_space = gym.spaces.Discrete(len(self.explorable_coalitions))
 
 	def compute_bounds(self):
 		# First, propagate the lower bounds up the tree
@@ -123,12 +129,12 @@ class Incomplete_Cooperative_Game(gym.Env):
 		# TODO: Later we want to modify the true values
 
 		# Return initial state
-		mask = np.array([self.nodes[s][0] for s in self.powerset])
-		true_state = np.array([self.nodes[s][1] for s in self.powerset])
+		mask = np.array([self.nodes[s][0] for s in self.explorable_coalitions])
+		true_state = np.array([self.nodes[s][1] for s in self.explorable_coalitions])
 
 		return mask * true_state
 
-	def step(self, action):
+	def step(self, action: int):
 		'''
 		Implementing one step of the arbitor, revealing coalition and computing exploitability
 
@@ -143,8 +149,8 @@ class Incomplete_Cooperative_Game(gym.Env):
 		self.nodes[chosen_coalition][0] = 1
 		self.compute_bounds()
 
-		mask = np.array([self.nodes[s][0] for s in self.powerset])
-		true_state = np.array([self.nodes[s][1] for s in self.powerset])
+		mask = np.array([self.nodes[s][0] for s in self.explorable_coalitions])
+		true_state = np.array([self.nodes[s][1] for s in self.explorable_coalitions])
 
 		masked_state = mask * true_state
 
