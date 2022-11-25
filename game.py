@@ -119,6 +119,10 @@ class Incomplete_Cooperative_Game(gym.Env):
 
 		return np.sum(max_shapley - true_shapley)
 
+	def valid_action_mask(self):
+		mask = np.array([self.nodes[s][0] for s in self.explorable_coalitions])
+		return mask
+
 	def reset(self):
 		# Mark all nodes as unknown except for the singletons and grand coalition
 		for s in self.powerset:
