@@ -1,4 +1,4 @@
-from game import Incomplete_Cooperative_Game
+from .game import Incomplete_Cooperative_Game
 
 from stable_baselines3 import PPO
 from stable_baselines3.common.env_util import make_vec_env
@@ -8,8 +8,8 @@ from sb3_contrib import MaskablePPO
 from sb3_contrib.common.maskable.policies import MaskableActorCriticPolicy
 from sb3_contrib.common.wrappers import ActionMasker
 
-import os
-os.environ["CUDA_VISIBLE_DEVICES"] = ""
+# import os
+# os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -17,6 +17,8 @@ import matplotlib.pyplot as plt
 set_random_seed(42)
 
 # Parallel environments
+
+
 def masked_env():
     def mask_fn(env):
         return env.valid_action_mask()
@@ -24,6 +26,7 @@ def masked_env():
     env = Incomplete_Cooperative_Game()
     env = ActionMasker(env, mask_fn)
     return env
+
 
 envs = make_vec_env(lambda: masked_env(), n_envs=4)
 
@@ -52,20 +55,3 @@ plt.errorbar(episode, np.mean(rewards, axis=0), yerr=np.std(rewards, axis=0), ma
 plt.xlabel('Episode')
 plt.ylabel('Mean Exploitability')
 plt.savefig('average_rewards.png')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
