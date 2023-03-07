@@ -1,11 +1,11 @@
-import gym
+import gymnasium as gym
 from itertools import chain, combinations
 import numpy as np
 import math
 
 
 class Incomplete_Cooperative_Game(gym.Env):
-    def __init__(self):  # , args):
+    def __init__(self):
         super(Incomplete_Cooperative_Game, self).__init__()
 
         self.num_players = 3  # args.num_players
