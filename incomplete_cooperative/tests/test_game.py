@@ -14,6 +14,3 @@ class TestGame(TestCase):
 
     def test_sample(self):
         print("sample test")
-
-	def test_filip(self):
-		print('otestovano')
