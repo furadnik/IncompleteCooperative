@@ -1,4 +1,4 @@
-import gymnasium as gym
+import gym
 from itertools import chain, combinations
 import numpy as np
 import math
