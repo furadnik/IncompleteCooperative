@@ -2,37 +2,21 @@ import gymnasium as gym
 from itertools import chain, combinations
 import numpy as np
 import math
-from .game import IncompleteCooperativeGame
+from .game import IncompleteCooperativeGame, CoalitionPlayers, Value
 
 
 class ICG_Gym(gym.Env):
     """A `gym` for incomplete cooperative games."""
 
-    def __init__(self, game: IncompleteCooperativeGame) -> None:
+    def __init__(self, game: IncompleteCooperativeGame, initial_values: dict[CoalitionPlayers, Value]) -> None:
         """Initialize gym."""
         super().__init__()
         self.game = game
+        self.initial_values = initial_values
+        self.game.set_known_values(initial_values)
+        self.explorable_coalitions = 2**self.game.number_of_players - self.game.number_of_players - 1
 
-        self.num_players = 3  # args.num_players
-        self.game_type = 'superadditive'  # Other types will be supported later
-        self.singleton_values = [1, 2, 3]  # args.singleton_values
-
-        # Create the set of all subsets of players (omitting the empty set, since its values is fixed)
-        player_list = [i for i in range(self.num_players)]
-        self.powerset = list(chain.from_iterable(combinations(player_list, r) for r in range(1, self.num_players + 1)))
-        self.explorable_coalitions = self.powerset[self.num_players:-1]
-
-        # For each element of the powerset, we will have:
-        # (0) if it is known,
-        # (1) the true (initially unknown) value,
-        # (2) lower and (3) upper bound.
-        self.nodes = {p: np.zeros(4) for p in self.powerset}
-        # Populate singletons
-        for player, singleton in enumerate(self.singleton_values):
-            self.nodes[(player, )][0] = 1  # The values of singletons are initially known
-            self.nodes[(player, )][1:] = self.singleton_values[player]  # Since they are known, the bounds are tight
-
-        if self.game_type == 'superadditive':
+        if self.game_type == 'superadditive':  # TODO: implement later.
             for p in self.powerset:
                 if len(p) > 1:  # Ignore singletons
                     proper_subset = list(chain.from_iterable(combinations(p, r) for r in range(1, len(p))))
@@ -61,11 +45,11 @@ class ICG_Gym(gym.Env):
         for s, v in self.nodes.items():
             self.initial_nodes[s] = v.copy()
 
-        self.observation_space = gym.spaces.Box(low=np.zeros(len(self.explorable_coalitions)),
-                                                                                        high=np.ones(len(self.explorable_coalitions)),
-                                                                                        dtype=np.float32)
+        self.observation_space = gym.spaces.Box(low=np.zeros(self.explorable_coalitions),
+                                                high=np.ones(self.explorable_coalitions),
+                                                dtype=np.float32)
 
-        self.action_space = gym.spaces.Discrete(len(self.explorable_coalitions))
+        self.action_space = gym.spaces.Discrete(self.explorable_coalitions)
 
     def compute_bounds(self):
         # First, propagate the lower bounds up the tree
