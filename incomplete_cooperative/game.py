@@ -1,129 +1,166 @@
-"""An incomplete cooperative game representation."""
-from __future__ import annotations
+import gym
+from itertools import chain, combinations
 import numpy as np
-from typing import Callable, Iterable
-
-Coalition = int
-Coalitions = Iterable[Coalition]
-CoalitionPlayers = Iterable[int]
-Value = int
+import math
 
 
-class IncompleteCooperativeGame:
-    """Represent a game."""
+class Incomplete_Cooperative_Game(gym.Env):
+    def __init__(self):
+        super(Incomplete_Cooperative_Game, self).__init__()
 
-    _values_is_known_index = 0
-    _values_lower_index = 1
-    _values_upper_index = 2
+        self.num_players = 3  # args.num_players
+        self.game_type = 'superadditive'  # Other types will be supported later
+        self.singleton_values = [1, 2, 3]  # args.singleton_values
 
-    def __init__(self, number_of_players: Value,
-                 bounds_computer: Callable[[IncompleteCooperativeGame], None],
-                 known_values: dict[CoalitionPlayers, Value] = None) -> None:
-        """Save basic game info."""
-        self.number_of_players = number_of_players
-        self._bounds_computer = bounds_computer
-        self._init_values()
+        # Create the set of all subsets of players (omitting the empty set, since its values is fixed)
+        player_list = [i for i in range(self.num_players)]
+        self.powerset = list(chain.from_iterable(combinations(player_list, r) for r in range(1, self.num_players + 1)))
+        self.explorable_coalitions = self.powerset[self.num_players:-1]
 
-        if known_values:
-            self.set_known_values(known_values)
+        # For each element of the powerset, we will have:
+        # (0) if it is known,
+        # (1) the true (initially unknown) value,
+        # (2) lower and (3) upper bound.
+        self.nodes = {p: np.zeros(4) for p in self.powerset}
+        # Populate singletons
+        for player, singleton in enumerate(self.singleton_values):
+            self.nodes[(player, )][0] = 1  # The values of singletons are initially known
+            self.nodes[(player, )][1:] = self.singleton_values[player]  # Since they are known, the bounds are tight
 
-    def _init_values(self) -> None:
-        """Initialize values to all unknowns, except empty coalition."""
-        self._values = np.zeros((2**self.number_of_players, 3))
-        self.set_value(0, 0)  # empty coalition always has 0 value
+        if self.game_type == 'superadditive':
+            for p in self.powerset:
+                if len(p) > 1:  # Ignore singletons
+                    proper_subset = list(chain.from_iterable(combinations(p, r) for r in range(1, len(p))))
+                    for i in range(len(proper_subset) // 2):  # All non-doubled splits of the coalition
+                        a, b = tuple(chain(proper_subset[i])), tuple([e for e in p if e not in proper_subset[i]])
+                        # Superadditivity constraint
+                        self.nodes[p][1] = max(self.nodes[p][1], self.nodes[a][1] + self.nodes[b][1])
+                    # Now add a bit of noise
+                    self.nodes[p][1] += 1  # Modify the true value by (later random) constant
 
-    def __eq__(self, other: IncompleteCooperativeGame) -> None:
-        """Compare two games."""
-        return np.all(self._values == other._values)
+            # Reveal the value of the grand coalition
+            self.nodes[self.powerset[-1]][0] = 1
+            self.nodes[self.powerset[-1]][1:] = self.nodes[self.powerset[-1]][1]
 
-    @property
-    def coalitions(self) -> Coalitions:
-        """Get all coalitions."""
-        return range(2**self.number_of_players)
+            # Normalize values to [0, 1]
+            grand_coalition_value = self.nodes[self.powerset[-1]][1]
+            for p in self.powerset:
+                self.nodes[p][1:] /= grand_coalition_value
 
-    def filter_coalitions_not_include_coalition(self, include: Coalition, coalitions: Coalitions) -> Coalitions:
-        """Allow only those from `coalitions`, that do not include any players from `include`."""
-        return filter(lambda coal: include & coal == 0, coalitions)
+            self.compute_bounds()
 
-    def filter_coalitions_include_some_coalition(self, include: Coalition, coalitions: Coalitions) -> Coalitions:
-        """Allow only those from `coalitions`, that include at least some players from `include`."""
-        return filter(lambda coal: include & coal != 0, coalitions)
+        else:
+            raise NotImplementedError()
 
-    def filter_coalitions_include_coalition(self, include: Coalition, coalitions: Coalitions) -> Coalitions:
-        """Allow only those from `coalitions`, that include all players from `include`."""
-        return filter(lambda coal: include & coal == include and include != 0,
-                      coalitions)
+        self.initial_nodes = {}
+        for s, v in self.nodes.items():
+            self.initial_nodes[s] = v.copy()
 
-    def set_known_values(self, known_values: dict[CoalitionPlayers, Value]) -> None:
-        """Save known values."""
-        self._init_values()
-        for players, value in known_values.items():
-            coalition = self.players_to_coalition(players)
-            self.set_value(coalition, value)
+        self.observation_space = gym.spaces.Box(low=np.zeros(len(self.explorable_coalitions)),
+                                                                                        high=np.ones(len(self.explorable_coalitions)),
+                                                                                        dtype=np.float32)
 
-    def set_value(self, coalition: Coalition, value: Value) -> None:
-        """Set value of a coalition."""
-        self._values[coalition, self._values_upper_index] = value
-        self._values[coalition, self._values_lower_index] = value
-        self._values[coalition, self._values_is_known_index] = 1  # the value is known
+        self.action_space = gym.spaces.Discrete(len(self.explorable_coalitions))
 
-    def get_value(self, coalition: Coalition) -> Value | None:
-        """Get a value for coalition."""
-        if not self._values[coalition, self._values_is_known_index]:
-            return None
-        return self._values[coalition, self._values_lower_index]
+    def compute_bounds(self):
+        # First, propagate the lower bounds up the tree
+        for p in self.powerset:
+            if len(p) > 1:  # Ignore singletons, since they are given
+                proper_subset = list(chain.from_iterable(combinations(p, r) for r in range(1, len(p))))
+                for i in range(len(proper_subset) // 2):  # All non-doubled splits of the coalition
+                    a, b = tuple(chain(proper_subset[i])), tuple([e for e in p if e not in proper_subset[i]])
+                    # Lower bound is the maximum over subsets, sum of their lower bounds if not revealed
+                    if self.nodes[p][0]:
+                        self.nodes[p][2] = self.nodes[p][1]
+                    else:
+                        self.nodes[p][2] = max(self.nodes[p][2], self.nodes[a][2] + self.nodes[b][2])
 
-    def players_to_coalition(self, players: CoalitionPlayers) -> Coalition:
-        """Turn a Coalition into a numeric representation."""
-        coalition = list(players)
-        if coalition and max(coalition) >= self.number_of_players:
-            raise AttributeError("This game doesn't have enough players for this.")
-        return sum(map(lambda x: 2**x, coalition))
+        # Second, given upper bound of a (or b) is upper bound of p=a+b minus lower bound of b (or a)
+        for p in reversed(self.powerset):
+            if len(p) > 1:  # Ignore singletons, since they are given
+                proper_subset = list(chain.from_iterable(combinations(p, r) for r in range(1, len(p))))
+                for i in range(len(proper_subset) // 2):  # All non-doubled splits of the coalition
+                    a, b = tuple(chain(proper_subset[i])), tuple([e for e in p if e not in proper_subset[i]])
+                    if self.nodes[a][0]:
+                        self.nodes[a][3] = self.nodes[a][1]
+                    else:
+                        self.nodes[a][3] = max(self.nodes[a][3], self.nodes[p][3] - self.nodes[b][2])
 
-    def coalition_to_players(self, coalition: Coalition) -> CoalitionPlayers:
-        """Turn the numeric representation to list of players."""
-        if coalition >= 2**self.number_of_players:
-            raise AttributeError("This coalition is too large for this game.")
+                    if self.nodes[b][0]:
+                        self.nodes[b][3] = self.nodes[b][1]
+                    else:
+                        self.nodes[b][3] = max(self.nodes[b][3], self.nodes[p][3] - self.nodes[a][2])
 
-        i = 0
-        while coalition > 0:
-            if coalition & 1:
-                yield i
-            coalition >>= 1
-            i += 1
+    def _exploitability(self):
+        n = self.num_players
+        true_shapley = np.zeros(n)
+        max_shapley = np.zeros(n)
+        for p in range(n):
+            for s in self.powerset:
+                if not p in s:
+                    s_revealed, s_true, s_min, _ = self.nodes[s]  # Values of the set without P
+                    # Set s + p
+                    sp = list(s) + [p, ]
+                    sp.sort()
+                    sp = tuple(sp)
+                    sp_revealed, sp_true, _, sp_max = self.nodes[sp]   # Values when P is included
 
-    def reveal_value(self, coalition: Coalition, value: Value) -> None:
-        """Reveal a value of a coalition."""
-        if self.get_value(coalition) is not None:
-            raise ValueError("Value was already known.")
+                    # Factorial term in front of the value difference
+                    prefactor = math.factorial(len(s)) * math.factorial(self.num_players - len(s) - 1)
+                    true_shapley[p] += prefactor * (sp_true - s_true)
+                    _max = sp_max * (1 - sp_revealed) + sp_true * sp_revealed
+                    _min = s_min * (1 - s_revealed) + s_true * s_revealed
+                    max_shapley[p] += prefactor * (sp_max - s_min)
 
-        self.set_value(coalition, value)
+        # Divide by factorial
+        true_shapley /= math.factorial(self.num_players)
+        max_shapley /= math.factorial(self.num_players)
 
-    def get_bounds(self, coalition: Coalition) -> tuple[Value, Value]:
-        """Get bounds for a coalition."""
-        return self._values[coalition, self._values_lower_index:self._values_upper_index + 1]
+        return np.sum(max_shapley - true_shapley)
 
-    def get_lower_bound(self, coalition: Coalition) -> Value:
-        """Get lower bound for a coalition."""
-        return self._values[coalition, self._values_lower_index]
+    def valid_action_mask(self):
+        mask = np.array([self.nodes[s][0] for s in self.explorable_coalitions])
+        return mask
 
-    def get_upper_bound(self, coalition: Coalition) -> Value:
-        """Get upper bound for a coalition."""
-        return self._values[coalition, self._values_upper_index]
+    def reset(self):
+        # Mark all nodes as unknown except for the singletons and grand coalition
+        for s in self.powerset:
+            self.nodes[s][:] = self.initial_nodes[s].copy()
 
-    def set_upper_bound(self, coalition: Coalition, bound: Value) -> None:
-        """Set upper bound of a coalition."""
-        self._values[coalition, self._values_upper_index] = bound
+        self.compute_bounds()
 
-    def set_lower_bound(self, coalition: Coalition, bound: Value) -> None:
-        """Set lower bound of a coalition."""
-        self._values[coalition, self._values_lower_index] = bound
+        # TODO: Later we want to modify the true values
 
-    def compute_bounds(self) -> None:
-        """Recompute bounds given (potentially new) information."""
-        self._bounds_computer(self)
+        # Return initial state
+        mask = np.array([self.nodes[s][0] for s in self.explorable_coalitions])
+        true_state = np.array([self.nodes[s][1] for s in self.explorable_coalitions])
 
-    @property
-    def known_values(self) -> list[bool]:
-        """Get a list of bools for each coalition, saying whether or not its value is known."""
-        return self._values[:, self._values_is_known_index] == 1
+        return mask * true_state
+
+    def step(self, action: int):
+        '''
+        Implementing one step of the arbitor, revealing coalition and computing exploitability
+
+        :param action: Int choosing which coalition to reveal
+        :return: next_state: np.array of values of revealed coalitions, zero otherwise
+                         reward: negative exploitability
+                         done: bool if all coalitions are revealed
+                         info: empty list (no additional info)
+        '''
+        # The chosen coalition for revealing, skipping the singletons
+        chosen_coalition = self.powerset[action + self.num_players]
+        self.nodes[chosen_coalition][0] = 1
+        self.compute_bounds()
+
+        mask = np.array([self.nodes[s][0] for s in self.explorable_coalitions])
+        true_state = np.array([self.nodes[s][1] for s in self.explorable_coalitions])
+
+        masked_state = mask * true_state
+
+        # Reward is negative exploitability
+        reward = - self._exploitability()
+
+        # The game is done if the agent reveals all coalitions
+        done = np.all(mask == 1)
+
+        return masked_state, reward, done, {}
