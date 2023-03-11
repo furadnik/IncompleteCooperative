@@ -22,6 +22,7 @@ class IncompleteCooperativeGame:
         """Save basic game info."""
         self.number_of_players = number_of_players
         self._bounds_computer = bounds_computer
+        self._values = np.zeros((2**self.number_of_players, 3), np.float32)
         self._init_values()
 
         if known_values:
@@ -29,7 +30,7 @@ class IncompleteCooperativeGame:
 
     def _init_values(self) -> None:
         """Initialize values to all unknowns, except empty coalition."""
-        self._values = np.zeros((2**self.number_of_players, 3))
+        self._values.fill(0)
         self.set_value(0, 0)  # empty coalition always has 0 value
 
     def __eq__(self, other: IncompleteCooperativeGame) -> None:
