@@ -31,7 +31,7 @@ class IncompleteCooperativeGame:
     def _init_values(self) -> None:
         """Initialize values to all unknowns, except empty coalition."""
         self._values.fill(0)
-        self.set_value(0, 0)  # empty coalition always has 0 value
+        self.set_value(self.players_to_coalition([]), 0)  # empty coalition always has 0 value
 
     def __eq__(self, other: IncompleteCooperativeGame) -> None:
         """Compare two games."""
@@ -76,7 +76,7 @@ class IncompleteCooperativeGame:
 
     def players_to_coalition(self, players: CoalitionPlayers) -> Coalition:
         """Turn a Coalition into a numeric representation."""
-        coalition = list(players)
+        coalition = set(players)
         if coalition and max(coalition) >= self.number_of_players:
             raise AttributeError("This game doesn't have enough players for this.")
         return sum(map(lambda x: 2**x, coalition))
