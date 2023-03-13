@@ -123,4 +123,4 @@ class TestGame(TestCase):
         for coalition in self.game_empty.coalitions:
             with self.subTest(coalition=coalition):
                 self.assertEqual(len(list(self.game_empty.coalition_to_players(coalition))),
-                                 self.game_empty.coalition_size(coalition))
+                                 self.game_empty.get_coalition_size(coalition))
