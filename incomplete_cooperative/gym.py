@@ -1,23 +1,31 @@
 import gym
+from typing import Callable
 from itertools import chain, combinations
 import numpy as np
 import math
-from .game import IncompleteCooperativeGame, CoalitionPlayers, Value
+from .game import IncompleteCooperativeGame, CoalitionPlayers, Value, Coalition
+
+ValuesGenerator = Callable[[IncompleteCooperativeGame, Coalition], Value]
 
 
 class ICG_Gym(gym.Env):
     """A `gym` for incomplete cooperative games."""
 
-    def __init__(self, game: IncompleteCooperativeGame, initial_values: dict[CoalitionPlayers, Value]) -> None:
+    def __init__(self, game: IncompleteCooperativeGame,
+                 full_game: IncompleteCooperativeGame,
+                 initially_known_values: list[CoalitionPlayers],
+                 new_values_generator: ValuesGenerator) -> None:
         """Initialize gym."""
         super().__init__()
         self.game = game
-        self.initial_values = initial_values
-        self.game.set_known_values(initial_values)
+        # TODO: normalize game.
+        self.full_game = full_game
+        self.initial_values = map(full_game.get_value, map(full_game.players_to_coalition, initially_known_values))
+        self.game.set_known_values(initially_known_values)
         self.explorable_coalitions = 2**self.game.number_of_players - self.game.number_of_players - 1
 
         if self.game_type == 'superadditive':  # TODO: implement later.
-            for p in self.powerset:
+            for p in self.game.coalitions:
                 if len(p) > 1:  # Ignore singletons
                     proper_subset = list(chain.from_iterable(combinations(p, r) for r in range(1, len(p))))
                     for i in range(len(proper_subset) // 2):  # All non-doubled splits of the coalition

@@ -55,6 +55,19 @@ class IncompleteCooperativeGame:
         return filter(lambda coal: include & coal == include and include != 0,
                       coalitions)
 
+    def filter_coalition_subset(self, coalition: Coalition, coalitions: Coalitions, proper: bool = False) -> Coalitions:
+        """Allow only coalitions that are a (proper?) subset of `coalition`."""
+        return filter(lambda coal: coalition & coal == coalition and (not proper or coal - coalition > 0),
+                      coalitions)
+
+    def get_coalition_size(self, coalition: Coalition) -> int:
+        """Get size of a coalition."""
+        s = 0
+        while coalition:
+            s += coalition & 1
+            coalition >>= 1
+        return s
+
     def set_known_values(self, known_values: dict[CoalitionPlayers, Value]) -> None:
         """Save known values."""
         self._init_values()

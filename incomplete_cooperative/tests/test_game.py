@@ -103,3 +103,24 @@ class TestGame(TestCase):
 
     def test_filter_full(self):
         self.assertEqual(list(self.game_empty.filter_coalitions_include_coalition(0, self.game_empty.coalitions)), [])
+
+    def test_filter_subsets(self):
+        self.coalition_filtering_function_tester(
+            lambda x:
+                2 in self.game_empty.coalition_to_players(x) and 0 in self.game_empty.coalition_to_players(x),
+            self.game_empty.filter_coalition_subset(5, self.game_empty.coalitions)
+        )
+
+    def test_filter_subsets_proper(self):
+        self.coalition_filtering_function_tester(
+            lambda x: all([2 in self.game_empty.coalition_to_players(x),
+                           0 in self.game_empty.coalition_to_players(x),
+                           list(filter(lambda x: x not in [0, 2], self.game_empty.coalition_to_players(x))) != []]),
+            self.game_empty.filter_coalition_subset(5, self.game_empty.coalitions, proper=True)
+        )
+
+    def test_coalition_size(self):
+        for coalition in self.game_empty.coalitions:
+            with self.subTest(coalition=coalition):
+                self.assertEqual(len(list(self.game_empty.coalition_to_players(coalition))),
+                                 self.game_empty.coalition_size(coalition))
