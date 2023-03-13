@@ -1,4 +1,4 @@
-numpy
-stable-baselines3
-sb3-contrib
-gym
+numpy==1.24.2
+stable-baselines3==1.7.0
+sb3-contrib==1.7.0
+gym==0.21.0
