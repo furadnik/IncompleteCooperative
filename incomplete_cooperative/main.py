@@ -1,4 +1,4 @@
-from .gym import ICG_Gym
+from .icg_gym import ICG_Gym
 
 from stable_baselines3 import PPO
 from stable_baselines3.common.env_util import make_vec_env

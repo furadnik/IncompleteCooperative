@@ -22,7 +22,7 @@ class ICG_Gym(gym.Env):
         self.full_game = full_game
         self.initial_values = map(full_game.get_value, map(full_game.players_to_coalition, initially_known_values))
         self.game.set_known_values(initially_known_values)
-        self.explorable_coalitions = 2**self.game.number_of_players - self.game.number_of_players - 1
+        self.explorable_coalitions = 2**self.game.number_of_players - self.game.number_of_players - 1  # TODO: dynamic according to initial values.
 
         if self.game_type == 'superadditive':  # TODO: implement later.
             for p in self.game.coalitions:
