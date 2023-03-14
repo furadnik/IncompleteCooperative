@@ -1,4 +1,4 @@
-from .game import Incomplete_Cooperative_Game
+from .icg_gym import ICG_Gym
 
 from stable_baselines3 import PPO
 from stable_baselines3.common.env_util import make_vec_env
@@ -23,7 +23,7 @@ def masked_env():
     def mask_fn(env):
         return env.valid_action_mask()
 
-    env = Incomplete_Cooperative_Game()
+    env = ICG_Gym()
     env = ActionMasker(env, mask_fn)
     return env
 
