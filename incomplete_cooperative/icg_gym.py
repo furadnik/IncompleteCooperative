@@ -46,7 +46,7 @@ class ICG_Gym(gym.Env):
         return np.fromiter(map(
             lambda coalition: 0 if self.game.is_value_known(coalition) else 1,
             self.explorable_coalitions
-        ), np.int8)
+        ), bool)
 
     @property
     def state(self) -> np.ndarray:

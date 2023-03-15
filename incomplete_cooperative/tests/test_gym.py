@@ -25,63 +25,65 @@ class TestICGGym(TestCase):
         self.known_coalitions = [1, 2, 4, 8, 16, 32, 63]  # minimal game
         self.full_game = IncompleteCooperativeGame(6, dummy_bounds)
         trivial_fill(self.full_game)
-        self.gym = ICG_Gym(self.game, self.full_game, self.known_coalitions)
+        self.icg_gym = ICG_Gym(self.game, self.full_game, self.known_coalitions)
 
     def test_zero_always_known(self):
-        self.assertNotIn(0, self.gym.explorable_coalitions)
+        self.assertNotIn(0, self.icg_gym.explorable_coalitions)
         known_coalitions = self.known_coalitions + [0]
         gym = ICG_Gym(self.game, self.full_game, known_coalitions)
-        self.assertEqual(self.gym.explorable_coalitions, gym.explorable_coalitions)
+        self.assertEqual(self.icg_gym.explorable_coalitions, gym.explorable_coalitions)
 
     def test_explorable_coalitions(self):
         for coalition in self.known_coalitions:
-            self.assertNotIn(coalition, self.gym.explorable_coalitions)
+            self.assertNotIn(coalition, self.icg_gym.explorable_coalitions)
 
-        for coalition in self.gym.explorable_coalitions:
-            self.assertTrue(any([coalition in self.gym.explorable_coalitions,
+        for coalition in self.icg_gym.explorable_coalitions:
+            self.assertTrue(any([coalition in self.icg_gym.explorable_coalitions,
                                  coalition in self.known_coalitions]))
 
     def test_game_setup(self):
         for coalition in self.known_coalitions:
             self.assertTrue(self.game.is_value_known(coalition))
 
-        for coalition in self.gym.explorable_coalitions:
+        for coalition in self.icg_gym.explorable_coalitions:
             self.assertFalse(self.game.is_value_known(coalition), coalition)
 
     def test_game_normalized(self):
         pass  # TODO: implement later.
 
     def test_action_mask(self):
-        self.assertEqual(len(self.gym.explorable_coalitions),
-                         len(self.gym.valid_action_mask))
+        self.assertEqual(len(self.icg_gym.explorable_coalitions),
+                         len(self.icg_gym.valid_action_mask))
 
         self.game.reveal_value(3, 3)
-        mask = list(self.gym.valid_action_mask)
-        for i in range(len(self.gym.explorable_coalitions)):
-            if self.gym.explorable_coalitions[i] == 3:
+        mask = list(self.icg_gym.valid_action_mask)
+        for i in range(len(self.icg_gym.explorable_coalitions)):
+            if self.icg_gym.explorable_coalitions[i] == 3:
                 self.assertEqual(mask[i], 0)
                 continue
-            self.assertEqual(mask[i], 1, self.gym.explorable_coalitions[i])
+            self.assertEqual(mask[i], 1, self.icg_gym.explorable_coalitions[i])
 
     def test_step(self):
-        self.gym.step(2)
-        mask = list(self.gym.valid_action_mask)
-        for i in range(len(self.gym.explorable_coalitions)):
+        self.icg_gym.step(2)
+        mask = list(self.icg_gym.valid_action_mask)
+        for i in range(len(self.icg_gym.explorable_coalitions)):
             if i == 2:
                 self.assertEqual(mask[i], 0)
                 continue
-            self.assertEqual(mask[i], 1, self.gym.explorable_coalitions[i])
+            self.assertEqual(mask[i], 1, self.icg_gym.explorable_coalitions[i])
 
-        self.assertEqual(self.game.get_value(self.gym.explorable_coalitions[2]),
-                         self.full_game.get_value(self.gym.explorable_coalitions[2]))
+        self.assertEqual(self.game.get_value(self.icg_gym.explorable_coalitions[2]),
+                         self.full_game.get_value(self.icg_gym.explorable_coalitions[2]))
 
     def test_steps_all(self):
-        for i, coalition in enumerate(self.gym.explorable_coalitions):
+        for i, coalition in enumerate(self.icg_gym.explorable_coalitions):
             with self.subTest(i=i, coalition=coalition):
                 self.assertFalse(self.game.is_value_known(coalition))
-                self.assertEqual(self.gym.valid_action_mask[i], 1)
-                self.gym.step(i)
+                self.assertEqual(self.icg_gym.valid_action_mask[i], 1)
+                state, _, done, _ = self.icg_gym.step(i)
+                self.assertFalse(done) if i < len(self.icg_gym.explorable_coalitions) - 1 else self.assertTrue(done)
                 self.assertTrue(self.game.is_value_known(coalition))
-                self.assertEqual(self.gym.valid_action_mask[i], 0)
+                self.assertEqual(state[coalition], self.game.get_value(coalition))
+                self.assertEqual(self.icg_gym.valid_action_mask[i], 0)
                 self.assertEqual(self.game.get_value(coalition),
                                  self.full_game.get_value(coalition))
