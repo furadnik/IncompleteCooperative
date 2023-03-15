@@ -1,39 +1,29 @@
 """A computer of the Shapley value."""
-from .game import IncompleteCooperativeGame, Coalition, Value
+from .game import IncompleteCooperativeGame, Value
 from typing import Callable
+import numpy as np
 from math import factorial
 
 
-def _defalut_game_get_value(game: IncompleteCooperativeGame, coalition: Coalition) -> Value:
-    """Implement default `get_value` function."""
-    return game.get_value(coalition)
-
-
-def _weight_of_contribution(number_of_players: int, size_of_coalition: int) -> float:
-    """Return the weight of the contribution."""
-    return (
-        factorial(size_of_coalition) * factorial(number_of_players - size_of_coalition - 1)
-    ) / factorial(number_of_players)
+def _get_contributions(number_of_players: int) -> None:
+    """Get contribution coeficient (not devided by n!) for each coalition size."""
+    return np.array([factorial(s) * factorial(number_of_players - s - 1) for s in range(number_of_players)])
 
 
 def compute_shapley_value(game: IncompleteCooperativeGame,
-                          get_value: Callable = _defalut_game_get_value) -> None:  # TODO: typehints.
+                          get_values: Callable = lambda x: x.values) -> None:  # TODO: typehints.
     """Compute the Shapley value.
 
     The `get_value` function must get a `IncompleteCooperativeGame` and a `Coalition` and return its value.
     It is done like this to allow flexibility -- sometimes, we want to compute the Shapley value from up/low bounds.
     """
+    coalition_contribution_coefficients = _get_contributions(game.number_of_players)
+    n_fac = factorial(game.number_of_players)
     for player in range(game.number_of_players):
         player_singleton = game.players_to_coalition([player])
-        coalitions_without_player = game.filter_coalitions_not_include_coalition(player_singleton, game.coalitions)
+        coalitions_without_player = np.fromiter(game.get_coalitions_not_including_players([player]), Value)
 
-        result = 0
-        for coalition_without_player in coalitions_without_player:
-            coalition_size = game.get_coalition_size(coalition_without_player)
-            coalition_with_player = coalition_without_player & player_singleton
-            value_with_player = get_value(game, coalition_with_player)
-            value_without_player = get_value(game, coalition_without_player)
-            contribution = value_with_player - value_without_player
-            result += _weight_of_contribution(game.number_of_players, coalition_size) * contribution
-
-        yield result
+        values_without = get_values(game)[coalitions_without_player]
+        values_with = get_values(game)[coalitions_without_player | player_singleton]
+        coalition_contributions = coalition_contribution_coefficients[list(map(game.get_coalition_size, coalitions_without_player))]
+        yield np.sum(coalition_contributions * (values_with - values_without)) / n_fac
