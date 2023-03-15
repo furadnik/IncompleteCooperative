@@ -18,7 +18,7 @@ class IncompleteCooperativeGame:
 
     def __init__(self, number_of_players: Value,
                  bounds_computer: Callable[[IncompleteCooperativeGame], None],
-                 known_values: dict[CoalitionPlayers, Value] = None) -> None:
+                 known_values: dict[Coalition, Value] = None) -> None:
         """Save basic game info."""
         self.number_of_players = number_of_players
         self._bounds_computer = bounds_computer
@@ -78,11 +78,10 @@ class IncompleteCooperativeGame:
             coalition >>= 1
         return s
 
-    def set_known_values(self, known_values: dict[CoalitionPlayers, Value]) -> None:
+    def set_known_values(self, known_values: dict[Coalition, Value]) -> None:
         """Save known values."""
         self._init_values()
-        for players, value in known_values.items():
-            coalition = self.players_to_coalition(players)
+        for coalition, value in known_values.items():
             self.set_value(coalition, value)
 
     def set_value(self, coalition: Coalition, value: Value) -> None:
