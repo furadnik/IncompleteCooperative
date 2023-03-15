@@ -30,7 +30,7 @@ class TestGame(TestCase):
                           self.game_empty.coalition_to_players(166))
 
     def test_value_setting(self):
-        values = {(0,): 3}
+        values = {1: 3}
         self.assertIsNone(self.game_empty.get_value(1))
         self.game_empty.set_known_values(values)
         self.assertEqual(self.game_empty.get_value(1), 3)
@@ -40,7 +40,7 @@ class TestGame(TestCase):
     def test_value_resetting(self):
         self.game_empty.set_value(1, 3)
         self.assertIsNotNone(self.game_empty.get_value(1))
-        self.game_empty.set_known_values({(1,): 1})
+        self.game_empty.set_known_values({2: 1})
         self.assertIsNone(self.game_empty.get_value(1))
         self.assertEqual(self.game_empty.get_value(2), 1)
 
@@ -127,8 +127,8 @@ class TestGame(TestCase):
 
     def test_get_bounds(self):
         self.game_empty.set_known_values({
-            (0,): 1,
-            (1,): 2
+            1: 1,
+            2: 2
         })
         self.assertEqual(self.game_empty.values[1], 1)
         self.assertEqual(self.game_empty.values[2], 2)
