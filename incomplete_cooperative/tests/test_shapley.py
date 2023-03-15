@@ -21,7 +21,7 @@ def fill_trivial(game: IncompleteCooperativeGame) -> None:
 class TestShapley(TestCase):
 
     def setUp(self):
-        self.game_empty = IncompleteCooperativeGame(14, dummy_bounds)
+        self.game_empty = IncompleteCooperativeGame(6, dummy_bounds)
 
     def test_shapley_size(self):
         func = lambda x: x.lower_bounds
