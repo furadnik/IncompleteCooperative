@@ -5,7 +5,7 @@ import numpy as np
 
 def dummy_bounds(game: IncompleteCooperativeGame) -> None:
     """Compute dummy bounds."""
-    for coalition in game.coalitions:
+    for coalition in filter(lambda x: x != 0, game.coalitions):
         game.set_upper_bound(coalition, 1)
         game.set_lower_bound(coalition, 0)
 
@@ -124,3 +124,29 @@ class TestGame(TestCase):
             with self.subTest(coalition=coalition):
                 self.assertEqual(len(list(self.game_empty.coalition_to_players(coalition))),
                                  self.game_empty.get_coalition_size(coalition))
+
+    def test_get_bounds(self):
+        self.game_empty.set_known_values({
+            (0,): 1,
+            (1,): 2
+        })
+        self.assertEqual(self.game_empty.values[1], 1)
+        self.assertEqual(self.game_empty.values[2], 2)
+        self.assertEqual(self.game_empty.values[3], False)
+
+    def test_full(self):
+        self.assertFalse(self.game_empty.full)
+        for coalition in self.game_empty.coalitions:
+            self.game_empty.set_value(coalition, self.game_empty.get_coalition_size(coalition))
+        self.assertTrue(self.game_empty.full)
+
+    def test_bounds(self):
+        dummy_bounds(self.game_empty)
+        self.assertEqual(np.sum(self.game_empty.lower_bounds), 0)
+        self.assertEqual(np.sum(self.game_empty.upper_bounds), 2**self.game_empty.number_of_players - 1)
+
+    def test_set_bound_known(self):
+        self.assertRaises(AttributeError,
+                          self.game_empty.set_lower_bound, 0, 1)
+        self.assertRaises(AttributeError,
+                          self.game_empty.set_upper_bound, 0, 1)

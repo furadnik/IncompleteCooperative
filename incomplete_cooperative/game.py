@@ -83,7 +83,7 @@ class IncompleteCooperativeGame:
 
     def get_value(self, coalition: Coalition) -> Value | None:
         """Get a value for coalition."""
-        if not self._values[coalition, self._values_is_known_index]:
+        if not self.is_value_known(coalition):
             return None
         return self._values[coalition, self._values_lower_index]
 
@@ -113,10 +113,6 @@ class IncompleteCooperativeGame:
 
         self.set_value(coalition, value)
 
-    def get_bounds(self, coalition: Coalition) -> tuple[Value, Value]:
-        """Get bounds for a coalition."""
-        return self._values[coalition, self._values_lower_index:self._values_upper_index + 1]
-
     def get_lower_bound(self, coalition: Coalition) -> Value:
         """Get lower bound for a coalition."""
         return self._values[coalition, self._values_lower_index]
@@ -127,17 +123,49 @@ class IncompleteCooperativeGame:
 
     def set_upper_bound(self, coalition: Coalition, bound: Value) -> None:
         """Set upper bound of a coalition."""
+        if self.is_value_known(coalition):
+            raise AttributeError("The selected coalition already has known value.")
         self._values[coalition, self._values_upper_index] = bound
 
     def set_lower_bound(self, coalition: Coalition, bound: Value) -> None:
         """Set lower bound of a coalition."""
+        if self.is_value_known(coalition):
+            raise AttributeError("The selected coalition already has known value.")
         self._values[coalition, self._values_lower_index] = bound
 
     def compute_bounds(self) -> None:
         """Recompute bounds given (potentially new) information."""
         self._bounds_computer(self)
 
+    def is_value_known(self, coalition: Coalition) -> bool:
+        """Is value of the coalition already known."""
+        return bool(self._values[coalition, self._values_is_known_index])
+
     @property
     def known_values(self) -> list[bool]:
         """Get a list of bools for each coalition, saying whether or not its value is known."""
         return self._values[:, self._values_is_known_index] == 1
+
+    @property
+    def full(self) -> bool:
+        """Decide whether the game is fully known."""
+        return np.all(self.known_values)
+
+    @property
+    def upper_bounds(self) -> list[Value]:
+        """Get all upper bounds."""
+        return self._values[:, self._values_upper_index]
+
+    @property
+    def lower_bounds(self) -> list[Value]:
+        """Get all lower bounds."""
+        return self._values[:, self._values_lower_index]
+
+    @property
+    def values(self) -> list[Value]:
+        """Get values, or `False` if not known."""
+        return self.upper_bounds * self.known_values
+
+    def get_bounds(self, coalition: Coalition) -> tuple[Value, Value]:
+        """Get bounds for a coalition."""
+        return self._values[coalition, self._values_lower_index:self._values_upper_index + 1]
