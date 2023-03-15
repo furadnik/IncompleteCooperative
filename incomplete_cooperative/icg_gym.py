@@ -1,7 +1,8 @@
 """An Agent Gym for Incomplete Cooperative Games."""
 import gym
 import numpy as np
-from .game import IncompleteCooperativeGame, CoalitionPlayers
+from .game import IncompleteCooperativeGame, Coalition
+from typing import Iterable
 
 State = np.ndarray
 StepResult = tuple  # TODO: type hints better.
@@ -12,45 +13,59 @@ class ICG_Gym(gym.Env):
 
     def __init__(self, game: IncompleteCooperativeGame,
                  full_game: IncompleteCooperativeGame,
-                 initially_known_values: list[CoalitionPlayers]) -> None:
-        """Initialize gym."""
+                 initially_known_coalitions: Iterable[Coalition]) -> None:
+        """Initialize gym.
+
+        `game` is an object that has the necessary `bound_computer` functions.
+        `full_game` is the game with all known values. We'll use it when we reveal new values.
+        `initially_known_coalitions` are the codes of coalitions, whose values will be in the `game` from the start.
+        """
         super().__init__()
+        initially_known_coalitions = list(set(initially_known_coalitions).union({0}))
+
         self.game = game
+        # TODO: normalize the game.
         self.full_game = full_game
-        self.initially_known_values = {players: full_game.get_value(full_game.players_to_coalition(players))
-                                       for players in initially_known_values}
+        self.initially_known_values = {coalition: full_game.get_value(coalition)
+                                       for coalition in initially_known_coalitions}
 
         # explorable coalitions are those, whose values we initially do not know.
-        initially_known_coalitions = set(map(self.full_game.players_to_coalition, initially_known_values))
-        self.explorable_coalitions = list(filter(lambda x: x not in initially_known_coalitions,
-                                                 self.full_game.coalitions))
+        self.explorable_coalitions = list(set(filter(lambda x: x not in initially_known_coalitions,
+                                                     self.full_game.coalitions)))
 
+        # setup the gym.
         self.reset()
-        self.observation_space = gym.spaces.Box(low=np.zeros(len(self.explorable_coalitions)),
-                                                high=np.ones(len(self.explorable_coalitions)),
+        self.observation_space = gym.spaces.Box(low=np.zeros(len(self.explorable_coalitions), np.float32),
+                                                high=np.ones(len(self.explorable_coalitions), np.float32),
                                                 dtype=np.float32)
-
         self.action_space = gym.spaces.Discrete(len(self.explorable_coalitions))
 
+    @property
     def valid_action_mask(self) -> np.ndarray:
         """Get valid actions for the agent."""
-        return self.game.known_values
+        return np.fromiter(map(
+            lambda coalition: 0 if self.game.is_value_known(coalition) else 1,
+            self.explorable_coalitions
+        ), np.int8)
 
     @property
     def state(self) -> np.ndarray:
         """Get the current state."""
-        return self.full_game.get_values * self.game.known_values
+        return self.full_game.values * self.game.known_values
 
     @property
     def reward(self) -> int:
-        """Return reward -- negative exploitability."""
-        return -self.game.exploitability  # TODO: implement later.
+        """Return reward -- negative exploitability."""  # TODO: implement later.
+
+    @property
+    def done(self) -> bool:
+        """Decide whether we are done -- all values are known."""
+        return self.game.full
 
     def reset(self) -> State:
         """Reset the game into initial state."""
         self.game.set_known_values(self.initially_known_values)
         self.game.compute_bounds()
-        # TODO: normalize the game.
 
         return self.state
 
@@ -60,8 +75,9 @@ class ICG_Gym(gym.Env):
         Return the new state, reward, whether we're done, and some (empty) additional info.
         """
         # The chosen coalition for revealing, skipping the singletons
-        chosen_coalition = self.powerset[action + self.num_players]
-        self.nodes[chosen_coalition][0] = 1
+        chosen_coalition = self.explorable_coalitions[action]
+        self.game.reveal_value(chosen_coalition,
+                               self.full_game.get_value(chosen_coalition))
         self.game.compute_bounds()
 
         return self.state, self.reward, self.done, {}
