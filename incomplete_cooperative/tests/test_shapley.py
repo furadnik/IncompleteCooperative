@@ -24,9 +24,8 @@ class TestShapley(TestCase):
         self.game_empty = IncompleteCooperativeGame(6, dummy_bounds)
 
     def test_shapley_size(self):
-        func = lambda x: x.lower_bounds
         self.game_empty.compute_bounds()
-        self.assertEqual(list(compute_shapley_value(self.game_empty, func)),
+        self.assertEqual(list(compute_shapley_value(self.game_empty, lambda x: x.lower_bounds)),
                          [0] * self.game_empty.number_of_players)
 
     def test_shapley_incomplete(self):
