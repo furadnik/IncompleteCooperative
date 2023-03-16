@@ -34,3 +34,22 @@ class TestShapley(TestCase):
         values = list(compute_shapley_value(self.game_empty))
         for val in values:
             self.assertEqual(val, values[0])
+
+    def test_shapley_worker_factory(self):
+        """There is one owner, other players are workers.
+
+        If the coalition has an owner, then it produces `n`, the number of workers in the coalition.
+        Without an owner, there is no factory, so nothing gets produced.
+
+        The owner should get half of the overall value, as without him, nothing gets produced.
+        """
+        n = 10
+        game = IncompleteCooperativeGame(n, dummy_bounds)
+        for coalition in game.get_coalitions_not_including_players([0]):
+            game.set_value(coalition, 0)
+            game.set_value(coalition + 1, game.get_coalition_size(coalition))
+
+        shapley = compute_shapley_value(game, lambda x: x.values)
+        self.assertEqual(next(shapley), (n - 1) / 2)
+        for i in range(1, n):
+            self.assertEqual(next(shapley), .5)
