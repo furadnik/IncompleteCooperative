@@ -60,6 +60,16 @@ class IncompleteCooperativeGame:
         return filter(lambda coal: coalition & coal == coalition and (not proper or coal - coalition > 0),
                       coalitions)
 
+    def get_coalitions_not_including_players(self, players: CoalitionPlayers) -> Iterable[Coalition]:
+        """Get all coalitions including a subset of players."""
+        coalition = self.players_to_coalition(players)
+        generated_coalition = 0
+        while generated_coalition < 2**self.number_of_players:
+            yield generated_coalition
+            generated_coalition += 1
+            while generated_coalition & coalition:
+                generated_coalition += generated_coalition & coalition
+
     def get_coalition_size(self, coalition: Coalition) -> int:
         """Get size of a coalition."""
         s = 0
