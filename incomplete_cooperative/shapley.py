@@ -1,5 +1,5 @@
 """A computer of the Shapley value."""
-from .game import IncompleteCooperativeGame, Value
+from .game import IncompleteCooperativeGame, Value, Coalition
 from typing import Callable
 import numpy as np
 from math import factorial
@@ -27,7 +27,7 @@ def compute_shapley_value(game: IncompleteCooperativeGame,
     n_fac = factorial(game.number_of_players)
     for player in range(game.number_of_players):
         player_singleton = game.players_to_coalition([player])
-        coalitions_without_player = np.fromiter(game.get_coalitions_not_including_players([player]), Value)
+        coalitions_without_player = np.fromiter(game.get_coalitions_not_including_players([player]), Coalition)
 
         values_without = get_values_without(game)[coalitions_without_player]
         values_with = get_values(game)[coalitions_without_player | player_singleton]
