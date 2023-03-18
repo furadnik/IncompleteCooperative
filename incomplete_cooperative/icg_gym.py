@@ -1,11 +1,13 @@
 """An Agent Gym for Incomplete Cooperative Games."""
-import gym
+from typing import Any, Iterable, cast
+
+import gym  # type: ignore
 import numpy as np
-from .game import IncompleteCooperativeGame, Coalition
-from typing import Iterable
+
+from .game import Coalition, IncompleteCooperativeGame, Value
 
 State = np.ndarray
-StepResult = tuple  # TODO: type hints better.
+StepResult = tuple[np.ndarray[Any, np.dtype[Value]], Value, bool, Any]
 
 
 class ICG_Gym(gym.Env):
@@ -21,12 +23,12 @@ class ICG_Gym(gym.Env):
         `initially_known_coalitions` are the codes of coalitions, whose values will be in the `game` from the start.
         """
         super().__init__()
-        initially_known_coalitions = list(set(initially_known_coalitions).union({0}))
+        initially_known_coalitions: str = list(set(initially_known_coalitions).union({0}))
 
         self.game = game
         # TODO: normalize the game.
         self.full_game = full_game
-        self.initially_known_values = {coalition: full_game.get_value(coalition)
+        self.initially_known_values = {coalition: cast(Value, full_game.get_value(coalition))
                                        for coalition in initially_known_coalitions}
 
         # explorable coalitions are those, whose values we initially do not know.
@@ -49,12 +51,12 @@ class ICG_Gym(gym.Env):
         ), bool)
 
     @property
-    def state(self) -> np.ndarray:
+    def state(self) -> np.ndarray[Any, np.dtype[Value]]:
         """Get the current state."""
         return self.full_game.values * self.game.known_values
 
     @property
-    def reward(self) -> int:
+    def reward(self) -> Value:  # type: ignore
         """Return reward -- negative exploitability."""  # TODO: implement later.
 
     @property
@@ -77,7 +79,7 @@ class ICG_Gym(gym.Env):
         # The chosen coalition for revealing, skipping the singletons
         chosen_coalition = self.explorable_coalitions[action]
         self.game.reveal_value(chosen_coalition,
-                               self.full_game.get_value(chosen_coalition))
+                               cast(Value, self.full_game.get_value(chosen_coalition)))
         self.game.compute_bounds()
 
         return self.state, self.reward, self.done, {}
