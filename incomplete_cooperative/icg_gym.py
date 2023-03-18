@@ -23,7 +23,7 @@ class ICG_Gym(gym.Env):
         `initially_known_coalitions` are the codes of coalitions, whose values will be in the `game` from the start.
         """
         super().__init__()
-        initially_known_coalitions: str = list(set(initially_known_coalitions).union({0}))
+        initially_known_coalitions = list(set(initially_known_coalitions).union({0}))
 
         self.game = game
         # TODO: normalize the game.
