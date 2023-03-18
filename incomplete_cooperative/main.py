@@ -1,3 +1,4 @@
+# type: ignore
 from .icg_gym import ICG_Gym
 
 from stable_baselines3 import PPO

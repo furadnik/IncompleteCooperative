@@ -1,7 +1,9 @@
 """An incomplete cooperative game representation."""
 from __future__ import annotations
+
+from typing import Any, Callable, Iterable, Literal
+
 import numpy as np
-from typing import Callable, Iterable
 
 Coalition = int
 Coalitions = Iterable[Coalition]
@@ -16,13 +18,13 @@ class IncompleteCooperativeGame:
     _values_lower_index = 1
     _values_upper_index = 2
 
-    def __init__(self, number_of_players: Value,
+    def __init__(self, number_of_players: int,
                  bounds_computer: Callable[[IncompleteCooperativeGame], None],
-                 known_values: dict[Coalition, Value] = None) -> None:
+                 known_values: dict[Coalition, Value] | None = None) -> None:
         """Save basic game info."""
         self.number_of_players = number_of_players
         self._bounds_computer = bounds_computer
-        self._values = np.zeros((2**self.number_of_players, 3), np.float32)
+        self._values = np.zeros((2**self.number_of_players, 3), Value)
         self._init_values()
 
         if known_values:
@@ -33,9 +35,11 @@ class IncompleteCooperativeGame:
         self._values.fill(0)
         self.set_value(self.players_to_coalition([]), 0)  # empty coalition always has 0 value
 
-    def __eq__(self, other: IncompleteCooperativeGame) -> None:
+    def __eq__(self, other) -> bool:
         """Compare two games."""
-        return np.all(self._values == other._values)
+        if not isinstance(other, IncompleteCooperativeGame):
+            raise AttributeError("Cannot compare games with anything else than games.")
+        return bool(np.all(self._values == other._values))
 
     @property
     def coalitions(self) -> Coalitions:
@@ -84,7 +88,7 @@ class IncompleteCooperativeGame:
         for coalition, value in known_values.items():
             self.set_value(coalition, value)
 
-    def set_value(self, coalition: Coalition, value: Value) -> None:
+    def set_value(self, coalition: Coalition, value: Value | int) -> None:
         """Set value of a coalition."""
         self._values[coalition, self._values_upper_index] = value
         self._values[coalition, self._values_lower_index] = value
@@ -130,13 +134,13 @@ class IncompleteCooperativeGame:
         """Get upper bound for a coalition."""
         return self._values[coalition, self._values_upper_index]
 
-    def set_upper_bound(self, coalition: Coalition, bound: Value) -> None:
+    def set_upper_bound(self, coalition: Coalition, bound: Value | int) -> None:
         """Set upper bound of a coalition."""
         if self.is_value_known(coalition):
             raise AttributeError("The selected coalition already has known value.")
         self._values[coalition, self._values_upper_index] = bound
 
-    def set_lower_bound(self, coalition: Coalition, bound: Value) -> None:
+    def set_lower_bound(self, coalition: Coalition, bound: Value | int) -> None:
         """Set lower bound of a coalition."""
         if self.is_value_known(coalition):
             raise AttributeError("The selected coalition already has known value.")
@@ -158,24 +162,24 @@ class IncompleteCooperativeGame:
     @property
     def full(self) -> bool:
         """Decide whether the game is fully known."""
-        return np.all(self.known_values)
+        return bool(np.all(self.known_values))
 
     @property
-    def upper_bounds(self) -> list[Value]:
+    def upper_bounds(self) -> np.ndarray[Any, np.dtype[Value]]:
         """Get all upper bounds."""
         return self._values[:, self._values_upper_index]
 
     @property
-    def lower_bounds(self) -> list[Value]:
+    def lower_bounds(self) -> np.ndarray[Any, np.dtype[Value]]:
         """Get all lower bounds."""
         return self._values[:, self._values_lower_index]
 
     @property
-    def values(self) -> list[Value]:
+    def values(self) -> np.ndarray[Any, np.dtype[Value]]:
         """Get values, or `False` if not known."""
         return self.upper_bounds * self.known_values
 
-    def get_bounds(self, coalition: Coalition) -> tuple[Value, Value]:
+    def get_bounds(self, coalition: Coalition) -> np.ndarray[Literal[2], np.dtype[Value]]:
         """Get bounds for a coalition."""
         return self._values[coalition, self._values_lower_index:self._values_upper_index + 1]
 
