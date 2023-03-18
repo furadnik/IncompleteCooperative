@@ -6,7 +6,7 @@ from typing import Callable, Iterable
 Coalition = int
 Coalitions = Iterable[Coalition]
 CoalitionPlayers = Iterable[int]
-Value = int
+Value = np.float32
 
 
 class IncompleteCooperativeGame:
@@ -178,3 +178,8 @@ class IncompleteCooperativeGame:
     def get_bounds(self, coalition: Coalition) -> tuple[Value, Value]:
         """Get bounds for a coalition."""
         return self._values[coalition, self._values_lower_index:self._values_upper_index + 1]
+
+    @property
+    def grand_coalition(self) -> Coalition:
+        """Get the grand coalition."""
+        return 2**self.number_of_players - 1
