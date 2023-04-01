@@ -1,39 +1,38 @@
 """A computer of the Shapley value."""
+from itertools import starmap
 from math import factorial
-from typing import Any, Callable, Iterable
+from typing import Any, Iterable
 
 import numpy as np
 
-from .game import Coalition, IncompleteCooperativeGame, Value
+from .coalitions import (Coalition, all_coalitions, exclude_coalition,
+                         player_to_coalition)
+from .protocols import Game, Value
 
 
 def _get_contributions(number_of_players: int) -> np.ndarray[Any, np.dtype[Value]]:
     """Get contribution coeficient (not devided by n!) for each coalition size."""
-    return np.array([factorial(s) * factorial(number_of_players - s - 1) for s in range(number_of_players)])
+    return np.fromiter((factorial(s) * factorial(number_of_players - s - 1) for s in range(number_of_players)),
+                       Value, number_of_players)
 
 
-def compute_shapley_value(game: IncompleteCooperativeGame,
-                          get_values: Callable = lambda x: x.values,
-                          get_values_without: Callable | None = None) -> Iterable[Value]:
-    """Compute the Shapley value.
-
-    The `get_values` function must get a `IncompleteCooperativeGame` and a `Coalition` and return its value.
-    It is done like this to allow flexibility -- sometimes, we want to compute the Shapley value from up/low bounds.
-    Finally, the `get_values_without` is a function that will compute the values of coalitions without the player.
-    It defaults to `get_values` if not specified.
-    """
-    if get_values_without is None:
-        get_values_without = get_values
-
+def compute_shapley_value(game: Game) -> Iterable[Value]:
+    """Compute the Shapley value."""
     coalition_contribution_coefficients = _get_contributions(game.number_of_players)
     n_fac = factorial(game.number_of_players)
-    for player in range(game.number_of_players):
-        player_singleton = game.players_to_coalition([player])
-        coalitions_without_player = np.fromiter(game.get_coalitions_not_including_players([player]), Coalition)
+    for singleton in map(player_to_coalition, range(game.number_of_players)):
+        coalitions_without_player = np.fromiter(
+            exclude_coalition(singleton, all_coalitions(game)),
+            Coalition, 2**(game.number_of_players - 1))
+        coalitions_with_player = np.fromiter(
+            map(lambda coalition: coalition & singleton,
+                coalitions_without_player),
+            Coalition, 2**(game.number_of_players - 1))
 
-        values_without = get_values_without(game)[coalitions_without_player]
-        values_with = get_values(game)[coalitions_without_player | player_singleton]
-        coalition_contributions = coalition_contribution_coefficients[list(map(game.get_coalition_size,
-                                                                               coalitions_without_player))]
+        values_without = game.get_values(coalitions_without_player)
+        values_with = game.get_values(coalitions_with_player)
+        coalition_contributions = coalition_contribution_coefficients[list(map(
+            len, coalitions_with_player))]
 
-        yield np.sum(coalition_contributions * (values_with - values_without)) / n_fac
+        yield sum(starmap(lambda cont, val_with, val_wo: cont * (val_with - val_wo),
+                          zip(coalition_contributions, values_with, values_without))) / n_fac
