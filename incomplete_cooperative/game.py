@@ -5,10 +5,11 @@ from typing import Any, Callable, Iterable, Literal
 
 import numpy as np
 
-Coalition = int
+from .coalitions import Coalition
+from .protocols import BoundableIncompleteGame, Value, ValueIn, Values
+
 Coalitions = Iterable[Coalition]
 CoalitionPlayers = Iterable[int]
-Value = np.float32
 
 
 class IncompleteCooperativeGame:
@@ -19,21 +20,159 @@ class IncompleteCooperativeGame:
     _values_upper_index = 2
 
     def __init__(self, number_of_players: int,
-                 bounds_computer: Callable[[IncompleteCooperativeGame], None],
-                 known_values: dict[Coalition, Value] | None = None) -> None:
+                 bounds_computer: Callable[[BoundableIncompleteGame], None]) -> None:
         """Save basic game info."""
         self.number_of_players = number_of_players
         self._bounds_computer = bounds_computer
         self._values = np.zeros((2**self.number_of_players, 3), Value)
         self._init_values()
 
-        if known_values:
-            self.set_known_values(known_values)
+    def _filter_out_coalitions(self, values: np.ndarray[Any, np.dtype[Value]],
+                               coalitions: Iterable[Coalition] | None) -> np.ndarray[Any, np.dtype[Value]]:
+        """Filter out coalitions."""
+        if coalitions is None:
+            return values
+        indices = np.fromiter(map(lambda x: x.id, coalitions), dtype=int)
+        return values[indices]
+
+    def get_value(self, coalition: Coalition) -> Value:
+        """Get a value for coalition."""
+        if not self.is_value_known(coalition):
+            raise ValueError("Value is not known.")
+        return self._values[coalition.id, self._values_lower_index]
+
+    def get_values(self, coalitions: Iterable[Coalition] | None = None) -> np.ndarray[Any, np.dtype[Value]]:
+        """Get values, or `False` if not known."""
+        r = self.get_upper_bounds()
+        coalitions_list = list(coalitions) if coalitions is not None else None
+        if not np.all(self.are_values_known(coalitions_list)):
+            raise ValueError("Not all requested values are known.")
+        return self._filter_out_coalitions(r, coalitions_list)
+
+    def set_value(self, value: ValueIn, coalition: Coalition) -> None:
+        """Set value of a coalition."""
+        self._values[coalition.id, self._values_upper_index] = value
+        self._values[coalition.id, self._values_lower_index] = value
+        self._values[coalition.id, self._values_is_known_index] = 1
+
+    def set_values(self, values: Values,
+                   coalitions: Iterable[Coalition] | None = None) -> None:
+        """Set multiple values."""
+        if coalitions is not None:
+            indices = np.fromiter(map(lambda x: x.id, coalitions), int, np.size(values))
+            self._values[indices, self._values_upper_index] = values
+            self._values[indices, self._values_lower_index] = values
+            self._values[indices, self._values_is_known_index] = 1
+        else:
+            self._values[:, self._values_upper_index] = values
+            self._values[:, self._values_lower_index] = values
+            self._values[:, self._values_is_known_index] = 1
 
     def _init_values(self) -> None:
         """Initialize values to all unknowns, except empty coalition."""
         self._values.fill(0)
-        self.set_value(self.players_to_coalition([]), 0)  # empty coalition always has 0 value
+        self.set_value(0, Coalition.from_players([]))  # empty coalition always has 0 value
+
+    def get_upper_bound(self, coalition: Coalition) -> Value:
+        """Get upper bound for a coalition."""
+        return self._values[coalition.id, self._values_upper_index]
+
+    def get_upper_bounds(self, coalitions: Iterable[Coalition] | None = None) -> Values:
+        """Get upper bounds for coalitions."""
+        return self._filter_out_coalitions(self._values[:, self._values_upper_index], coalitions)
+
+    def get_lower_bound(self, coalition: Coalition) -> Value:
+        """Get lower bound for a coalition."""
+        return self._values[coalition.id, self._values_lower_index]
+
+    def get_lower_bounds(self, coalitions: Iterable[Coalition] | None = None) -> Values:
+        """Get upper bounds for coalitions."""
+        return self._filter_out_coalitions(self._values[:, self._values_lower_index], coalitions)
+
+    def get_interval(self, coalition: Coalition) -> np.ndarray[Literal[2], np.dtype[Value]]:
+        """Get the interval, ie. both the upper and lower bounds."""
+        return self._values[coalition.id, self._values_lower_index:self._values_upper_index + 1]
+
+    def get_intervals(self, coalitions: Iterable[Coalition] | None = None
+                      ) -> np.ndarray[tuple[Any, Literal[2]], np.dtype[Value]]:
+        """Get the intervals for (some) coalitions. Defaults to all."""
+        r = self._values[:, self._values_lower_index:self._values_upper_index + 1]
+        return self._filter_out_coalitions(r, coalitions)
+
+    def is_value_known(self, coalition: Coalition) -> bool:
+        """Decide whether the value for a coalition is known."""
+        return bool(self._values[coalition.id, self._values_is_known_index])
+
+    def are_values_known(self, coalitions: Iterable[Coalition] | None = None) -> np.ndarray[Any, np.dtype[np.bool_]]:
+        """Get an iterable of `Value`s, or `None` if not known."""
+        return self._filter_out_coalitions(self._values[:, self._values_is_known_index], coalitions) == 1
+
+    def get_known_value(self, coalition: Coalition) -> Value | None:
+        """Get a value for coalition."""
+        return self._values[coalition.id, self._values_lower_index] if self.is_value_known(coalition) else None
+
+    def get_known_values(self, coalitions: Iterable[Coalition] | None = None) -> np.ndarray[Any, np.dtype[Value]]:
+        """Get values, or `False` if not known."""
+        all_values = np.copy(self.get_upper_bounds())
+        coalitions_list = list(coalitions) if coalitions is not None else None
+        wanted_values = self._filter_out_coalitions(all_values, coalitions_list)
+        np.place(wanted_values, np.invert(self.are_values_known(coalitions_list)), None)
+        return wanted_values
+
+    def set_known_values(self, known_values: Iterable[ValueIn], coalitions: Iterable[Coalition] | None = None) -> None:
+        """Set known values to the selected. Drop other values."""
+        self._init_values()
+        return self.set_values(np.fromiter(known_values, Value), coalitions)
+
+    def reveal_value(self, value: ValueIn, coalition: Coalition) -> None:
+        """Reveal a previously unknown value of coalition."""
+        if self.is_value_known(coalition):
+            raise ValueError("Value was already known.")
+        self.set_value(value, coalition)
+
+    def _get_coalition_map(self, coalitions: Iterable[Coalition] | None,
+                           count: int = -1) -> np.ndarray[Any, np.dtype[np.bool_]]:
+        """Get a boolean array of the coalitions."""
+        if coalitions is None:
+            return np.ones(len(self._values), np.bool_)
+        r = np.zeros(len(self._values), np.bool_)
+        coalitions = np.fromiter(map(lambda x: x.id, coalitions), int, count)
+        r[coalitions] = True
+        return r
+
+    def set_upper_bounds(self, values: Values,
+                         coalitions: Iterable[Coalition] | None = None) -> None:
+        """Set values of (some) coalitions the game. Defaults to all coalitions."""
+        if coalitions is not None:
+            coalitions = list(coalitions)
+            all_values = np.zeros(len(self._values))
+            all_values[np.fromiter(map(lambda x: x.id, coalitions), int, len(values))] = values
+        else:
+            all_values = values
+
+        relevant_positions = np.invert(self.are_values_known()) * self._get_coalition_map(coalitions, len(values))
+        np.copyto(self._values[:, self._values_upper_index], all_values, where=relevant_positions)
+
+    def set_upper_bound(self, value: ValueIn, coalition: Coalition) -> None:
+        """Set value of a specific coalition."""
+        self._values[coalition.id, self._values_upper_index] = value
+
+    def set_lower_bounds(self, values: Values,
+                         coalitions: Iterable[Coalition] | None = None) -> None:
+        """Set values of (some) coalitions the game. Defaults to all coalitions."""
+        if coalitions is not None:
+            coalitions = list(coalitions)
+            all_values = np.zeros(len(self._values))
+            all_values[np.fromiter(map(lambda x: x.id, coalitions), int, len(values))] = values
+        else:
+            all_values = values
+
+        relevant_positions = np.invert(self.are_values_known()) * self._get_coalition_map(coalitions, len(values))
+        np.copyto(self._values[:, self._values_lower_index], all_values, where=relevant_positions)
+
+    def set_lower_bound(self, value: ValueIn, coalition: Coalition) -> None:
+        """Set value of a specific coalition."""
+        self._values[coalition.id, self._values_lower_index] = value
 
     def __eq__(self, other) -> bool:
         """Compare two games."""
@@ -41,149 +180,11 @@ class IncompleteCooperativeGame:
             raise AttributeError("Cannot compare games with anything else than games.")
         return bool(np.all(self._values == other._values))
 
-    @property
-    def coalitions(self) -> Coalitions:
-        """Get all coalitions."""
-        return range(2**self.number_of_players)
-
-    def filter_coalitions_not_include_coalition(self, include: Coalition, coalitions: Coalitions) -> Coalitions:
-        """Allow only those from `coalitions`, that do not include any players from `include`."""
-        return filter(lambda coal: include & coal == 0, coalitions)
-
-    def filter_coalitions_include_some_coalition(self, include: Coalition, coalitions: Coalitions) -> Coalitions:
-        """Allow only those from `coalitions`, that include at least some players from `include`."""
-        return filter(lambda coal: include & coal != 0, coalitions)
-
-    def filter_coalitions_include_coalition(self, include: Coalition, coalitions: Coalitions) -> Coalitions:
-        """Allow only those from `coalitions`, that include all players from `include`."""
-        return filter(lambda coal: include & coal == include and include != 0,
-                      coalitions)
-
-    def filter_coalition_subset(self, coalition: Coalition, coalitions: Coalitions, proper: bool = False) -> Coalitions:
-        """Allow only coalitions that are a (proper?) subset of `coalition`."""
-        return filter(lambda coal: coalition & coal == coalition and (not proper or coal - coalition > 0),
-                      coalitions)
-
-    def get_coalitions_not_including_players(self, players: CoalitionPlayers) -> Iterable[Coalition]:
-        """Get all coalitions including a subset of players."""
-        coalition = self.players_to_coalition(players)
-        generated_coalition = 0
-        while generated_coalition < 2**self.number_of_players:
-            yield generated_coalition
-            generated_coalition += 1
-            while generated_coalition & coalition:
-                generated_coalition += generated_coalition & coalition
-
-    def get_coalition_size(self, coalition: Coalition) -> int:
-        """Get size of a coalition."""
-        s = 0
-        while coalition:
-            s += coalition & 1
-            coalition >>= 1
-        return s
-
-    def set_known_values(self, known_values: dict[Coalition, Value]) -> None:
-        """Save known values."""
-        self._init_values()
-        for coalition, value in known_values.items():
-            self.set_value(coalition, value)
-
-    def set_value(self, coalition: Coalition, value: Value | int) -> None:
-        """Set value of a coalition."""
-        self._values[coalition, self._values_upper_index] = value
-        self._values[coalition, self._values_lower_index] = value
-        self._values[coalition, self._values_is_known_index] = 1  # the value is known
-
-    def get_value(self, coalition: Coalition) -> Value | None:
-        """Get a value for coalition."""
-        if not self.is_value_known(coalition):
-            return None
-        return self._values[coalition, self._values_lower_index]
-
-    def players_to_coalition(self, players: CoalitionPlayers) -> Coalition:
-        """Turn a Coalition into a numeric representation."""
-        coalition = set(players)
-        if coalition and max(coalition) >= self.number_of_players:
-            raise AttributeError("This game doesn't have enough players for this.")
-        return sum(map(lambda x: 2**x, coalition))
-
-    def coalition_to_players(self, coalition: Coalition) -> CoalitionPlayers:
-        """Turn the numeric representation to list of players."""
-        if coalition >= 2**self.number_of_players:
-            raise AttributeError("This coalition is too large for this game.")
-
-        i = 0
-        while coalition > 0:
-            if coalition & 1:
-                yield i
-            coalition >>= 1
-            i += 1
-
-    def reveal_value(self, coalition: Coalition, value: Value) -> None:
-        """Reveal a value of a coalition."""
-        if self.get_value(coalition) is not None:
-            raise ValueError("Value was already known.")
-
-        self.set_value(coalition, value)
-
-    def get_lower_bound(self, coalition: Coalition) -> Value:
-        """Get lower bound for a coalition."""
-        return self._values[coalition, self._values_lower_index]
-
-    def get_upper_bound(self, coalition: Coalition) -> Value:
-        """Get upper bound for a coalition."""
-        return self._values[coalition, self._values_upper_index]
-
-    def set_upper_bound(self, coalition: Coalition, bound: Value | int) -> None:
-        """Set upper bound of a coalition."""
-        if self.is_value_known(coalition):
-            raise AttributeError("The selected coalition already has known value.")
-        self._values[coalition, self._values_upper_index] = bound
-
-    def set_lower_bound(self, coalition: Coalition, bound: Value | int) -> None:
-        """Set lower bound of a coalition."""
-        if self.is_value_known(coalition):
-            raise AttributeError("The selected coalition already has known value.")
-        self._values[coalition, self._values_lower_index] = bound
-
     def compute_bounds(self) -> None:
         """Recompute bounds given (potentially new) information."""
         self._bounds_computer(self)
 
-    def is_value_known(self, coalition: Coalition) -> bool:
-        """Is value of the coalition already known."""
-        return bool(self._values[coalition, self._values_is_known_index])
-
-    @property
-    def known_values(self) -> list[bool]:
-        """Get a list of bools for each coalition, saying whether or not its value is known."""
-        return self._values[:, self._values_is_known_index] == 1
-
     @property
     def full(self) -> bool:
         """Decide whether the game is fully known."""
-        return bool(np.all(self.known_values))
-
-    @property
-    def upper_bounds(self) -> np.ndarray[Any, np.dtype[Value]]:
-        """Get all upper bounds."""
-        return self._values[:, self._values_upper_index]
-
-    @property
-    def lower_bounds(self) -> np.ndarray[Any, np.dtype[Value]]:
-        """Get all lower bounds."""
-        return self._values[:, self._values_lower_index]
-
-    @property
-    def values(self) -> np.ndarray[Any, np.dtype[Value]]:
-        """Get values, or `False` if not known."""
-        return self.upper_bounds * self.known_values
-
-    def get_bounds(self, coalition: Coalition) -> np.ndarray[Literal[2], np.dtype[Value]]:
-        """Get bounds for a coalition."""
-        return self._values[coalition, self._values_lower_index:self._values_upper_index + 1]
-
-    @property
-    def grand_coalition(self) -> Coalition:
-        """Get the grand coalition."""
-        return 2**self.number_of_players - 1
+        return bool(np.all(self.are_values_known()))
