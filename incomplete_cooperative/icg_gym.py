@@ -24,14 +24,14 @@ class ICG_Gym(gym.Env):
         `initially_known_coalitions` are the codes of coalitions, whose values will be in the `game` from the start.
         """
         super().__init__()
-        initially_known_coalitions = list(set(initially_known_coalitions).union({Coalition(0)}))
+        self.initially_known_coalitions = list(set(initially_known_coalitions).union({Coalition(0)}))
 
         self.game = game
         self.full_game = full_game
-        self.initially_known_values = list(full_game.get_values(initially_known_coalitions))
+        self.initially_known_values = list(full_game.get_values(self.initially_known_coalitions))
 
         # explorable coalitions are those, whose values we initially do not know.
-        self.explorable_coalitions = list(set(filter(lambda x: x not in initially_known_coalitions,
+        self.explorable_coalitions = list(set(filter(lambda x: x not in self.initially_known_coalitions,
                                                      all_coalitions(self.full_game))))
 
         # setup the gym.
@@ -44,16 +44,12 @@ class ICG_Gym(gym.Env):
     @property
     def valid_action_mask(self) -> np.ndarray:
         """Get valid actions for the agent."""
-        return np.fromiter(map(
-            lambda coalition: 0 if self.game.is_value_known(coalition) else 1,
-            self.explorable_coalitions
-        ), bool)
+        return np.invert(self.game.are_values_known(self.explorable_coalitions))
 
     @property
     def state(self) -> np.ndarray[Any, np.dtype[Value]]:
         """Get the current state."""
-        return np.fromiter(self.game.get_known_values(),
-                           Value, 2**self.game.number_of_players)
+        return self.game.get_known_values()
 
     @property
     def reward(self) -> Value:  # type: ignore
@@ -62,7 +58,7 @@ class ICG_Gym(gym.Env):
     @property
     def done(self) -> bool:
         """Decide whether we are done -- all values are known."""
-        return all(self.game.get_known_values())
+        return bool(np.all(self.game.are_values_known()))
 
     def reset(self) -> State:
         """Reset the game into initial state."""

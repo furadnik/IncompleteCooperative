@@ -13,9 +13,13 @@ class Coalition:
         """Initialize Coalition."""
         self.id = id
 
-    def __repr__(self) -> str:
+    def __repr__(self) -> str:  # pragma: no cover
         """Represent the coalition."""
-        return f"Coalition({self.players})"
+        return f"Coalition({list(self.players)})"
+
+    def __hash__(self) -> int:
+        """Hash coalition."""
+        return hash(self.id)
 
     @staticmethod
     def from_players(players: Iterable[Player]) -> Coalition:
@@ -47,6 +51,12 @@ class Coalition:
         if isinstance(other, Player):
             other = player_to_coalition(other)
         return Coalition(self.id & other.id)
+
+    def __or__(self, other: Coalition | Player) -> Coalition:
+        """Return the addition of coalitions."""
+        if isinstance(other, Player):
+            other = player_to_coalition(other)
+        return Coalition(self.id | other.id)
 
     def __len__(self) -> int:
         """Get size of coalition."""
@@ -83,5 +93,5 @@ def all_coalitions(game: Game) -> Iterable[Coalition]:
 
 def exclude_coalition(exclude: Coalition, coalitions: Iterable[Coalition]) -> Iterable[Coalition]:
     """Get coalitions that do not icnlude anyone from the `exclude` coalition."""
-    return filter(lambda coalition: coalition & exclude == 0,
+    return filter(lambda coalition: not len(coalition & exclude),
                   coalitions)

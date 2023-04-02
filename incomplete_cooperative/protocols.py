@@ -5,11 +5,12 @@ from typing import TYPE_CHECKING, Any, Iterable, Literal, Protocol
 
 import numpy as np
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from .coalitions import Coalition
 
 Player = int
-Value = np.float32
+Value = np.float64
+ValueIn = np.float64 | float | int
 Values = np.ndarray[Any, np.dtype[Value]]
 
 
@@ -32,7 +33,7 @@ class MutableGame(Game, Protocol):
                    coalitions: Iterable[Coalition] | None = None) -> None:
         """Set values of (some) coalitions the game. Defaults to all coalitions."""
 
-    def set_value(self, value: Value, coalition: Coalition) -> None:
+    def set_value(self, value: ValueIn, coalition: Coalition) -> None:
         """Set value of a specific coalition."""
 
 
@@ -54,23 +55,30 @@ class IncompleteGame(Game, Protocol):
     def get_interval(self, coalition: Coalition) -> np.ndarray[Literal[2], np.dtype[Value]]:
         """Get the interval, ie. both the upper and lower bounds."""
 
-    def get_intervals(self, coalitions: Iterable[Coalition]) -> np.ndarray[tuple[Any, Literal[2]], np.dtype[Value]]:
+    def get_intervals(self, coalitions: Iterable[Coalition] | None = None
+                      ) -> np.ndarray[tuple[Any, Literal[2]], np.dtype[Value]]:
         """Get the intervals for (some) coalitions. Defaults to all."""
 
     def is_value_known(self, coalition: Coalition) -> bool:
         """Decide whether the value for a coalition is known."""
 
-    def get_known_values(self, coalitions: Iterable[Coalition] | None = None) -> np.ndarray[Any, np.dtype[np.bool_]]:
+    def are_values_known(self, coalitions: Iterable[Coalition] | None = None) -> np.ndarray[Any, np.dtype[np.bool_]]:
+        """Decide whether the values for coalitions are known."""
+
+    def get_known_value(self, coalition: Coalition) -> Value | None:
+        """Get an iterable of `Value`s, or `None` if not known."""
+
+    def get_known_values(self, coalitions: Iterable[Coalition] | None = None) -> np.ndarray[Any, np.dtype[Value]]:
         """Get an iterable of `Value`s, or `None` if not known."""
 
 
 class MutableIncompleteGame(IncompleteGame, MutableGame, Protocol):
     """Incomplete cooperative game with mutable values."""
 
-    def set_known_values(self, known_values: Iterable[Value], coalitions: Iterable[Coalition] | None = None) -> None:
+    def set_known_values(self, known_values: Iterable[ValueIn], coalitions: Iterable[Coalition] | None = None) -> None:
         """Set known values to the selected. Drop other values."""
 
-    def reveal_value(self, value: Value, coalition: Coalition) -> None:
+    def reveal_value(self, value: ValueIn, coalition: Coalition) -> None:
         """Reveal a previously unknown value of coalition."""
 
 
@@ -81,19 +89,19 @@ class BoundableIncompleteGame(IncompleteGame, Protocol):
                    coalitions: Iterable[Coalition] | None = None) -> None:
         """Set values of (some) coalitions the game. Defaults to all coalitions."""
 
-    def set_value(self, value: Value, coalition: Coalition) -> None:
+    def set_value(self, value: ValueIn, coalition: Coalition) -> None:
         """Set value of a specific coalition."""
 
     def set_upper_bounds(self, values: Values,
                          coalitions: Iterable[Coalition] | None = None) -> None:
         """Set values of (some) coalitions the game. Defaults to all coalitions."""
 
-    def set_upper_bound(self, value: Value, coalition: Coalition) -> None:
+    def set_upper_bound(self, value: ValueIn, coalition: Coalition) -> None:
         """Set value of a specific coalition."""
 
     def set_lower_bounds(self, values: Values,
                          coalitions: Iterable[Coalition] | None = None) -> None:
         """Set values of (some) coalitions the game. Defaults to all coalitions."""
 
-    def set_lower_bound(self, value: Value, coalition: Coalition) -> None:
+    def set_lower_bound(self, value: ValueIn, coalition: Coalition) -> None:
         """Set value of a specific coalition."""
