@@ -7,21 +7,28 @@ from .coalitions import Coalition, all_coalitions
 from .protocols import BoundableIncompleteGame
 
 
-def _sub_coalitions(coalition) -> Iterator[Coalition]:
+def _sub_coalitions(coalition: Coalition, game: BoundableIncompleteGame) -> Iterator[Coalition]:
     """Generate sub-coalitions for a coalition."""
     return filter(lambda x: x & coalition != coalition and x | coalition == coalition,
-                  all_coalitions(coalition.players))
+                  all_coalitions(game))
+
+
+def _super_coalitions(coalition: Coalition, game: BoundableIncompleteGame) -> Iterator[Coalition]:
+    """Generate super-coalitions of a coalition."""
+    return filter(lambda x: x & coalition == coalition,
+                  all_coalitions(game))
 
 
 def compute_bounds_superadditive(game: BoundableIncompleteGame) -> None:
     """Compute the bounds given a superadditive incomplete game."""
     for coalition in sorted(filter(lambda x: not game.is_value_known(x), all_coalitions(game)), key=len):
-        sub_coalitions = list(_sub_coalitions(coalition))
+        sub_coalitions = list(_sub_coalitions(coalition, game))
         complementary_coalitions = map(lambda x: coalition - x, sub_coalitions)
         lower_bound = np.max(game.get_lower_bounds(sub_coalitions) + game.get_lower_bounds(complementary_coalitions))
         game.set_lower_bound(lower_bound, coalition)
 
-        known_sub_coalitions = list(filter(lambda x: game.is_value_known(x), sub_coalitions))
-        complementary_coalitions = map(lambda x: coalition - x, known_sub_coalitions)
-        upper_bound = np.min(game.get_values(known_sub_coalitions) - game.get_lower_bounds(complementary_coalitions))
+    for coalition in filter(game.is_value_known, all_coalitions(game)):
+        known_super_coalitions = list(filter(game.is_value_known, _super_coalitions(coalition, game)))
+        complementary_coalitions = map(lambda x: x - coalition, known_super_coalitions)
+        upper_bound = np.min(game.get_values(known_super_coalitions) - game.get_lower_bounds(complementary_coalitions))
         game.set_upper_bound(upper_bound, coalition)
