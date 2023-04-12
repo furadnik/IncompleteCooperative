@@ -1,7 +1,8 @@
 """Protocols specifying `Game`s."""
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Iterable, Literal, Protocol
+from typing import (TYPE_CHECKING, Any, Iterable, Literal, Protocol,
+                    runtime_checkable)
 
 import numpy as np
 
@@ -14,6 +15,7 @@ ValueIn = np.float64 | float | int
 Values = np.ndarray[Any, np.dtype[Value]]
 
 
+@runtime_checkable
 class Game(Protocol):
     """The general game protocol."""
 
