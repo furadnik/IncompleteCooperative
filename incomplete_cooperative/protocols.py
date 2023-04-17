@@ -73,6 +73,9 @@ class IncompleteGame(Game, Protocol):
     def get_known_values(self, coalitions: Iterable[Coalition] | None = None) -> np.ndarray[Any, np.dtype[Value]]:
         """Get an iterable of `Value`s, or `None` if not known."""
 
+    def compute_bounds(self) -> None:
+        """Compute the bounds of the ICG."""
+
 
 class MutableIncompleteGame(IncompleteGame, MutableGame, Protocol):
     """Incomplete cooperative game with mutable values."""

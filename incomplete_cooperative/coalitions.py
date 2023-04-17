@@ -40,11 +40,6 @@ class Coalition:
             coalition >>= 1
             i += 1
 
-    @property
-    def maximum_player(self) -> int:
-        """Get the maximum player index."""
-        return max(self.players)
-
     def __contains__(self, other: Coalition | Player) -> bool:
         """Get whether or not the coalition contains value."""
         if isinstance(other, Player):
@@ -84,7 +79,7 @@ class Coalition:
         """Subtract coalition."""
         if isinstance(other, Coalition):
             return Coalition(self.id & ~other.id)
-        else:
+        else:  # pragma: nocover
             raise ValueError(f"Cannot subtract Coalition and {other}")
 
 

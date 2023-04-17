@@ -41,7 +41,6 @@ class ICG_Gym(gym.Env):
                                                 dtype=np.float32)
         self.action_space = gym.spaces.Discrete(len(self.explorable_coalitions))
 
-    @property
     def valid_action_mask(self) -> np.ndarray:
         """Get valid actions for the agent."""
         return np.invert(self.game.are_values_known(self.explorable_coalitions))
@@ -49,7 +48,7 @@ class ICG_Gym(gym.Env):
     @property
     def state(self) -> np.ndarray[Any, np.dtype[Value]]:
         """Get the current state."""
-        return self.game.get_known_values()
+        return np.nan_to_num(self.game.get_known_values(self.explorable_coalitions))
 
     @property
     def reward(self) -> Value:  # type: ignore
@@ -64,7 +63,7 @@ class ICG_Gym(gym.Env):
         """Reset the game into initial state."""
         self.game.set_known_values(self.initially_known_values,
                                    self.initially_known_coalitions)
-        # self.game.compute_bounds()    # TODO: implement later?
+        self.game.compute_bounds()
 
         return self.state
 

@@ -73,6 +73,10 @@ class IncompleteCooperativeGame:
         self._values.fill(0)
         self.set_value(0, Coalition.from_players([]))  # empty coalition always has 0 value
 
+    def compute_bounds(self) -> None:
+        """Compute the bounds."""
+        self._bounds_computer(self)
+
     def get_upper_bound(self, coalition: Coalition) -> Value:
         """Get upper bound for a coalition."""
         return self._values[coalition.id, self._values_upper_index]
@@ -179,10 +183,6 @@ class IncompleteCooperativeGame:
         if not isinstance(other, IncompleteCooperativeGame):
             raise AttributeError("Cannot compare games with anything else than games.")
         return bool(np.all(self._values == other._values))
-
-    def compute_bounds(self) -> None:
-        """Recompute bounds given (potentially new) information."""
-        self._bounds_computer(self)
 
     @property
     def full(self) -> bool:
