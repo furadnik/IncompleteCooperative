@@ -75,6 +75,13 @@ class Coalition:
             return self.players == [other]
         return False
 
+    def __sub__(self, other) -> Coalition:
+        """Subtract coalition."""
+        if isinstance(other, Coalition):
+            return Coalition(self.id & ~other.id)
+        else:  # pragma: nocover
+            raise ValueError(f"Cannot subtract Coalition and {other}")
+
 
 def player_to_coalition(player: Player) -> Coalition:
     """Get a singleton containing only the player."""
@@ -86,9 +93,11 @@ def grand_coalition(game: Game) -> Coalition:
     return Coalition(2**game.number_of_players - 1)
 
 
-def all_coalitions(game: Game) -> Iterable[Coalition]:
+def all_coalitions(players: Game | int) -> Iterable[Coalition]:
     """Get all possible coalitions of a game."""
-    return map(Coalition, range(2**game.number_of_players))
+    if isinstance(players, Game):
+        players = players.number_of_players
+    return map(Coalition, range(2**players))
 
 
 def exclude_coalition(exclude: Coalition, coalitions: Iterable[Coalition]) -> Iterable[Coalition]:
