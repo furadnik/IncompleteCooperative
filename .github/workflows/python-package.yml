@@ -31,7 +31,7 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Test with unittest
       run: |
-        python -m coverage run unittest
+        python -m coverage run -m unittest
     - name: Test typehints
       run: |
         python -m mypy incomplete_cooperative
