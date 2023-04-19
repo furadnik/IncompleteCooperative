@@ -1,4 +1,5 @@
 """An Agent Gym for Incomplete Cooperative Games."""
+from .exploitability import compute_exploitability
 from typing import Any, Iterable
 
 import gym  # type: ignore
@@ -52,7 +53,8 @@ class ICG_Gym(gym.Env):
 
     @property
     def reward(self) -> Value:  # type: ignore
-        """Return reward -- negative exploitability."""  # TODO: implement later.
+        """Return reward -- negative exploitability."""
+        return -compute_exploitability(self.game)
 
     @property
     def done(self) -> bool:
