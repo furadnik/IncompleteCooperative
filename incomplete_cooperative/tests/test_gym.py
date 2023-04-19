@@ -42,9 +42,6 @@ class TestICGGym(TestCase):
         for coalition in self.icg_gym.explorable_coalitions:
             self.assertFalse(self.game.is_value_known(coalition), coalition)
 
-    def test_game_normalized(self):
-        pass  # TODO: implement later.
-
     def test_action_mask(self):
         self.assertEqual(len(self.icg_gym.explorable_coalitions),
                          len(self.icg_gym.valid_action_mask()))
