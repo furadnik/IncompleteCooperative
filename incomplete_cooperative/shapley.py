@@ -7,7 +7,7 @@ import numpy as np
 
 from .coalitions import (Coalition, all_coalitions, exclude_coalition,
                          player_to_coalition)
-from .protocols import Game, Value, Player
+from .protocols import Game, Player, Value
 
 
 def _get_contributions(number_of_players: int) -> np.ndarray[Any, np.dtype[Value]]:
@@ -24,7 +24,7 @@ def compute_shapley_value_for_player(player: Player, game: Game) -> Value:
 
 def _shapley_value_for_player(singleton: Coalition, game: Game,
                               coalition_contribution_coefficients: np.ndarray[Any, np.dtype[Value]],
-                              n_fac: int) -> None:
+                              n_fac: int) -> Value:
     """Compute shapley value for a single player, with caching."""
     coalitions_without_player = np.fromiter(
         exclude_coalition(singleton, all_coalitions(game)),
