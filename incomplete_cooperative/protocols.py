@@ -19,7 +19,9 @@ Values = np.ndarray[Any, np.dtype[Value]]
 class Game(Protocol):
     """The general game protocol."""
 
-    number_of_players: int
+    @property
+    def number_of_players(self) -> int:
+        """The number of players in the game."""
 
     def get_values(self, coalitions: Iterable[Coalition] | None = None) -> Values:
         """Get values for (some) coalitions the game. Defaults to all coalitions."""
