@@ -1,4 +1,4 @@
-setuptools==66
+setuptools==67.7.2
 numpy==1.24.2
 stable-baselines3==1.8.0
 sb3-contrib==1.8.0
