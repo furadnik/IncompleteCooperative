@@ -1,11 +1,11 @@
 """An Agent Gym for Incomplete Cooperative Games."""
-from .exploitability import compute_exploitability
-from typing import Any, Iterable
+from typing import Any, Callable, Iterable
 
 import gym  # type: ignore
 import numpy as np
 
 from .coalitions import Coalition, all_coalitions
+from .exploitability import compute_exploitability
 from .protocols import Game, MutableIncompleteGame, Value
 
 State = np.ndarray
@@ -16,7 +16,7 @@ class ICG_Gym(gym.Env):
     """A `gym.Env` for incomplete cooperative games."""
 
     def __init__(self, game: MutableIncompleteGame,
-                 full_game: Game,
+                 game_generator: Callable[[], Game],
                  initially_known_coalitions: Iterable[Coalition]) -> None:
         """Initialize gym.
 
@@ -25,12 +25,12 @@ class ICG_Gym(gym.Env):
         `initially_known_coalitions` are the codes of coalitions, whose values will be in the `game` from the start.
         """
         super().__init__()
+
+        self.incomplete_game = game
+        self.generator = game_generator
+        self.full_game = game_generator()
+
         self.initially_known_coalitions = list(set(initially_known_coalitions).union({Coalition(0)}))
-
-        self.game = game
-        self.full_game = full_game
-        self.initially_known_values = list(full_game.get_values(self.initially_known_coalitions))
-
         # explorable coalitions are those, whose values we initially do not know.
         self.explorable_coalitions = list(set(filter(lambda x: x not in self.initially_known_coalitions,
                                                      all_coalitions(self.full_game))))
@@ -44,28 +44,29 @@ class ICG_Gym(gym.Env):
 
     def valid_action_mask(self) -> np.ndarray:
         """Get valid actions for the agent."""
-        return np.invert(self.game.are_values_known(self.explorable_coalitions))
+        return np.invert(self.incomplete_game.are_values_known(self.explorable_coalitions))
 
     @property
     def state(self) -> np.ndarray[Any, np.dtype[Value]]:
         """Get the current state."""
-        return np.nan_to_num(self.game.get_known_values(self.explorable_coalitions))
+        return np.nan_to_num(self.incomplete_game.get_known_values(self.explorable_coalitions))
 
     @property
     def reward(self) -> Value:  # type: ignore
         """Return reward -- negative exploitability."""
-        return -compute_exploitability(self.game)
+        return -compute_exploitability(self.incomplete_game)
 
     @property
     def done(self) -> bool:
         """Decide whether we are done -- all values are known."""
-        return bool(np.all(self.game.are_values_known()))
+        return bool(np.all((self.incomplete_game.get_upper_bounds() - self.incomplete_game.get_lower_bounds()) == 0))
 
     def reset(self) -> State:
         """Reset the game into initial state."""
-        self.game.set_known_values(self.initially_known_values,
-                                   self.initially_known_coalitions)
-        self.game.compute_bounds()
+        self.full_game = self.generator()
+        self.incomplete_game.set_known_values(self.full_game.get_values(self.initially_known_coalitions),
+                                              self.initially_known_coalitions)
+        self.incomplete_game.compute_bounds()
 
         return self.state
 
@@ -76,7 +77,8 @@ class ICG_Gym(gym.Env):
         """
         # The chosen coalition for revealing, skipping the singletons
         chosen_coalition = self.explorable_coalitions[action]
-        self.game.reveal_value(self.full_game.get_value(chosen_coalition),
-                               chosen_coalition)
+        self.incomplete_game.reveal_value(self.full_game.get_value(chosen_coalition),
+                                          chosen_coalition)
+        self.incomplete_game.compute_bounds()
 
         return self.state, self.reward, self.done, {}

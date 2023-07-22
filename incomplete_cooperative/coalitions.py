@@ -100,6 +100,13 @@ def all_coalitions(players: Game | int) -> Iterable[Coalition]:
     return map(Coalition, range(2**players))
 
 
+def minimal_game_coalitions(game: Game) -> Iterable[Coalition]:
+    """Get minimal value."""
+    yield Coalition(0)
+    yield grand_coalition(game)
+    yield from (Coalition.from_players([i]) for i in range(game.number_of_players))
+
+
 def exclude_coalition(exclude: Coalition, coalitions: Iterable[Coalition]) -> Iterable[Coalition]:
     """Get coalitions that do not icnlude anyone from the `exclude` coalition."""
     return filter(lambda coalition: not len(coalition & exclude),

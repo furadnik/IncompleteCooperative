@@ -1,7 +1,7 @@
 """Protocols specifying `Game`s."""
 from __future__ import annotations
 
-from typing import (TYPE_CHECKING, Any, Iterable, Literal, Protocol,
+from typing import (TYPE_CHECKING, Any, Callable, Iterable, Literal, Protocol,
                     runtime_checkable)
 
 import numpy as np
@@ -112,3 +112,7 @@ class BoundableIncompleteGame(IncompleteGame, Protocol):
 
     def set_lower_bound(self, value: ValueIn, coalition: Coalition) -> None:
         """Set value of a specific coalition."""
+
+
+GameBoundsComputer = Callable[[BoundableIncompleteGame], None]
+GameGenerator = Callable[[int], Game]

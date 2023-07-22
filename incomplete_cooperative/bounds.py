@@ -32,3 +32,8 @@ def compute_bounds_superadditive(game: BoundableIncompleteGame) -> None:
         complementary_coalitions = list(map(lambda x: x - coalition, known_super_coalitions))
         upper_bound = np.min(game.get_values(known_super_coalitions) - game.get_lower_bounds(complementary_coalitions))
         game.set_upper_bound(upper_bound, coalition)
+
+
+BOUNDS = {
+    "superadditive": compute_bounds_superadditive,
+}
