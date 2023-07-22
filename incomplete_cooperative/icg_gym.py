@@ -59,7 +59,7 @@ class ICG_Gym(gym.Env):
     @property
     def done(self) -> bool:
         """Decide whether we are done -- all values are known."""
-        return bool(np.all(self.incomplete_game.are_values_known()))
+        return bool(np.all((self.incomplete_game.get_upper_bounds() - self.incomplete_game.get_lower_bounds()) == 0))
 
     def reset(self) -> State:
         """Reset the game into initial state."""
@@ -79,5 +79,6 @@ class ICG_Gym(gym.Env):
         chosen_coalition = self.explorable_coalitions[action]
         self.incomplete_game.reveal_value(self.full_game.get_value(chosen_coalition),
                                           chosen_coalition)
+        self.incomplete_game.compute_bounds()
 
         return self.state, self.reward, self.done, {}

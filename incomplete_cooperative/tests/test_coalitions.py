@@ -4,6 +4,7 @@ from unittest.mock import Mock
 
 from incomplete_cooperative.coalitions import (Coalition, all_coalitions,
                                                exclude_coalition,
+                                               minimal_game_coalitions,
                                                player_to_coalition)
 
 
@@ -90,3 +91,12 @@ class TestCoalitions(TestCase):
 
     def test_order_unknown(self):
         self.assertFalse(Coalition(3) == "Coalition(3)")
+
+    def test_minimal_game(self):
+        tested_coalitions = list(minimal_game_coalitions(self.game))
+        for coalition in all_coalitions(self.game):
+            with self.subTest(coalition=coalition):
+                if len(coalition) <= 1 or len(coalition) == self.game.number_of_players:
+                    self.assertIn(coalition, tested_coalitions)
+                else:
+                    self.assertNotIn(coalition, tested_coalitions)

@@ -1,4 +1,5 @@
 """Generators of games."""
+from functools import partial
 from random import randrange
 
 from .coalitions import all_coalitions
@@ -18,6 +19,7 @@ def factory_generator(number_of_players: int, owner: int | None = None) -> Game:
     return game
 
 
-GENERATORS: dict[str, GameGenerator] = {
+GENERATORS: dict[str, GameGenerator] = {  # TODO: supported
     "factory": factory_generator,
+    "factory_fixed": partial(factory_generator, owner=0),
 }
