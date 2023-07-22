@@ -102,3 +102,8 @@ class TestEval(TestCase):
 
     def test_run_eval(self):
         eval_func(self.model, self.parsed_args)  # TODO: implement later.
+
+    def test_both_parsed(self):
+        parsed = self.ap.parse_args(["--eval-repetitions", "1", "--eval-episode-length", "2"])
+        self.assertEqual(parsed.eval_repetitions, 1)
+        self.assertEqual(parsed.eval_episode_length, 2)
