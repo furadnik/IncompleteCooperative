@@ -1,6 +1,7 @@
 """An incomplete cooperative game representation."""
 from __future__ import annotations
 
+import logging
 from typing import Any, Callable, Iterable, Literal
 
 import numpy as np
@@ -10,6 +11,8 @@ from .protocols import BoundableIncompleteGame, Value, ValueIn, Values
 
 Coalitions = Iterable[Coalition]
 CoalitionPlayers = Iterable[int]
+
+LOGGER = logging.getLogger(__name__)
 
 
 class IncompleteCooperativeGame:
@@ -131,7 +134,9 @@ class IncompleteCooperativeGame:
     def reveal_value(self, value: ValueIn, coalition: Coalition) -> None:
         """Reveal a previously unknown value of coalition."""
         if self.is_value_known(coalition):
-            raise ValueError("Value was already known.")
+            # raise ValueError("Value was already known.")  # TODO: improve this.
+            LOGGER.error("Value was already known.")
+            return
         self.set_value(value, coalition)
 
     def _get_coalition_map(self, coalitions: Iterable[Coalition] | None,

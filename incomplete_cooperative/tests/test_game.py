@@ -39,7 +39,8 @@ class TestGame(TestCase):
 
     def test_reveal_existing(self):
         self.game.set_value(3, Coalition(1))
-        self.assertRaises(ValueError, self.game.reveal_value, 3, Coalition(1))
+        self.game.reveal_value(2, Coalition(1))
+        # self.assertRaises(ValueError, self.game.reveal_value, 3, Coalition(1))
         self.assertEqual(self.game.get_value(Coalition(1)), 3)
 
     def test_reveal_proper(self):
