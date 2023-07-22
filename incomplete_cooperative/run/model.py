@@ -81,5 +81,5 @@ def add_model_arguments(ap) -> None:
     ap.add_argument("--game-generator", default=defaults.game_generator,
                     help="Set the game generator.", choices=GENERATORS.keys())
     ap.add_argument("--steps-per-update", default=defaults.steps_per_update,
-                    help="Steps in one epoch when learning.", choices=GENERATORS.keys())
+                    type=int, help="Steps in one epoch when learning.")
     ap.add_argument("--parallel-environments", default=defaults.parallel_environments, type=int)

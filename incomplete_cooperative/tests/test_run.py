@@ -27,6 +27,7 @@ class TestAddModelArguments(TestCase):
             ([], lambda x: x.name == "icg"),
             (["--model-name", "asdf"], lambda x: x.name == "asdf"),
             (["--number-of-players", "42"], lambda x: x.number_of_players == 42),
+            (["--steps-per-update", "420"], lambda x: x.steps_per_update == 420),
             (["--game-generator", "factory"], lambda x: x.game_generator == "factory"),
         ]
         for arguments, test in tests:
