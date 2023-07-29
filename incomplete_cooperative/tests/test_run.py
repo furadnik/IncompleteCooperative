@@ -5,6 +5,7 @@ from tempfile import TemporaryDirectory
 from unittest import TestCase
 from unittest.mock import patch
 
+from incomplete_cooperative.random_player import RandomPolicy
 from incomplete_cooperative.run.eval import add_eval_parser, eval_func
 from incomplete_cooperative.run.learn import add_learn_parser, learn_func
 from incomplete_cooperative.run.model import ModelInstance, add_model_arguments
@@ -59,6 +60,10 @@ class TestModelInstance(TestCase):
         with patch("incomplete_cooperative.run.model.MaskablePPO") as m:
             self.model.model
             m.load.assert_called_once()
+
+    def test_get_random_model(self):
+        model = ModelInstance(random=True).model
+        self.assertIsInstance(model.policy, RandomPolicy)
 
 
 class TestLearn(TestCase):
