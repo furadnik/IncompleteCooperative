@@ -15,6 +15,7 @@ from ..coalitions import minimal_game_coalitions
 from ..game import IncompleteCooperativeGame
 from ..generators import GENERATORS
 from ..icg_gym import ICG_Gym
+from ..random_player import RandomPolicy
 
 
 @dataclass
@@ -27,13 +28,15 @@ class ModelInstance:
     game_generator: str = "factory"
     steps_per_update: int = 2048
     parallel_environments: int = 5
+    random: bool = False
 
     @classmethod
     def from_parsed_arguments(cls, args) -> ModelInstance:
         """Create an instance from parsed arguments."""
         return cls(args.model_name, args.number_of_players,
                    args.game_class, args.game_generator,
-                   args.steps_per_update, args.parallel_environments)
+                   args.steps_per_update, args.parallel_environments,
+                   args.random_player)
 
     def _env_generator(self) -> Env:
         """Generate environment."""
@@ -61,6 +64,8 @@ class ModelInstance:
     def model(self) -> MaskablePPO:
         """Get model."""
         envs = self.env_generator()
+        if self.random:
+            return MaskablePPO(RandomPolicy, envs, n_steps=self.steps_per_update, verbose=10)
         return MaskablePPO.load(self.model_path, envs) if self.model_path.with_suffix(".zip").exists() \
             else MaskablePPO("MlpPolicy", envs, n_steps=self.steps_per_update, verbose=10)
 
@@ -83,3 +88,4 @@ def add_model_arguments(ap) -> None:
     ap.add_argument("--steps-per-update", default=defaults.steps_per_update,
                     type=int, help="Steps in one epoch when learning.")
     ap.add_argument("--parallel-environments", default=defaults.parallel_environments, type=int)
+    ap.add_argument("--random-player", action="store_true")
