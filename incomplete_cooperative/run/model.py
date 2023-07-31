@@ -60,7 +60,8 @@ class ModelInstance:
     @property
     def model_name(self) -> str:
         """Get the model path."""
-        return f"{self.name}_{self.game_generator}_{self.game_class}_{self.number_of_players}"
+        random = "_random" if self.random else ""
+        return f"{self.name}_{self.game_generator}_{self.game_class}_{self.number_of_players}{random}"
 
     @property
     def model_path(self) -> Path:
