@@ -1,6 +1,7 @@
 """Tests for the `run` module."""
 from argparse import ArgumentParser
 from os import chdir
+from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest import TestCase
 from unittest.mock import patch
@@ -86,6 +87,7 @@ class TestLearn(TestCase):
     def test_saving(self):
         learn_func(self.model, self.parsed_args)
         self.assertTrue(self.model.model_path.with_suffix(".zip").exists())
+        # self.assertEqual(len(list(Path(self._tmp.name).iterdir())), 3)
 
 
 class TestEval(TestCase):
@@ -107,6 +109,7 @@ class TestEval(TestCase):
 
     def test_run_eval(self):
         eval_func(self.model, self.parsed_args)  # TODO: implement later.
+        self.assertEqual(len(list(Path(self._tmp.name).iterdir())), 2)
 
     def test_both_parsed(self):
         parsed = self.ap.parse_args(["--eval-repetitions", "1", "--eval-episode-length", "2"])

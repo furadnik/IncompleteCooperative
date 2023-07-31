@@ -29,7 +29,7 @@ def eval_func(instance: ModelInstance, parsed_args) -> None:
         parsed_args.eval_episode_length,
         parsed_args.eval_repetitions * instance.parallel_environments)
 
-    save(exploitability, parsed_args.save_path, instance.model_name, parsed_args)
+    save(exploitability, instance.model_out_path, parsed_args)
 
 
 def add_eval_parser(parser) -> None:
