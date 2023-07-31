@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 from functools import partial
 from pathlib import Path
 
@@ -29,6 +30,7 @@ class ModelInstance:
     steps_per_update: int = 2048
     parallel_environments: int = 5
     random: bool = False
+    model_dir: Path = Path(".")
 
     @classmethod
     def from_parsed_arguments(cls, args) -> ModelInstance:
@@ -36,7 +38,7 @@ class ModelInstance:
         return cls(args.model_name, args.number_of_players,
                    args.game_class, args.game_generator,
                    args.steps_per_update, args.parallel_environments,
-                   args.random_player)
+                   args.random_player, Path(args.model_dir))
 
     def _env_generator(self) -> Env:
         """Generate environment."""
@@ -56,9 +58,19 @@ class ModelInstance:
         return make_vec_env(self._env_generator, n_envs=self.parallel_environments)
 
     @property
+    def model_name(self) -> str:
+        """Get the model path."""
+        return f"{self.name}_{self.game_generator}_{self.game_class}_{self.number_of_players}"
+
+    @property
     def model_path(self) -> Path:
         """Get the model path."""
-        return Path(f"{self.name}_{self.game_generator}_{self.game_class}_{self.number_of_players}")
+        return self.model_dir / f"{self.model_name}"
+
+    @property
+    def model_out_path(self) -> Path:
+        """Get the output path of the model -- with datetime."""
+        return self.model_dir / f"{self.model_name}_{datetime.now().isoformat()}"
 
     @property
     def model(self) -> MaskablePPO:
@@ -89,3 +101,4 @@ def add_model_arguments(ap) -> None:
                     type=int, help="Steps in one epoch when learning.")
     ap.add_argument("--parallel-environments", default=defaults.parallel_environments, type=int)
     ap.add_argument("--random-player", action="store_true")
+    ap.add_argument("--model-dir", type=str, default=".")

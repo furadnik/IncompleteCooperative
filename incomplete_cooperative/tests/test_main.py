@@ -28,6 +28,7 @@ class TestMain(TestCase):
         parsed = m.parse_args.return_value
         parsed.hs = False
         parsed.seed = None
+        parsed.model_dir = "."
 
         main(m, [])
         m.parse_args.assert_called_once_with([])
@@ -38,6 +39,7 @@ class TestMain(TestCase):
         parsed = m.parse_args.return_value
         parsed.hs = False
         parsed.seed = 42
+        parsed.model_dir = "."
 
         with patch("random.seed") as p:
             main(m, [])
