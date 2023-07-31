@@ -56,9 +56,14 @@ class ModelInstance:
         return make_vec_env(self._env_generator, n_envs=self.parallel_environments)
 
     @property
+    def model_name(self) -> str:
+        """Get the model path."""
+        return f"{self.name}_{self.game_generator}_{self.game_class}_{self.number_of_players}"
+
+    @property
     def model_path(self) -> Path:
         """Get the model path."""
-        return Path(f"{self.name}_{self.game_generator}_{self.game_class}_{self.number_of_players}")
+        return Path(self.model_name)
 
     @property
     def model(self) -> MaskablePPO:
