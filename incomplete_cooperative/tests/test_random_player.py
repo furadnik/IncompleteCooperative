@@ -11,7 +11,7 @@ def get_mask(number: int, unavailable: list[int], layers: int = 1) -> np.ndarray
     """Get an action mask."""
     mask = np.ones((layers, number), bool)
     for f in unavailable:
-        mask[random.randint(0, layers - 1), f] = 0
+        mask[:, f] = 0
 
     return mask
 
@@ -21,7 +21,6 @@ class TestRandomPlayer(TestCase):
     tests: list[tuple[int, list[int], int, str]] = [
         (100, [], 1, "One layer."),
         (100, [], 10, "Multiple layers."),
-        (100, [], 10, "Multiple layers."),
         (10, [0, 1, 2, 4, 5, 6, 7, 8, 9], 10, "Disallowed."),
     ]
 
@@ -30,8 +29,9 @@ class TestRandomPlayer(TestCase):
         policy = self.get_random_policy()
         for _ in range(100):
             result, _ = policy.predict(action_masks=mask)
-            self.assertNotIn(result, disallowed)
-            self.assertIn(result, range(players))
+            for i in result:
+                self.assertNotIn(i, disallowed)
+                self.assertIn(i, range(players))
 
     def get_random_policy(self):
         return RandomPolicy()
