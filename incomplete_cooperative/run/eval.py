@@ -18,7 +18,6 @@ def eval_func(instance: ModelInstance, parsed_args) -> None:
         for episode in range(parsed_args.eval_episode_length):
             action_masks = get_action_masks(env)
             action, _ = model.predict(obs, action_masks=action_masks, deterministic=True)
-            print(action)
             obs, rewards, dones, info = env.step(action)
             rewards_all[episode, repetition, :] += rewards
 

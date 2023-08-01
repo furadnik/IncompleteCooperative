@@ -1,6 +1,6 @@
 """Policy of a random player."""
 from random import choice
-from typing import Any, Optional
+from typing import Any, Optional, cast
 
 import numpy as np
 import sb3_contrib.common.maskable.policies  # type: ignore
@@ -17,8 +17,12 @@ class RandomPolicy(sb3_contrib.common.maskable.policies.MaskableActorCriticPolic
         """Get a random prediction."""
         if action_masks is None:
             raise AttributeError("Incorrect usage of random policy. Provide action masks.")
-        possible_indicies = [i for i in range(action_masks.shape[1]) if np.all(action_masks[:, i])]
-        return np.fromiter([choice(possible_indicies)], int), None
+        number_of_envs = action_masks.shape[1]
+
+        def get_choice(i):
+            possible_indicies = [j for j in range(number_of_envs) if cast(np.ndarray, action_masks)[i, j]]
+            return choice(possible_indicies)
+        return np.fromiter((get_choice(i) for i in range(action_masks.shape[0])), int), None
 
     def to(self, *args: Any, **kwargs: Any) -> 'RandomPolicy':
         """Do nothing."""
