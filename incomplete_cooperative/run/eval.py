@@ -13,6 +13,8 @@ def eval_func(instance: ModelInstance, parsed_args) -> None:
     env = instance.env_generator()
     rewards_all = np.zeros((parsed_args.eval_episode_length,
                             parsed_args.eval_repetitions, instance.parallel_environments))
+    actions_all = np.zeros((parsed_args.eval_episode_length,
+                            parsed_args.eval_repetitions, instance.parallel_environments))
     for repetition in range(parsed_args.eval_repetitions):
         obs = env.reset()
         for episode in range(parsed_args.eval_episode_length):
@@ -27,8 +29,11 @@ def eval_func(instance: ModelInstance, parsed_args) -> None:
     exploitability = -rewards_all.reshape(
         parsed_args.eval_episode_length,
         parsed_args.eval_repetitions * instance.parallel_environments)
+    actions_compact = actions_all.reshape(
+        parsed_args.eval_episode_length,
+        parsed_args.eval_repetitions * instance.parallel_environments)
 
-    save(exploitability, instance.model_out_path, parsed_args)
+    save(exploitability, actions_compact, instance.model_out_path, parsed_args)
 
 
 def add_eval_parser(parser) -> None:

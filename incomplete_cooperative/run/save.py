@@ -14,12 +14,13 @@ def get_metadata(parsed_args) -> dict:
     return args_dict
 
 
-def save(data: np.ndarray, model_path: Path, parsed_args) -> None:
+def save(data: np.ndarray, actions: np.ndarray, model_path: Path, parsed_args) -> None:
     """Save the data."""
     metadata = get_metadata(parsed_args)
     data_list = data.tolist()
+    actions_list = actions.tolist()
     with model_path.with_suffix(".json").open("w") as f:
-        json.dump({"data": data_list, "metadata": metadata}, f)
+        json.dump({"data": data_list, "actions": actions_list, "metadata": metadata}, f)
     save_fig(model_path.with_suffix(".png"), len(data_list), data)
 
 
