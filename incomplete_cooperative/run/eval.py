@@ -20,8 +20,7 @@ def eval_func(instance: ModelInstance, parsed_args) -> None:
         rewards_all[0, repetition, :] = env.get_attr("reward")
         for episode in range(parsed_args.eval_episode_length):
             action_masks = get_action_masks(env)
-            action, _ = model.predict(
-                obs, action_masks=action_masks, deterministic=parsed_args.eval_deterministic)
+            action, _ = model.predict(obs, action_masks=action_masks, deterministic=True)
             obs, rewards, dones, info = env.step(action)
             rewards_all[episode + 1, repetition, :] += rewards
 
@@ -43,5 +42,4 @@ def add_eval_parser(parser) -> None:
     parser.add_argument("--eval-output-path", default=".", type=str)
     parser.add_argument("--eval-episode-length", default=5, type=int)
     parser.add_argument("--eval-repetitions", default=100, type=int)
-    parser.add_argument("--eval-deterministic", action="store_true")
     parser.set_defaults(func=eval_func)
