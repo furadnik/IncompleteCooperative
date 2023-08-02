@@ -11,21 +11,22 @@ def eval_func(instance: ModelInstance, parsed_args) -> None:
     model = instance.model
     print(parsed_args)
     env = instance.env_generator()
-    rewards_all = np.zeros((parsed_args.eval_episode_length,
+    rewards_all = np.zeros((parsed_args.eval_episode_length + 1,
                             parsed_args.eval_repetitions, instance.parallel_environments))
     for repetition in range(parsed_args.eval_repetitions):
         obs = env.reset()
+        rewards_all[0, repetition, :] = env.get_attr("reward")
         for episode in range(parsed_args.eval_episode_length):
             action_masks = get_action_masks(env)
             action, _ = model.predict(obs, action_masks=action_masks, deterministic=True)
             obs, rewards, dones, info = env.step(action)
-            rewards_all[episode, repetition, :] += rewards
+            rewards_all[episode + 1, repetition, :] += rewards
 
             if np.all(dones):  # pragma: no cover
                 break
 
     exploitability = -rewards_all.reshape(
-        parsed_args.eval_episode_length,
+        parsed_args.eval_episode_length + 1,
         parsed_args.eval_repetitions * instance.parallel_environments)
 
     save(exploitability, instance.model_out_path, parsed_args)
