@@ -1,4 +1,5 @@
 """Tests for the `run` module."""
+import json
 from argparse import ArgumentParser
 from os import chdir
 from pathlib import Path
@@ -110,6 +111,13 @@ class TestEval(TestCase):
     def test_run_eval(self):
         eval_func(self.model, self.parsed_args)  # TODO: implement later.
         self.assertEqual(len(list(Path(self._tmp.name).iterdir())), 2)
+        found = False
+        for file in Path(self._tmp.name).iterdir():
+            if file.suffix == ".json":
+                with file.open("r") as f:
+                    self.assertEqual(list(json.load(f).keys()), ["data", "actions", "metadata"])
+                    found = True
+        self.assertTrue(found)
 
     def test_both_parsed(self):
         parsed = self.ap.parse_args(["--eval-repetitions", "1", "--eval-episode-length", "2"])
