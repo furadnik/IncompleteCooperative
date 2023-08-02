@@ -115,3 +115,9 @@ class TestEval(TestCase):
         parsed = self.ap.parse_args(["--eval-repetitions", "1", "--eval-episode-length", "2"])
         self.assertEqual(parsed.eval_repetitions, 1)
         self.assertEqual(parsed.eval_episode_length, 2)
+
+    def test_eval_deterministic(self):
+        parsed = self.ap.parse_args(["--eval-repetitions", "1"])
+        self.assertFalse(parsed.eval_deterministic)
+        parsed = self.ap.parse_args(["--eval-deterministic"])
+        self.assertTrue(parsed.eval_deterministic)
