@@ -32,6 +32,8 @@ class TestAddModelArguments(TestCase):
             (["--number-of-players", "42"], lambda x: x.number_of_players == 42),
             (["--steps-per-update", "420"], lambda x: x.steps_per_update == 420),
             (["--game-generator", "factory"], lambda x: x.game_generator == "factory"),
+            (["--game-generator", "factory"], lambda x: x.run_steps_limit is None),
+            (["--run-steps-limit", "42"], lambda x: x.run_steps_limit == 42),
         ]
         for arguments, test in tests:
             with self.subTest(args=arguments):
@@ -120,9 +122,9 @@ class TestEval(TestCase):
         self.assertTrue(found)
 
     def test_both_parsed(self):
-        parsed = self.ap.parse_args(["--eval-repetitions", "1", "--eval-episode-length", "2"])
+        parsed = self.ap.parse_args(["--eval-repetitions", "1", "--eval-deterministic"])
         self.assertEqual(parsed.eval_repetitions, 1)
-        self.assertEqual(parsed.eval_episode_length, 2)
+        self.assertTrue(parsed.eval_deterministic)
 
     def test_eval_deterministic(self):
         parsed = self.ap.parse_args(["--eval-repetitions", "1"])

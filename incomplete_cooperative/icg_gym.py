@@ -17,7 +17,8 @@ class ICG_Gym(gym.Env):
 
     def __init__(self, game: MutableIncompleteGame,
                  game_generator: Callable[[], Game],
-                 initially_known_coalitions: Iterable[Coalition]) -> None:
+                 initially_known_coalitions: Iterable[Coalition],
+                 done_after_n_actions: int | None = None) -> None:
         """Initialize gym.
 
         `game` is an object that has the necessary `bound_computer` functions.
@@ -29,6 +30,9 @@ class ICG_Gym(gym.Env):
         self.incomplete_game = game
         self.generator = game_generator
         self.full_game = game_generator()
+
+        self.done_after_n_actions = done_after_n_actions
+        self.steps_taken = 0
 
         self.initially_known_coalitions = list(set(initially_known_coalitions).union({Coalition(0)}))
         # explorable coalitions are those, whose values we initially do not know.
@@ -59,7 +63,10 @@ class ICG_Gym(gym.Env):
     @property
     def done(self) -> bool:
         """Decide whether we are done -- all values are known."""
-        return bool(np.all((self.incomplete_game.get_upper_bounds() - self.incomplete_game.get_lower_bounds()) == 0))
+        if self.done_after_n_actions is None:
+            return bool(np.all(
+                (self.incomplete_game.get_upper_bounds() - self.incomplete_game.get_lower_bounds()) == 0))
+        return self.steps_taken >= self.done_after_n_actions
 
     def reset(self) -> State:
         """Reset the game into initial state."""
@@ -67,6 +74,7 @@ class ICG_Gym(gym.Env):
         self.incomplete_game.set_known_values(self.full_game.get_values(self.initially_known_coalitions),
                                               self.initially_known_coalitions)
         self.incomplete_game.compute_bounds()
+        self.steps_taken = 0
 
         return self.state
 
@@ -80,5 +88,6 @@ class ICG_Gym(gym.Env):
         self.incomplete_game.reveal_value(self.full_game.get_value(chosen_coalition),
                                           chosen_coalition)
         self.incomplete_game.compute_bounds()
+        self.steps_taken += 1
 
         return self.state, self.reward, self.done, {}
