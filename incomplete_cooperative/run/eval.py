@@ -11,14 +11,16 @@ def eval_func(instance: ModelInstance, parsed_args) -> None:
     model = instance.model
     print(parsed_args)
     env = instance.env_generator()
-    rewards_all = np.zeros((parsed_args.eval_episode_length + 1,
+    if instance.run_steps_limit is None:
+        instance.run_steps_limit = 2**instance.number_of_players
+    rewards_all = np.zeros((instance.run_steps_limit + 1,
                             parsed_args.eval_repetitions, instance.parallel_environments))
-    actions_all = np.zeros((parsed_args.eval_episode_length,
+    actions_all = np.zeros((instance.run_steps_limit,
                             parsed_args.eval_repetitions, instance.parallel_environments))
     for repetition in range(parsed_args.eval_repetitions):
         obs = env.reset()
         rewards_all[0, repetition, :] = env.get_attr("reward")
-        for episode in range(parsed_args.eval_episode_length):
+        for episode in range(instance.run_steps_limit):
             action_masks = get_action_masks(env)
             action, _ = model.predict(
                 obs, action_masks=action_masks, deterministic=parsed_args.eval_deterministic)
@@ -29,10 +31,10 @@ def eval_func(instance: ModelInstance, parsed_args) -> None:
                 break
 
     exploitability = -rewards_all.reshape(
-        parsed_args.eval_episode_length + 1,
+        instance.run_steps_limit + 1,
         parsed_args.eval_repetitions * instance.parallel_environments)
     actions_compact = actions_all.reshape(
-        parsed_args.eval_episode_length,
+        instance.run_steps_limit,
         parsed_args.eval_repetitions * instance.parallel_environments)
 
     save(exploitability, actions_compact, instance.model_out_path, parsed_args)
@@ -41,7 +43,6 @@ def eval_func(instance: ModelInstance, parsed_args) -> None:
 def add_eval_parser(parser) -> None:
     """Fill in the parser with arguments for evaluating the model."""
     parser.add_argument("--eval-output-path", default=".", type=str)
-    parser.add_argument("--eval-episode-length", default=5, type=int)
     parser.add_argument("--eval-repetitions", default=100, type=int)
     parser.add_argument("--eval-deterministic", action="store_true")
     parser.set_defaults(func=eval_func)

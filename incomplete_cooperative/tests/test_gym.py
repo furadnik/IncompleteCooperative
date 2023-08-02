@@ -79,3 +79,14 @@ class TestICGGym(TestCase):
                 self.assertEqual(self.icg_gym.valid_action_mask()[i], 0)
                 self.assertEqual(self.game.get_value(coalition),
                                  self.full_game.get_value(coalition))
+
+    def test_done_after_steps(self):
+        icg_gym = ICG_Gym(self.game, lambda: self.full_game, self.known_coalitions, 42)
+        self.assertFalse(icg_gym.done)
+        for i in range(42):
+            icg_gym.step(1)
+
+        self.assertTrue(icg_gym.done)
+
+        icg_gym.reset()
+        self.assertFalse(icg_gym.done)
