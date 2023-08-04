@@ -1,32 +1,66 @@
 """Handle saving files output."""
 import json
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 import matplotlib.pyplot as plt  # type: ignore
 import numpy as np
 
 
-def get_metadata(parsed_args) -> dict:
-    """Get metadata from parsed arguments."""
-    args_dict = vars(parsed_args)
-    func = args_dict.pop("func")
-    args_dict["run_type"] = "eval" if "eval" in repr(func) else "learn"
-    return args_dict
+@dataclass
+class Output:
+    """Hold all the output information."""
+
+    exploitability: np.ndarray
+    actions: np.ndarray
+    parsed_args: Any
+
+    @property
+    def metadata(self) -> dict:
+        """Get computation metadata from parsed args."""
+        args_dict = vars(self.parsed_args)
+        func = args_dict.pop("func")
+        args_dict["run_type"] = "eval" if "eval" in repr(func) else "learn"
+        return args_dict
+
+    @property
+    def exploitability_list(self) -> list[list[float]]:
+        """Turn exploitability to a list."""
+        return self.exploitability.tolist()
+
+    @property
+    def actions_list(self) -> list[list[float]]:
+        """Turn exploitability to a list."""
+        return self.actions.tolist()
 
 
-def save(data: np.ndarray, actions: np.ndarray, model_path: Path, parsed_args) -> None:
-    """Save the data."""
-    metadata = get_metadata(parsed_args)
-    data_list = data.tolist()
-    actions_list = actions.tolist()
-    with model_path.with_suffix(".json").open("w") as f:
-        json.dump({"data": data_list, "actions": actions_list, "metadata": metadata}, f)
-    save_fig(model_path.with_suffix(".png"), len(data_list), data)
-
-
-def save_fig(fig_path: Path, data_length: int, fig_data: np.ndarray) -> None:
-    """Save data to a figure."""
+def save_exploitability(path: Path, output: Output) -> None:
+    """Save exploitability data to a figure."""
+    fig_data = output.exploitability
+    data_length = len(output.exploitability_list)
     fig, ax = plt.subplots()
     plt.errorbar(
         range(data_length), np.mean(fig_data, 1), yerr=np.std(fig_data, 1))
-    plt.savefig(fig_path)
+    plt.savefig(path)
+
+
+def save_json(path: Path, output: Output) -> None:
+    """Save the data to json."""
+    with path.open("w") as f:
+        json.dump({"data": output.exploitability_list,
+                   "actions": output.actions_list,
+                   "metadata": output.metadata}, f)
+
+
+SAVERS = {
+    "exploitability.png": save_exploitability,
+    "data.json": save_json
+}
+
+
+def save(model_path: Path, output: Output) -> None:
+    """Save the data."""
+    model_path.mkdir(parents=True)
+    for name, saver in SAVERS.items():
+        saver(model_path / name, output)

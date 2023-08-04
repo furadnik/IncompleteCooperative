@@ -11,6 +11,7 @@ from incomplete_cooperative.random_player import RandomPolicy
 from incomplete_cooperative.run.eval import add_eval_parser, eval_func
 from incomplete_cooperative.run.learn import add_learn_parser, learn_func
 from incomplete_cooperative.run.model import ModelInstance, add_model_arguments
+from incomplete_cooperative.run.save import SAVERS
 
 
 class TestAddModelArguments(TestCase):
@@ -110,9 +111,10 @@ class TestEval(TestCase):
 
     def test_run_eval(self):
         eval_func(self.model, self.parsed_args)  # TODO: implement later.
-        self.assertEqual(len(list(Path(self._tmp.name).iterdir())), 2)
+        self.assertEqual(len(list(list(Path(self._tmp.name).iterdir())[0].iterdir())), 2)
         found = False
-        for file in Path(self._tmp.name).iterdir():
+        self.assertEqual(set(SAVERS.keys()), set(x.name for x in next(Path(self._tmp.name).iterdir()).iterdir()))
+        for file in next(Path(self._tmp.name).iterdir()).iterdir():
             if file.suffix == ".json":
                 with file.open("r") as f:
                     self.assertEqual(list(json.load(f).keys()), ["data", "actions", "metadata"])
