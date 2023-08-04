@@ -1,4 +1,5 @@
 """CLI."""
+import multiprocessing
 import random
 import sys
 from argparse import ArgumentParser
@@ -49,4 +50,5 @@ def main(ap: ArgumentParser = get_argument_parser(),
 
 
 if __name__ == '__main__':  # pragma: no cover
+    multiprocessing.set_start_method("forkserver")
     main()

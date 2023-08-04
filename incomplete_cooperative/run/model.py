@@ -10,6 +10,7 @@ from gym import Env  # type: ignore
 from sb3_contrib import MaskablePPO  # type: ignore
 from sb3_contrib.common.wrappers import ActionMasker  # type: ignore
 from stable_baselines3.common.env_util import make_vec_env  # type: ignore
+from stable_baselines3.common.vec_env import SubprocVecEnv  # type: ignore
 
 from ..bounds import BOUNDS
 from ..coalitions import minimal_game_coalitions
@@ -17,6 +18,20 @@ from ..game import IncompleteCooperativeGame
 from ..generators import GENERATORS
 from ..icg_gym import ICG_Gym
 from ..random_player import RandomPolicy
+
+
+def _env_generator(instance: ModelInstance) -> Env:  # pragma: nocover
+    """Generate environment."""
+    bounds_computer = BOUNDS[instance.game_class]
+    game_generator = GENERATORS[instance.game_generator]
+
+    incomplete_game = IncompleteCooperativeGame(instance.number_of_players, bounds_computer)
+    env = ICG_Gym(incomplete_game,
+                  partial(game_generator, instance.number_of_players),
+                  minimal_game_coalitions(incomplete_game))
+
+    env = ActionMasker(env, ICG_Gym.valid_action_mask)
+    return env
 
 
 @dataclass
@@ -28,7 +43,7 @@ class ModelInstance:
     game_class: str = "superadditive"
     game_generator: str = "factory"
     steps_per_update: int = 2048
-    parallel_environments: int = 5
+    parallel_environments: int = 2
     random: bool = False
     run_steps_limit: int | None = None
     model_dir: Path = Path(".")
@@ -42,22 +57,11 @@ class ModelInstance:
                    args.random_player, args.run_steps_limit,
                    Path(args.model_dir))
 
-    def _env_generator(self) -> Env:
-        """Generate environment."""
-        bounds_computer = BOUNDS[self.game_class]
-        game_generator = GENERATORS[self.game_generator]
-
-        incomplete_game = IncompleteCooperativeGame(self.number_of_players, bounds_computer)
-        env = ICG_Gym(incomplete_game,
-                      partial(game_generator, self.number_of_players),
-                      minimal_game_coalitions(incomplete_game))
-
-        env = ActionMasker(env, ICG_Gym.valid_action_mask)
-        return env
-
-    def env_generator(self) -> Env:
+    def env_generator(self, vec_class=SubprocVecEnv) -> Env:
         """Create parallel environments."""
-        return make_vec_env(self._env_generator, n_envs=self.parallel_environments)
+        return make_vec_env(_env_generator, vec_env_cls=vec_class,
+                            n_envs=self.parallel_environments,
+                            env_kwargs={"instance": self})
 
     @property
     def model_name(self) -> str:
