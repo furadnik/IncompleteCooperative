@@ -72,7 +72,7 @@ class TestICGGym(TestCase):
             with self.subTest(i=i, coalition=coalition):
                 self.assertFalse(self.game.is_value_known(coalition))
                 self.assertEqual(self.icg_gym.valid_action_mask()[i], 1)
-                state, _, done, _ = self.icg_gym.step(i)
+                state, _, done, _, _ = self.icg_gym.step(i)
                 # self.assertFalse(done) if i < len(self.icg_gym.explorable_coalitions) - 1 else self.assertTrue(done)
                 self.assertTrue(self.game.is_value_known(coalition))
                 self.assertEqual(state[i], self.game.get_value(coalition))

@@ -6,11 +6,12 @@ from datetime import datetime
 from functools import partial
 from pathlib import Path
 
-from gym import Env  # type: ignore
+from gymnasium import Env  # type: ignore
 from sb3_contrib import MaskablePPO  # type: ignore
 from sb3_contrib.common.wrappers import ActionMasker  # type: ignore
 from stable_baselines3.common.env_util import make_vec_env  # type: ignore
 from stable_baselines3.common.vec_env import SubprocVecEnv  # type: ignore
+from stable_baselines3.common.vec_env import VecEnv
 
 from ..bounds import BOUNDS
 from ..coalitions import minimal_game_coalitions
@@ -57,7 +58,7 @@ class ModelInstance:
                    args.random_player, args.run_steps_limit,
                    Path(args.model_dir))
 
-    def env_generator(self, vec_class=SubprocVecEnv) -> Env:
+    def env_generator(self, vec_class=SubprocVecEnv) -> VecEnv:
         """Create parallel environments."""
         return make_vec_env(_env_generator, vec_env_cls=vec_class,
                             n_envs=self.parallel_environments,
