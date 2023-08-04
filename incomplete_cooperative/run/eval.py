@@ -3,7 +3,7 @@ import numpy as np
 from sb3_contrib.common.maskable.utils import get_action_masks  # type: ignore
 
 from .model import ModelInstance
-from .save import save
+from .save import Output, save
 
 
 def eval_func(instance: ModelInstance, parsed_args) -> None:
@@ -37,7 +37,7 @@ def eval_func(instance: ModelInstance, parsed_args) -> None:
         instance.run_steps_limit,
         parsed_args.eval_repetitions * instance.parallel_environments)
 
-    save(exploitability, actions_compact, instance.model_out_path, parsed_args)
+    save(instance.model_out_path, Output(exploitability, actions_compact, parsed_args))
 
 
 def add_eval_parser(parser) -> None:
