@@ -1,7 +1,7 @@
 """An Agent Gym for Incomplete Cooperative Games."""
 from typing import Any, Callable, Iterable
 
-import gym  # type: ignore
+import gymnasium as gym  # type: ignore
 import numpy as np
 
 from .coalitions import Coalition, all_coalitions
@@ -9,7 +9,8 @@ from .exploitability import compute_exploitability
 from .protocols import Game, MutableIncompleteGame, Value
 
 State = np.ndarray
-StepResult = tuple[np.ndarray[Any, np.dtype[Value]], Value, bool, Any]
+Info = dict[str, Any]
+StepResult = tuple[np.ndarray[Any, np.dtype[Value]], Value, bool, bool, Info]
 
 
 class ICG_Gym(gym.Env):
@@ -68,15 +69,16 @@ class ICG_Gym(gym.Env):
                 (self.incomplete_game.get_upper_bounds() - self.incomplete_game.get_lower_bounds()) == 0))
         return self.steps_taken >= self.done_after_n_actions
 
-    def reset(self) -> State:
+    def reset(self, seed: int | None = None, options: dict[str, Any] | None = None) -> tuple[State, Info]:
         """Reset the game into initial state."""
+        super().reset(seed=seed, options=options)
         self.full_game = self.generator()
         self.incomplete_game.set_known_values(self.full_game.get_values(self.initially_known_coalitions),
                                               self.initially_known_coalitions)
         self.incomplete_game.compute_bounds()
         self.steps_taken = 0
 
-        return self.state
+        return self.state, {}
 
     def step(self, action: int) -> StepResult:
         """Implement one step of the arbitor, reveal coalition and compute exploitability.
@@ -90,4 +92,4 @@ class ICG_Gym(gym.Env):
         self.incomplete_game.compute_bounds()
         self.steps_taken += 1
 
-        return self.state, self.reward, self.done, {}
+        return self.state, self.reward, self.done, False, {}

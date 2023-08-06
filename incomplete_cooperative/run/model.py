@@ -5,12 +5,15 @@ from dataclasses import dataclass
 from datetime import datetime
 from functools import partial
 from pathlib import Path
+from typing import Callable, cast
 
-from gym import Env  # type: ignore
+import numpy as np
+from gymnasium import Env  # type: ignore
 from sb3_contrib import MaskablePPO  # type: ignore
 from sb3_contrib.common.wrappers import ActionMasker  # type: ignore
 from stable_baselines3.common.env_util import make_vec_env  # type: ignore
 from stable_baselines3.common.vec_env import SubprocVecEnv  # type: ignore
+from stable_baselines3.common.vec_env import VecEnv
 
 from ..bounds import BOUNDS
 from ..coalitions import minimal_game_coalitions
@@ -30,8 +33,7 @@ def _env_generator(instance: ModelInstance) -> Env:  # pragma: nocover
                   partial(game_generator, instance.number_of_players),
                   minimal_game_coalitions(incomplete_game))
 
-    env = ActionMasker(env, ICG_Gym.valid_action_mask)
-    return env
+    return ActionMasker(env, cast(Callable[[Env], np.ndarray], ICG_Gym.valid_action_mask))
 
 
 @dataclass
@@ -57,7 +59,7 @@ class ModelInstance:
                    args.random_player, args.run_steps_limit,
                    Path(args.model_dir))
 
-    def env_generator(self, vec_class=SubprocVecEnv) -> Env:
+    def env_generator(self, vec_class=SubprocVecEnv) -> VecEnv:
         """Create parallel environments."""
         return make_vec_env(_env_generator, vec_env_cls=vec_class,
                             n_envs=self.parallel_environments,
