@@ -69,7 +69,7 @@ class ICG_Gym(gym.Env):
                 (self.incomplete_game.get_upper_bounds() - self.incomplete_game.get_lower_bounds()) == 0))
         return self.steps_taken >= self.done_after_n_actions
 
-    def reset(self, seed: int | None = None, options: dict = {}) -> tuple[State, Info]:
+    def reset(self, seed: int | None = None, options: dict[str, Any] | None = None) -> tuple[State, Info]:
         """Reset the game into initial state."""
         super().reset(seed=seed, options=options)
         self.full_game = self.generator()

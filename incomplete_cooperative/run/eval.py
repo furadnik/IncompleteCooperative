@@ -19,12 +19,14 @@ def eval_func(instance: ModelInstance, parsed_args) -> None:
                             parsed_args.eval_repetitions, instance.parallel_environments))
     for repetition in range(parsed_args.eval_repetitions):
         obs = env.reset()
+        assert isinstance(obs, np.ndarray)  # nosec
         rewards_all[0, repetition, :] = env.get_attr("reward")
         for episode in range(instance.run_steps_limit):
             action_masks = get_action_masks(env)
             action, _ = model.predict(
                 obs, action_masks=action_masks, deterministic=parsed_args.eval_deterministic)
             obs, rewards, dones, info = env.step(action)
+            assert isinstance(obs, np.ndarray)
             rewards_all[episode + 1, repetition, :] += rewards
 
             if np.all(dones):  # pragma: no cover

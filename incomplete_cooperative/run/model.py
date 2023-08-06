@@ -5,7 +5,9 @@ from dataclasses import dataclass
 from datetime import datetime
 from functools import partial
 from pathlib import Path
+from typing import Callable, cast
 
+import numpy as np
 from gymnasium import Env  # type: ignore
 from sb3_contrib import MaskablePPO  # type: ignore
 from sb3_contrib.common.wrappers import ActionMasker  # type: ignore
@@ -31,8 +33,7 @@ def _env_generator(instance: ModelInstance) -> Env:  # pragma: nocover
                   partial(game_generator, instance.number_of_players),
                   minimal_game_coalitions(incomplete_game))
 
-    env = ActionMasker(env, ICG_Gym.valid_action_mask)
-    return env
+    return ActionMasker(env, cast(Callable[[Env], np.ndarray], ICG_Gym.valid_action_mask))
 
 
 @dataclass
