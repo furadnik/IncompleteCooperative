@@ -9,7 +9,6 @@ from .save import Output, save
 def eval_func(instance: ModelInstance, parsed_args) -> None:
     """Evaluate the model."""
     model = instance.model
-    print(parsed_args)
     env = instance.env_generator()
     if instance.run_steps_limit is None:
         instance.run_steps_limit = 2**instance.number_of_players
@@ -39,7 +38,7 @@ def eval_func(instance: ModelInstance, parsed_args) -> None:
         instance.run_steps_limit,
         parsed_args.eval_repetitions * instance.parallel_environments)
 
-    save(instance.model_out_path, Output(exploitability, actions_compact, parsed_args))
+    save(instance.model_path, Output(exploitability, actions_compact, parsed_args))
 
 
 def add_eval_parser(parser) -> None:

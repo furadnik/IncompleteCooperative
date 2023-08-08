@@ -24,23 +24,25 @@ class TestAddModelArguments(TestCase):
         return ap
 
     def test_valid_ap(self):
-        self.ap.parse_args(["--model-name", "asdf"])
+        self.ap.parse_args(["--number-of-players", "42"])
 
     def test_valid_arguments(self):
         tests = [
-            ([], lambda x: x.name == "icg"),
-            (["--model-name", "asdf"], lambda x: x.name == "asdf"),
+            ([], lambda x: x.model_dir == Path(".")),
             (["--number-of-players", "42"], lambda x: x.number_of_players == 42),
             (["--steps-per-update", "420"], lambda x: x.steps_per_update == 420),
             (["--game-generator", "factory"], lambda x: x.game_generator == "factory"),
             (["--game-generator", "factory"], lambda x: x.run_steps_limit is None),
             (["--run-steps-limit", "42"], lambda x: x.run_steps_limit == 42),
+            (["--model-dir", "/foo/bar"], lambda x: x.model_dir == Path("/foo/bar")),
+            (["--model-dir", "/foo/bar"], lambda x: x.model_path == Path("/foo/bar/model")),
+            (["--model-path", "/foo/bar"], lambda x: x.model_path == Path("/foo/bar")),
         ]
         for arguments, test in tests:
             with self.subTest(args=arguments):
                 parsed_args = self.ap.parse_args(arguments)
                 model = ModelInstance.from_parsed_arguments(parsed_args)
-                self.assertTrue(test(model))
+                self.assertTrue(test(model), msg=model)
 
 
 class TestModelInstance(TestCase):
@@ -67,7 +69,7 @@ class TestModelInstance(TestCase):
             m.load.assert_called_once()
 
     def test_get_random_model(self):
-        model = ModelInstance(random=True).model
+        model = ModelInstance(random_player=True).model
         self.assertIsInstance(model.policy, RandomPolicy)
 
 
