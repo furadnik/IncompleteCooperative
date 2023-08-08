@@ -17,9 +17,9 @@ COMMANDS = {
 def get_argument_parser(commands=COMMANDS) -> ArgumentParser:
     """Get argument parser."""
     ap = ArgumentParser(description="Allow usage of the ICG module from the command-line.")
-    ap.add_argument("--seed", required=False,
-                    help="Set the seed for possible random generation.")
-    ap.add_argument("-hs", action="store_true")
+    # ap.add_argument("--seed", required=False,
+    #                 help="Set the seed for possible random generation.")
+    # ap.add_argument("-hs", action="store_true")
     add_model_arguments(ap)
 
     if commands:
@@ -41,8 +41,8 @@ def main(ap: ArgumentParser = get_argument_parser(),
         print(";)")
         sys.exit(69)
 
-    if parsed_args.seed is not None:  # TODO: does not apply to the agent yet
-        random.seed(parsed_args.seed)
+    # if parsed_args.seed is not None:  # TODO: does not apply to the agent yet
+    #     random.seed(parsed_args.seed)
 
     print(parsed_args)
     instance = ModelInstance.from_parsed_arguments(parsed_args)

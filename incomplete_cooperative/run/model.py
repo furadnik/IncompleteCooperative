@@ -1,8 +1,8 @@
 """Wrapper around a PPO model."""
 from __future__ import annotations
 
-from dataclasses import dataclass
-from datetime import datetime
+from argparse import Namespace
+from dataclasses import dataclass, fields
 from functools import partial
 from pathlib import Path
 from typing import Callable, cast
@@ -12,6 +12,7 @@ from gymnasium import Env  # type: ignore
 from sb3_contrib import MaskablePPO  # type: ignore
 from sb3_contrib.common.wrappers import ActionMasker  # type: ignore
 from stable_baselines3.common.env_util import make_vec_env  # type: ignore
+# from stable_baselines3.common.vec_env import DummyVecEnv  # type: ignore
 from stable_baselines3.common.vec_env import SubprocVecEnv  # type: ignore
 from stable_baselines3.common.vec_env import VecEnv
 
@@ -21,6 +22,8 @@ from ..game import IncompleteCooperativeGame
 from ..generators import GENERATORS
 from ..icg_gym import ICG_Gym
 from ..random_player import RandomPolicy
+
+DEFAULT_ENV = SubprocVecEnv
 
 
 def _env_generator(instance: ModelInstance) -> Env:  # pragma: nocover
@@ -40,52 +43,40 @@ def _env_generator(instance: ModelInstance) -> Env:  # pragma: nocover
 class ModelInstance:
     """Model instance class."""
 
-    name: str = "icg"
     number_of_players: int = 5
     game_class: str = "superadditive"
     game_generator: str = "factory"
     steps_per_update: int = 2048
     parallel_environments: int = 2
-    random: bool = False
+    random_player: bool = False
     run_steps_limit: int | None = None
     model_dir: Path = Path(".")
+    model_path: Path = None  # type: ignore[assignment]
+
+    def __post_init__(self) -> None:
+        """Exit model path."""
+        if isinstance(self.model_dir, str):
+            self.model_dir = Path(self.model_dir)
+        if self.model_path is None:
+            self.model_path = self.model_dir / "model"
 
     @classmethod
-    def from_parsed_arguments(cls, args) -> ModelInstance:
+    def from_parsed_arguments(cls, args: Namespace) -> ModelInstance:
         """Create an instance from parsed arguments."""
-        return cls(args.model_name, args.number_of_players,
-                   args.game_class, args.game_generator,
-                   args.steps_per_update, args.parallel_environments,
-                   args.random_player, args.run_steps_limit,
-                   Path(args.model_dir))
+        field_names = [x.name for x in fields(cls)]
+        return cls(**{key: value for key, value in vars(args).items() if key in field_names})
 
-    def env_generator(self, vec_class=SubprocVecEnv) -> VecEnv:
+    def env_generator(self, vec_class=DEFAULT_ENV) -> VecEnv:
         """Create parallel environments."""
         return make_vec_env(_env_generator, vec_env_cls=vec_class,
                             n_envs=self.parallel_environments,
                             env_kwargs={"instance": self})
 
     @property
-    def model_name(self) -> str:
-        """Get the model path."""
-        random = "_random" if self.random else ""
-        return f"{self.name}_{self.game_generator}_{self.game_class}_{self.number_of_players}{random}"
-
-    @property
-    def model_path(self) -> Path:
-        """Get the model path."""
-        return self.model_dir / f"{self.model_name}"
-
-    @property
-    def model_out_path(self) -> Path:
-        """Get the output path of the model -- with datetime."""
-        return self.model_dir / f"{self.model_name}_{datetime.now().isoformat()}"
-
-    @property
     def model(self) -> MaskablePPO:
         """Get model."""
         envs = self.env_generator()
-        if self.random:
+        if self.random_player:
             return MaskablePPO(RandomPolicy, envs, n_steps=self.steps_per_update, verbose=10)
         return MaskablePPO.load(self.model_path, envs) if self.model_path.with_suffix(".zip").exists() \
             else MaskablePPO("MlpPolicy", envs, n_steps=self.steps_per_update, verbose=10)
@@ -98,8 +89,6 @@ class ModelInstance:
 def add_model_arguments(ap) -> None:
     """Add arguments specific for the model instance."""
     defaults = ModelInstance()
-    ap.add_argument("--model-name", required=False, default=defaults.name,
-                    help="The name of the model.")
     ap.add_argument("--number-of-players", default=defaults.number_of_players, type=int,
                     help="Set the number of players in the game.")
     ap.add_argument("--game-class", default=defaults.game_class,
@@ -111,4 +100,5 @@ def add_model_arguments(ap) -> None:
     ap.add_argument("--parallel-environments", default=defaults.parallel_environments, type=int)
     ap.add_argument("--run-steps-limit", default=defaults.run_steps_limit, type=int)
     ap.add_argument("--random-player", action="store_true")
-    ap.add_argument("--model-dir", type=str, default=".")
+    ap.add_argument("--model-dir", type=Path, default=".")
+    ap.add_argument("--model-path", type=Path, required=False)
