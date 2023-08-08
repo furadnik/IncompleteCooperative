@@ -16,9 +16,9 @@ COMMANDS = {
 def get_argument_parser(commands=COMMANDS) -> ArgumentParser:
     """Get argument parser."""
     ap = ArgumentParser(description="Allow usage of the ICG module from the command-line.")
-    ap.add_argument("--seed", required=False,
-                    help="Set the seed for possible random generation.")
-    ap.add_argument("-hs", action="store_true")
+    # ap.add_argument("--seed", required=False,
+    #                 help="Set the seed for possible random generation.")
+    # ap.add_argument("-hs", action="store_true")
     add_model_arguments(ap)
 
     if commands:

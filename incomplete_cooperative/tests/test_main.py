@@ -1,4 +1,3 @@
-from argparse import Namespace
 from unittest import TestCase
 from unittest.mock import Mock
 
@@ -21,9 +20,6 @@ class TestArgParser(TestCase):
 
 class TestMain(TestCase):
 
-    def test_hs(self):
-        self.assertRaises(SystemExit, main, ap=Mock(hs=True), args=["-hs", "learn"])
-
     def test_proper_run(self):
         m = Mock()
         parsed = m.parse_args.return_value
@@ -33,7 +29,3 @@ class TestMain(TestCase):
         main(m, [])
         m.parse_args.assert_called_once_with([])
         parsed.func.assert_called_once()
-
-    def test_seed(self):
-        m = Mock()
-        m.parse_args.return_value = Namespace(seed=42, hs=False)
