@@ -1,6 +1,5 @@
 """CLI."""
 import multiprocessing
-import random
 import sys
 from argparse import ArgumentParser
 
@@ -37,9 +36,9 @@ def main(ap: ArgumentParser = get_argument_parser(),
     args = args[1:]
     parsed_args = ap.parse_args(args)
 
-    if parsed_args.hs:
-        print(";)")
-        sys.exit(69)
+    # if parsed_args.hs:
+    #     print(";)")
+    #     sys.exit(69)
 
     # if parsed_args.seed is not None:  # TODO: does not apply to the agent yet
     #     random.seed(parsed_args.seed)
