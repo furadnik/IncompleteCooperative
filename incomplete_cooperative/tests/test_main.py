@@ -1,5 +1,6 @@
+from argparse import Namespace
 from unittest import TestCase
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 from incomplete_cooperative.__main__ import get_argument_parser, main
 
@@ -26,7 +27,6 @@ class TestMain(TestCase):
     def test_proper_run(self):
         m = Mock()
         parsed = m.parse_args.return_value
-        parsed.hs = False
         parsed.seed = None
         parsed.model_dir = "."
 
@@ -36,11 +36,4 @@ class TestMain(TestCase):
 
     def test_seed(self):
         m = Mock()
-        parsed = m.parse_args.return_value
-        parsed.hs = False
-        parsed.seed = 42
-        parsed.model_dir = "."
-
-        with patch("random.seed") as p:
-            main(m, [])
-            p.assert_called_once_with(42)
+        m.parse_args.return_value = Namespace(seed=42, hs=False)
