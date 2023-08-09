@@ -38,7 +38,8 @@ def eval_func(instance: ModelInstance, parsed_args) -> None:
         instance.run_steps_limit,
         parsed_args.eval_repetitions * instance.parallel_environments)
 
-    save(instance.model_dir, Output(exploitability, actions_compact, parsed_args))
+    save(instance.model_dir, instance.unique_name,
+         Output(exploitability, actions_compact, parsed_args))
 
 
 def add_eval_parser(parser) -> None:
