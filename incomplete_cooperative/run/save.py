@@ -43,14 +43,16 @@ class Output:
                 "metadata": self.metadata}
 
 
-def save_exploitability(path: Path, unique_name: str, output: Output) -> None:
+def save_exploitability_plot(path: Path, unique_name: str, output: Output) -> None:
     """Save exploitability data to a figure."""
+    if not path.exists():
+        path.mkdir(parents=True)
     fig_data = output.exploitability
     data_length = len(output.exploitability_list)
     fig, ax = plt.subplots()
     plt.errorbar(
         range(data_length), np.mean(fig_data, 1), yerr=np.std(fig_data, 1))
-    plt.savefig(path)
+    plt.savefig(path / unique_name)
 
 
 def save_json(path: Path, unique_name: str, output: Output) -> None:
@@ -71,7 +73,7 @@ def json_serializer(obj: Any) -> Any:
 
 
 SAVERS = {
-    "exploitability.png": save_exploitability,
+    "exploitability_plots": save_exploitability_plot,
     "data.json": save_json
 }
 
