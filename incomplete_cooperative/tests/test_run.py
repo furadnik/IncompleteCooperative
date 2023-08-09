@@ -1,5 +1,6 @@
 """Tests for the `run` module."""
 import json
+import datetime
 from argparse import ArgumentParser
 from os import chdir
 from pathlib import Path
@@ -11,7 +12,7 @@ from incomplete_cooperative.random_player import RandomPolicy
 from incomplete_cooperative.run.eval import add_eval_parser, eval_func
 from incomplete_cooperative.run.learn import add_learn_parser, learn_func
 from incomplete_cooperative.run.model import ModelInstance, add_model_arguments
-from incomplete_cooperative.run.save import SAVERS
+from incomplete_cooperative.run.save import SAVERS, json_serializer
 
 
 class TestAddModelArguments(TestCase):
@@ -135,3 +136,16 @@ class TestEval(TestCase):
         self.assertFalse(parsed.eval_deterministic)
         parsed = self.ap.parse_args(["--eval-deterministic"])
         self.assertTrue(parsed.eval_deterministic)
+
+
+class TestJsonSerializer(TestCase):
+    stuff = [
+        (Path("/x/y/z"), "/x/y/z"),
+        (datetime.date(year=2020, month=12, day=10), "datetime.date(2020, 12, 10)"),
+    ]
+
+    def test_stuff(self):
+        for obj, expected in self.stuff:
+            with self.subTest(obj=obj):
+                self.assertEqual(json.loads(json.dumps({"data": obj}, default=json_serializer)),
+                                 {"data": expected})

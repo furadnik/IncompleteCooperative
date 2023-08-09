@@ -50,7 +50,15 @@ def save_json(path: Path, output: Output) -> None:
     with path.open("w") as f:
         json.dump({"data": output.exploitability_list,
                    "actions": output.actions_list,
-                   "metadata": output.metadata}, f)
+                   "metadata": output.metadata}, f,
+                  default=json_serializer)
+
+
+def json_serializer(obj: Any) -> Any:
+    """Serialize an object."""
+    if isinstance(obj, Path):
+        return str(obj)
+    return repr(obj)
 
 
 SAVERS = {
