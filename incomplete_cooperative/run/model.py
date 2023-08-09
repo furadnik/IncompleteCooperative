@@ -1,6 +1,7 @@
 """Wrapper around a PPO model."""
 from __future__ import annotations
 
+from datetime import datetime
 from argparse import Namespace
 from dataclasses import dataclass, fields
 from functools import partial
@@ -52,6 +53,7 @@ class ModelInstance:
     run_steps_limit: int | None = None
     model_dir: Path = Path(".")
     model_path: Path = None  # type: ignore[assignment]
+    unique_name: str = str(datetime.now().isoformat())
 
     def __post_init__(self) -> None:
         """Exit model path."""
@@ -100,5 +102,6 @@ def add_model_arguments(ap) -> None:
     ap.add_argument("--parallel-environments", default=defaults.parallel_environments, type=int)
     ap.add_argument("--run-steps-limit", default=defaults.run_steps_limit, type=int)
     ap.add_argument("--random-player", action="store_true")
-    ap.add_argument("--model-dir", type=Path, default=".")
+    ap.add_argument("--model-dir", type=Path, default=defaults.model_dir)
     ap.add_argument("--model-path", type=Path, required=False)
+    ap.add_argument("--unique-name", type=str, required=False, default=defaults.unique_name)

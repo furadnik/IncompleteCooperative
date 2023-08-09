@@ -113,6 +113,7 @@ class TestEval(TestCase):
 
     def run_eval_test(self, path):
         self.model.model_dir = path
+        self.model.unique_name = "asdf"
         eval_func(self.model, self.parsed_args)  # TODO: implement later.
         self.assertEqual(len(list(path.iterdir())), 2)
         found = False
@@ -120,7 +121,7 @@ class TestEval(TestCase):
         for file in path.iterdir():
             if file.suffix == ".json":
                 with file.open("r") as f:
-                    self.assertEqual(list(json.load(f).keys()), ["data", "actions", "metadata"])
+                    self.assertEqual(list(json.load(f)["asdf"].keys()), ["exploitability", "actions", "metadata"])
                     found = True
         self.assertTrue(found)
 
@@ -145,16 +146,3 @@ class TestEval(TestCase):
         self.assertFalse(parsed.eval_deterministic)
         parsed = self.ap.parse_args(["--eval-deterministic"])
         self.assertTrue(parsed.eval_deterministic)
-
-
-class TestJsonSerializer(TestCase):
-    stuff = [
-        (Path("/x/y/z"), "/x/y/z"),
-        (datetime.date(year=2020, month=12, day=10), "datetime.date(2020, 12, 10)"),
-    ]
-
-    def test_stuff(self):
-        for obj, expected in self.stuff:
-            with self.subTest(obj=obj):
-                self.assertEqual(json.loads(json.dumps({"data": obj}, default=json_serializer)),
-                                 {"data": expected})

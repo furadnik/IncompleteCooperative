@@ -3,6 +3,7 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+from argparse import Namespace
 
 import matplotlib.pyplot as plt  # type: ignore
 import numpy as np
@@ -14,12 +15,12 @@ class Output:
 
     exploitability: np.ndarray
     actions: np.ndarray
-    parsed_args: Any
+    parsed_args: Namespace
 
     @property
     def metadata(self) -> dict:
         """Get computation metadata from parsed args."""
-        args_dict = vars(self.parsed_args)
+        args_dict = vars(self.parsed_args).copy()
         func = args_dict.pop("func")
         args_dict["run_type"] = "eval" if "eval" in repr(func) else "learn"
         return args_dict
@@ -34,8 +35,15 @@ class Output:
         """Turn exploitability to a list."""
         return self.actions.tolist()
 
+    @property
+    def json(self) -> dict:
+        """Generate a dictionary representation."""
+        return {"exploitability": self.exploitability_list,
+                "actions": self.actions_list,
+                "metadata": self.metadata}
 
-def save_exploitability(path: Path, output: Output) -> None:
+
+def save_exploitability(path: Path, unique_name: str, output: Output) -> None:
     """Save exploitability data to a figure."""
     fig_data = output.exploitability
     data_length = len(output.exploitability_list)
@@ -45,13 +53,14 @@ def save_exploitability(path: Path, output: Output) -> None:
     plt.savefig(path)
 
 
-def save_json(path: Path, output: Output) -> None:
+def save_json(path: Path, unique_name: str, output: Output) -> None:
     """Save the data to json."""
+    data = json.loads(path.read_text()) if path.exists() else {}
+    if unique_name in data.keys():
+        return
+    data.update({unique_name: output.json})
     with path.open("w") as f:
-        json.dump({"data": output.exploitability_list,
-                   "actions": output.actions_list,
-                   "metadata": output.metadata}, f,
-                  default=json_serializer)
+        json.dump(data, f, default=json_serializer)
 
 
 def json_serializer(obj: Any) -> Any:
@@ -67,9 +76,9 @@ SAVERS = {
 }
 
 
-def save(model_path: Path, output: Output) -> None:
+def save(model_path: Path, unique_name: str, output: Output) -> None:
     """Save the data."""
     if not model_path.exists():
         model_path.mkdir(parents=True)
-    for name, saver in SAVERS.items():
-        saver(model_path / name, output)
+    for saver_name, saver in SAVERS.items():
+        saver(model_path / saver_name, unique_name, output)
