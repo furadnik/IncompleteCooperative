@@ -61,6 +61,7 @@ SAVERS = {
 
 def save(model_path: Path, output: Output) -> None:
     """Save the data."""
-    model_path.mkdir(parents=True)
+    if not model_path.exists():
+        model_path.mkdir(parents=True)
     for name, saver in SAVERS.items():
         saver(model_path / name, output)

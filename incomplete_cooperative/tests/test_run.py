@@ -110,20 +110,29 @@ class TestEval(TestCase):
     def tearDown(self):
         self._tmp.cleanup()
 
-    def test_function_proper(self):
-        self.assertEqual(self.parsed_args.func, eval_func)
-
-    def test_run_eval(self):
+    def run_eval_test(self, path):
+        self.model.model_dir = path
         eval_func(self.model, self.parsed_args)  # TODO: implement later.
-        self.assertEqual(len(list(list(Path(self._tmp.name).iterdir())[0].iterdir())), 2)
+        self.assertEqual(len(list(path.iterdir())), 2)
         found = False
-        self.assertEqual(set(SAVERS.keys()), set(x.name for x in next(Path(self._tmp.name).iterdir()).iterdir()))
-        for file in next(Path(self._tmp.name).iterdir()).iterdir():
+        self.assertEqual(set(SAVERS.keys()), set(x.name for x in path.iterdir()))
+        for file in path.iterdir():
             if file.suffix == ".json":
                 with file.open("r") as f:
                     self.assertEqual(list(json.load(f).keys()), ["data", "actions", "metadata"])
                     found = True
         self.assertTrue(found)
+
+    def test_function_proper(self):
+        self.assertEqual(self.parsed_args.func, eval_func)
+
+    def test_run_eval(self):
+        path = Path(self._tmp.name)
+        self.run_eval_test(path)
+
+    def test_run_eval_create_folder(self):
+        path = Path(self._tmp.name) / "model"
+        self.run_eval_test(path)
 
     def test_both_parsed(self):
         parsed = self.ap.parse_args(["--eval-repetitions", "1", "--eval-deterministic"])
