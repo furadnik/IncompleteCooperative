@@ -1,6 +1,5 @@
 """Tests for the `run` module."""
 import json
-import datetime
 from argparse import ArgumentParser
 from os import chdir
 from pathlib import Path
@@ -12,7 +11,8 @@ from incomplete_cooperative.random_player import RandomPolicy
 from incomplete_cooperative.run.eval import add_eval_parser, eval_func
 from incomplete_cooperative.run.learn import add_learn_parser, learn_func
 from incomplete_cooperative.run.model import ModelInstance, add_model_arguments
-from incomplete_cooperative.run.save import SAVERS, json_serializer
+from stable_baselines3.common.vec_env import SubprocVecEnv, DummyVecEnv  # type: ignore
+from incomplete_cooperative.run.save import SAVERS
 
 
 class TestAddModelArguments(TestCase):
@@ -38,6 +38,8 @@ class TestAddModelArguments(TestCase):
             (["--model-dir", "/foo/bar"], lambda x: x.model_dir == Path("/foo/bar")),
             (["--model-dir", "/foo/bar"], lambda x: x.model_path == Path("/foo/bar/model")),
             (["--model-path", "/foo/bar"], lambda x: x.model_path == Path("/foo/bar")),
+            (["--environment", "parallel"], lambda x: x.environment_class == SubprocVecEnv),
+            ([], lambda x: x.environment_class == DummyVecEnv),
         ]
         for arguments, test in tests:
             with self.subTest(args=arguments):
