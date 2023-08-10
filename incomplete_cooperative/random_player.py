@@ -17,10 +17,10 @@ class RandomPolicy(sb3_contrib.common.maskable.policies.MaskableActorCriticPolic
         """Get a random prediction."""
         if action_masks is None:
             raise AttributeError("Incorrect usage of random policy. Provide action masks.")
-        number_of_envs = action_masks.shape[1]
+        number_of_choices = action_masks.shape[1]
 
         def get_choice(i):
-            possible_indicies = [j for j in range(number_of_envs) if cast(np.ndarray, action_masks)[i, j]]
+            possible_indicies = [j for j in range(number_of_choices) if cast(np.ndarray, action_masks)[i, j]]
             return choice(possible_indicies)
         return np.fromiter((get_choice(i) for i in range(action_masks.shape[0])), int), None
 

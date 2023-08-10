@@ -27,6 +27,7 @@ def eval_func(instance: ModelInstance, parsed_args) -> None:
             obs, rewards, dones, info = env.step(action)
             assert isinstance(obs, np.ndarray)
             rewards_all[episode + 1, repetition, :] += rewards
+            actions_all[episode, repetition, :] = action
 
             if np.all(dones):  # pragma: no cover
                 break

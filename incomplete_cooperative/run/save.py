@@ -18,6 +18,11 @@ class Output:
     parsed_args: Namespace
 
     @property
+    def avg_final_exploitability(self) -> float:
+        """Compute the average of final exploitabilities."""
+        return np.average(self.exploitability[-1])
+
+    @property
     def metadata(self) -> dict:
         """Get computation metadata from parsed args."""
         args_dict = vars(self.parsed_args).copy()
