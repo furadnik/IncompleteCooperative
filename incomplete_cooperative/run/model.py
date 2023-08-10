@@ -38,7 +38,8 @@ def _env_generator(instance: ModelInstance) -> Env:  # pragma: nocover
     incomplete_game = IncompleteCooperativeGame(instance.number_of_players, bounds_computer)
     env = ICG_Gym(incomplete_game,
                   partial(game_generator, instance.number_of_players),
-                  minimal_game_coalitions(incomplete_game))
+                  minimal_game_coalitions(incomplete_game),
+                  done_after_n_actions=instance.run_steps_limit)
 
     return ActionMasker(env, cast(Callable[[Env], np.ndarray], ICG_Gym.valid_action_mask))
 
