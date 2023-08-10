@@ -13,7 +13,7 @@ from gymnasium import Env  # type: ignore
 from sb3_contrib import MaskablePPO  # type: ignore
 from sb3_contrib.common.wrappers import ActionMasker  # type: ignore
 from stable_baselines3.common.env_util import make_vec_env  # type: ignore
-# from stable_baselines3.common.vec_env import DummyVecEnv  # type: ignore
+from stable_baselines3.common.vec_env import DummyVecEnv  # type: ignore
 from stable_baselines3.common.vec_env import SubprocVecEnv  # type: ignore
 from stable_baselines3.common.vec_env import VecEnv
 
@@ -24,7 +24,10 @@ from ..generators import GENERATORS
 from ..icg_gym import ICG_Gym
 from ..random_player import RandomPolicy
 
-DEFAULT_ENV = SubprocVecEnv
+ENVIRONMENTS: dict[str, type[SubprocVecEnv] | type[DummyVecEnv]] = {
+    "parallel": SubprocVecEnv,
+    "sequential": DummyVecEnv
+}
 
 
 def _env_generator(instance: ModelInstance) -> Env:  # pragma: nocover
@@ -54,6 +57,7 @@ class ModelInstance:
     model_dir: Path = Path(".")
     model_path: Path = None  # type: ignore[assignment]
     unique_name: str = str(datetime.now().isoformat())
+    environment: str = "sequential"
 
     def __post_init__(self) -> None:
         """Exit model path."""
@@ -68,9 +72,14 @@ class ModelInstance:
         field_names = [x.name for x in fields(cls)]
         return cls(**{key: value for key, value in vars(args).items() if key in field_names})
 
-    def env_generator(self, vec_class=DEFAULT_ENV) -> VecEnv:
+    @property
+    def environment_class(self) -> type[DummyVecEnv] | type[SubprocVecEnv]:
+        """TODO: implement later."""
+        return ENVIRONMENTS.get(self.environment, DummyVecEnv)
+
+    def env_generator(self) -> VecEnv:
         """Create parallel environments."""
-        return make_vec_env(_env_generator, vec_env_cls=vec_class,
+        return make_vec_env(_env_generator, vec_env_cls=self.environment_class,
                             n_envs=self.parallel_environments,
                             env_kwargs={"instance": self})
 
@@ -105,3 +114,4 @@ def add_model_arguments(ap) -> None:
     ap.add_argument("--model-dir", type=Path, default=defaults.model_dir)
     ap.add_argument("--model-path", type=Path, required=False)
     ap.add_argument("--unique-name", type=str, required=False, default=defaults.unique_name)
+    ap.add_argument("--environment", type=str, required=False, default=defaults.environment)
