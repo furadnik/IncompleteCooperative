@@ -30,6 +30,10 @@ class IncompleteCooperativeGame:
         self._values = np.zeros((2**self.number_of_players, 3), Value)
         self._init_values()
 
+    def __repr__(self) -> str:  # pragma: no cover
+        """Representation of icg."""
+        return f"ICG({self.are_values_known()})"
+
     def _filter_out_coalitions(self, values: np.ndarray[Any, np.dtype[Value]],
                                coalitions: Iterable[Coalition] | None) -> np.ndarray[Any, np.dtype[Value]]:
         """Filter out coalitions."""
