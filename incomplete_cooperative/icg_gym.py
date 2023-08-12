@@ -92,4 +92,4 @@ class ICG_Gym(gym.Env):
         self.incomplete_game.compute_bounds()
         self.steps_taken += 1
 
-        return self.state, self.reward, self.done, False, {}
+        return self.state, self.reward, self.done, False, {"chosen_coalition": chosen_coalition.id}
