@@ -57,7 +57,8 @@ def save_exploitability_plot(path: Path, unique_name: str, output: Output) -> No
     fig, ax = plt.subplots()
     plt.errorbar(
         range(data_length), np.mean(fig_data, 1), yerr=np.std(fig_data, 1))
-    plt.savefig(path / unique_name)
+    ax.set_ylim(bottom=0)
+    plt.savefig((path / unique_name).with_suffix(".png"))
 
 
 def save_json(path: Path, unique_name: str, output: Output) -> None:
