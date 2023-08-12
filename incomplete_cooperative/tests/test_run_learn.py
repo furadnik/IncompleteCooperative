@@ -74,13 +74,14 @@ class TestSimpleGame(LearningTester, TestCase):
         best_reward = -100000
         best_actions = []
         for i in range(env.valid_action_mask().shape[0]):
-            _, reward, _, _, _ = env.step(i)
+            _, reward, _, _, out_dict = env.step(i)
+            action = out_dict["chosen_coalition"]
             env.reset()
             if reward == best_reward:
-                best_actions.append(i)
+                best_actions.append(action)
             if reward > best_reward:
                 best_reward = reward
-                best_actions = [i]
+                best_actions = [action]
         for action in results.actions.flatten().tolist():
             self.assertIn(action, best_actions)
 

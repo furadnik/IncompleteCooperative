@@ -117,7 +117,7 @@ class TestEval(TestCase):
         self.model.model_dir = path
         self.model.unique_name = "asdf"
         eval_func(self.model, self.parsed_args)  # TODO: implement later.
-        self.assertEqual(len(list(path.iterdir())), 2)
+        self.assertEqual(len(list(path.iterdir())), 3)
         found = False
         self.assertEqual(set(SAVERS.keys()), set(x.name for x in path.iterdir()))
         for file in path.iterdir():

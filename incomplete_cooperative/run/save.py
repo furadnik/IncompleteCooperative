@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 from argparse import Namespace
 
+from incomplete_cooperative.coalitions import Coalition
 import matplotlib.pyplot as plt  # type: ignore
 import numpy as np
 
@@ -61,6 +62,27 @@ def save_exploitability_plot(path: Path, unique_name: str, output: Output) -> No
     plt.savefig((path / unique_name).with_suffix(".png"))
 
 
+def save_draw_coalitions(path: Path, unique_name: str, output: Output) -> None:
+    """Draw coalition distribution in each step."""
+    unique_path = path / unique_name
+    unique_path.mkdir(parents=True)
+    all_data = output.actions
+
+    plt.margins(0.2)
+    for i in range(all_data.shape[0]):
+        time_slice = all_data[i]
+        fig, ax = plt.subplots()
+        labels, counts = np.unique(time_slice, return_counts=True)
+        ax.set_xticks(labels,
+                      [list(Coalition(int(x)).players) for x in labels],
+                      rotation='vertical')
+        # transform counts to percentage
+        ax.bar(labels, counts / all_data.shape[1], align='center')
+        plt.autoscale()
+        plt.tight_layout()
+        plt.savefig((unique_path / str(i + 1)).with_suffix(".png"))
+
+
 def save_json(path: Path, unique_name: str, output: Output) -> None:
     """Save the data to json."""
     data = json.loads(path.read_text()) if path.exists() else {}
@@ -80,7 +102,8 @@ def json_serializer(obj: Any) -> Any:
 
 SAVERS = {
     "exploitability_plots": save_exploitability_plot,
-    "data.json": save_json
+    "data.json": save_json,
+    "chosen_coalitions": save_draw_coalitions
 }
 
 

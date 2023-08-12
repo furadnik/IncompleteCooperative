@@ -27,7 +27,8 @@ def eval_func(instance: ModelInstance, parsed_args) -> None:
             obs, rewards, dones, info = env.step(action)
             assert isinstance(obs, np.ndarray)
             rewards_all[episode + 1, repetition, :] += rewards
-            actions_all[episode, repetition, :] = action
+            # map the `action` (index in explorable coalitions) to `coalition`.
+            actions_all[episode, repetition, :] = np.vectorize(lambda x: x["chosen_coalition"])(info)
 
             if np.all(dones):  # pragma: no cover
                 break
