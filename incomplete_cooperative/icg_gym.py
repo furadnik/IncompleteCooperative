@@ -4,7 +4,7 @@ from typing import Any, Callable, Iterable
 import gymnasium as gym  # type: ignore
 import numpy as np
 
-from .coalitions import Coalition, all_coalitions
+from .coalitions import Coalition, all_coalitions, grand_coalition
 from .exploitability import compute_exploitability
 from .protocols import Game, MutableIncompleteGame, Value
 
@@ -42,9 +42,11 @@ class ICG_Gym(gym.Env):
 
         # setup the gym.
         self.reset()
-        self.observation_space = gym.spaces.Box(low=np.zeros(len(self.explorable_coalitions), np.float32),
-                                                high=np.ones(len(self.explorable_coalitions), np.float32),
-                                                dtype=np.float32)
+        self.observation_space = gym.spaces.Box(
+            low=np.zeros(len(self.explorable_coalitions), Value),
+            high=np.ones(len(self.explorable_coalitions), Value) * self.full_game.get_value(
+                grand_coalition(self.full_game)),
+            dtype=Value)
         self.action_space = gym.spaces.Discrete(len(self.explorable_coalitions))
 
     def valid_action_mask(self) -> np.ndarray:

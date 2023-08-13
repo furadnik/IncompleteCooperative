@@ -158,7 +158,7 @@ class IncompleteCooperativeGame:
         """Set values of (some) coalitions the game. Defaults to all coalitions."""
         if coalitions is not None:
             coalitions = list(coalitions)
-            all_values = np.zeros(len(self._values))
+            all_values = np.zeros(len(self._values), dtype=Value)
             all_values[np.fromiter(map(lambda x: x.id, coalitions), int, len(values))] = values
         else:
             all_values = values
@@ -175,7 +175,7 @@ class IncompleteCooperativeGame:
         """Set values of (some) coalitions the game. Defaults to all coalitions."""
         if coalitions is not None:
             coalitions = list(coalitions)
-            all_values = np.zeros(len(self._values))
+            all_values = np.zeros(len(self._values), dtype=Value)
             all_values[np.fromiter(map(lambda x: x.id, coalitions), int, len(values))] = values
         else:
             all_values = values

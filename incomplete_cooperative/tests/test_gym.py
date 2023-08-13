@@ -1,4 +1,5 @@
 from unittest import TestCase
+from stable_baselines3.common.env_checker import check_env
 
 from incomplete_cooperative.coalitions import Coalition, all_coalitions
 from incomplete_cooperative.game import IncompleteCooperativeGame
@@ -90,3 +91,6 @@ class TestICGGym(TestCase):
 
         icg_gym.reset()
         self.assertFalse(icg_gym.done)
+
+    def test_gym_env(self):
+        check_env(self.icg_gym)
