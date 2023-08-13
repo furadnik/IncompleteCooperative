@@ -60,6 +60,7 @@ def save_exploitability_plot(path: Path, unique_name: str, output: Output) -> No
         range(data_length), np.mean(fig_data, 1), yerr=np.std(fig_data, 1))
     ax.set_ylim(bottom=0)
     plt.savefig((path / unique_name).with_suffix(".png"))
+    plt.close('all')
 
 
 def save_draw_coalitions(path: Path, unique_name: str, output: Output) -> None:
@@ -81,6 +82,7 @@ def save_draw_coalitions(path: Path, unique_name: str, output: Output) -> None:
         plt.autoscale()
         plt.tight_layout()
         plt.savefig((unique_path / str(i + 1)).with_suffix(".png"))
+        plt.close('all')
 
 
 def save_json(path: Path, unique_name: str, output: Output) -> None:
