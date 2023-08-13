@@ -6,8 +6,9 @@ from argparse import Namespace
 from dataclasses import dataclass, fields
 from functools import partial
 from pathlib import Path
-from typing import Callable, cast
+from typing import Callable, cast, Any
 
+from torch.nn.modules.activation import Tanh, ReLU
 import numpy as np
 from gymnasium import Env  # type: ignore
 from sb3_contrib import MaskablePPO  # type: ignore
@@ -27,6 +28,11 @@ from ..random_player import RandomPolicy
 ENVIRONMENTS: dict[str, type[SubprocVecEnv] | type[DummyVecEnv]] = {
     "parallel": SubprocVecEnv,
     "sequential": DummyVecEnv
+}
+
+ACTIVATION_FNS = {
+    "relu": ReLU,
+    "tanh": Tanh
 }
 
 
@@ -59,6 +65,7 @@ class ModelInstance:
     model_path: Path = None  # type: ignore[assignment]
     unique_name: str = str(datetime.now().isoformat())
     environment: str = "sequential"
+    policy_activation_fn: str = "relu"
 
     def __post_init__(self) -> None:
         """Exit model path."""
@@ -85,13 +92,19 @@ class ModelInstance:
                             env_kwargs={"instance": self})
 
     @property
+    def policy_activation_fn_choice(self) -> Any:
+        """Get the chosen activation function."""
+        return ACTIVATION_FNS[self.policy_activation_fn]
+
+    @property
     def model(self) -> MaskablePPO:
         """Get model."""
         envs = self.env_generator()
         if self.random_player:
             return MaskablePPO(RandomPolicy, envs, n_steps=self.steps_per_update, verbose=10)
         return MaskablePPO.load(self.model_path, envs) if self.model_path.with_suffix(".zip").exists() \
-            else MaskablePPO("MlpPolicy", envs, n_steps=self.steps_per_update, verbose=10)
+            else MaskablePPO("MlpPolicy", envs, n_steps=self.steps_per_update,
+                             policy_kwargs={"activation_fn": self.policy_activation_fn_choice}, verbose=10)
 
     def save(self, model: MaskablePPO) -> None:
         """Save model."""
@@ -116,3 +129,5 @@ def add_model_arguments(ap) -> None:
     ap.add_argument("--model-path", type=Path, required=False)
     ap.add_argument("--unique-name", type=str, required=False, default=defaults.unique_name)
     ap.add_argument("--environment", type=str, required=False, default=defaults.environment)
+    ap.add_argument("--policy-activation-fn", type=str, choices=ACTIVATION_FNS.keys(), required=False,
+                    default=defaults.policy_activation_fn)

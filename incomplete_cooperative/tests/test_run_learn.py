@@ -43,6 +43,7 @@ class LearningTester(GetLearningResultMixin):
     kwargs: dict
 
     def test_better_than_random(self):
+        print(self.kwargs)
         learned_output = self.get_learning_results(**self.kwargs)
         random_output = self.get_learning_results(random_player=True, **self.kwargs)
         self.assertLess(learned_output.avg_final_exploitability,
@@ -61,6 +62,7 @@ class TestSimpleGame(LearningTester, TestCase):
         "number_of_players": 4,
         "game_generator": "factory_fixed",
         "learn_total_timesteps": 2000,
+        "steps_per_update": 1024,
         "eval_deterministic": True,
         "eval_repetitions": 100,
         "run_steps_limit": 1,
@@ -90,4 +92,20 @@ class TestSimpleGameParallel(TestSimpleGame):
     kwargs = {
         **TestSimpleGame.kwargs,
         "environment": "parallel"
+    }
+
+
+class TestSimpleTanh(TestSimpleGame):
+
+    kwargs = {
+        **TestSimpleGame.kwargs,
+        "policy_activation_fn": "tanh",
+    }
+
+
+class TestSimpleParallelTanh(TestSimpleGameParallel):
+
+    kwargs = {
+        **TestSimpleGameParallel.kwargs,
+        "policy_activation_fn": "tanh",
     }
