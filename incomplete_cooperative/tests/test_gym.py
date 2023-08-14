@@ -1,26 +1,20 @@
 from unittest import TestCase
+
 from stable_baselines3.common.env_checker import check_env
 
-from incomplete_cooperative.coalitions import Coalition, all_coalitions
-from incomplete_cooperative.game import IncompleteCooperativeGame
+from incomplete_cooperative.coalitions import Coalition
 from incomplete_cooperative.icg_gym import ICG_Gym
-from incomplete_cooperative.protocols import MutableIncompleteGame
+
+from .utils import GymMixin
 
 
-def trivial_fill(game: MutableIncompleteGame) -> None:
-    """Trivially fill game."""
-    for coalition in all_coalitions(game):
-        game.set_value(len(coalition), coalition)
-
-
-class TestICGGym(TestCase):
+class TestICGGym(TestCase, GymMixin):
 
     def setUp(self):
-        self.game = IncompleteCooperativeGame(6, lambda x: None)
-        self.known_coalitions = list(map(Coalition, [1, 2, 4, 8, 16, 32, 63]))  # minimal game
-        self.full_game = IncompleteCooperativeGame(6, lambda x: None)
-        trivial_fill(self.full_game)
-        self.icg_gym = ICG_Gym(self.game, lambda: self.full_game, self.known_coalitions)
+        self.icg_gym = self.get_gym()
+        self.game = self.icg_gym.incomplete_game
+        self.known_coalitions = self.icg_gym.initially_known_coalitions  # minimal game
+        self.full_game = self.icg_gym.full_game
 
     def test_zero_always_known(self):
         self.assertNotIn(0, self.icg_gym.explorable_coalitions)
@@ -108,4 +102,3 @@ class TestICGGym(TestCase):
                     self.icg_gym.step(i)
                     self.icg_gym.unstep(i)
                     self.assertEqual(initial, test(self.icg_gym))
-

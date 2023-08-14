@@ -6,11 +6,8 @@ import numpy as np
 
 from .coalitions import Coalition, all_coalitions, grand_coalition
 from .exploitability import compute_exploitability
-from .protocols import Game, MutableIncompleteGame, Value
-
-State = np.ndarray
-Info = dict[str, Any]
-StepResult = tuple[np.ndarray[Any, np.dtype[Value]], Value, bool, bool, Info]
+from .protocols import (Game, Info, MutableIncompleteGame, State, StepResult,
+                        Value)
 
 
 class ICG_Gym(gym.Env):
@@ -35,7 +32,8 @@ class ICG_Gym(gym.Env):
         self.done_after_n_actions = done_after_n_actions
         self.steps_taken = 0
 
-        self.initially_known_coalitions = list(set(initially_known_coalitions).union({Coalition(0)}))
+        self.initially_known_coalitions = list(set(initially_known_coalitions).union(
+            {Coalition(0), grand_coalition(game)}))
         # explorable coalitions are those, whose values we initially do not know.
         self.explorable_coalitions = list(set(filter(lambda x: x not in self.initially_known_coalitions,
                                                      all_coalitions(self.full_game))))

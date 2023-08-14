@@ -122,3 +122,43 @@ class BoundableIncompleteGame(IncompleteGame, Protocol):
 
 GameBoundsComputer = Callable[[BoundableIncompleteGame], None]
 GameGenerator = Callable[[int], Game]
+
+
+State = np.ndarray
+Info = dict[str, Any]
+StepResult = tuple[np.ndarray[Any, np.dtype[Value]], Value, bool, bool, Info]
+
+
+class Gym(Protocol):
+    """Our extended Gym protocol."""
+
+    def reset(self, seed: int | None = None, options: dict[str, Any] | None = None) -> tuple[State, Info]:
+        """Reset the game into initial state."""
+
+    def step(self, action: int) -> StepResult:
+        """Implement one step of the arbitor, reveal coalition and compute exploitability.
+
+        Return the new state, reward, whether we're done, and some (empty) additional info.
+        """
+
+    def unstep(self, action: int) -> StepResult:
+        """Undo a step of the arbitor.
+
+        Return the new state, reward, whether we're done, and some (empty) additional info.
+        """
+
+    def valid_action_mask(self) -> np.ndarray:
+        """Get valid actions for the agent."""
+
+
+class Solver(Protocol):
+    """A solver of incomplete games.
+
+    Unlike the model, a `Solver` has complete information about the underlying full game.
+    """
+
+    def next_step(self, gym: Gym) -> int:
+        """Get the next move.
+
+        This is meant to be close to the interface of `gym.Env`.
+        """

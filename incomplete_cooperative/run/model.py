@@ -1,14 +1,13 @@
 """Wrapper around a PPO model."""
 from __future__ import annotations
 
-from datetime import datetime
 from argparse import Namespace
 from dataclasses import dataclass, fields
+from datetime import datetime
 from functools import partial
 from pathlib import Path
-from typing import Callable, cast, Any
+from typing import Any, Callable, cast
 
-from torch.nn.modules.activation import Tanh, ReLU
 import numpy as np
 from gymnasium import Env  # type: ignore
 from sb3_contrib import MaskablePPO  # type: ignore
@@ -17,6 +16,7 @@ from stable_baselines3.common.env_util import make_vec_env  # type: ignore
 from stable_baselines3.common.vec_env import DummyVecEnv  # type: ignore
 from stable_baselines3.common.vec_env import SubprocVecEnv  # type: ignore
 from stable_baselines3.common.vec_env import VecEnv
+from torch.nn.modules.activation import ReLU, Tanh
 
 from ..bounds import BOUNDS
 from ..coalitions import minimal_game_coalitions
