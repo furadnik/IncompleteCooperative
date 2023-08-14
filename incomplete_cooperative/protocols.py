@@ -10,8 +10,8 @@ if TYPE_CHECKING:  # pragma: no cover
     from .coalitions import Coalition
 
 Player = int
-Value = np.float64
-ValueIn = np.float64 | float | int
+Value = np.float32
+ValueIn = Value | float | int
 Values = np.ndarray[Any, np.dtype[Value]]
 
 
