@@ -88,6 +88,12 @@ class MutableIncompleteGame(IncompleteGame, MutableGame, Protocol):
     def reveal_value(self, value: ValueIn, coalition: Coalition) -> None:
         """Reveal a previously unknown value of coalition."""
 
+    def unreveal_value(self, coalition: Coalition) -> None:
+        """Unreveal a previously known value of coalition."""
+
+    def unset_value(self, coalition: Coalition) -> None:
+        """Unset a previously known value of coalition."""
+
 
 class BoundableIncompleteGame(IncompleteGame, Protocol):
     """An incomplete cooperative game to which we can set bounds."""
