@@ -62,6 +62,12 @@ class IncompleteCooperativeGame:
         self._values[coalition.id, self._values_lower_index] = value
         self._values[coalition.id, self._values_is_known_index] = 1
 
+    def unset_value(self, coalition: Coalition) -> None:
+        """Set value of a coalition."""
+        self._values[coalition.id, self._values_upper_index] = 0
+        self._values[coalition.id, self._values_lower_index] = 0
+        self._values[coalition.id, self._values_is_known_index] = 0
+
     def set_values(self, values: Values,
                    coalitions: Iterable[Coalition] | None = None) -> None:
         """Set multiple values."""
@@ -142,6 +148,14 @@ class IncompleteCooperativeGame:
             LOGGER.error("Value was already known.")
             return
         self.set_value(value, coalition)
+
+    def unreveal_value(self, coalition: Coalition) -> None:
+        """Reveal a previously unknown value of coalition."""
+        if not self.is_value_known(coalition):
+            # raise ValueError("Value was already known.")  # TODO: improve this.
+            LOGGER.error("Value was not already known.")
+            return
+        self.unset_value(coalition)
 
     def _get_coalition_map(self, coalitions: Iterable[Coalition] | None,
                            count: int = -1) -> np.ndarray[Any, np.dtype[np.bool_]]:

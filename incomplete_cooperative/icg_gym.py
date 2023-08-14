@@ -95,3 +95,16 @@ class ICG_Gym(gym.Env):
         self.steps_taken += 1
 
         return self.state, self.reward, self.done, False, {"chosen_coalition": chosen_coalition.id}
+
+    def unstep(self, action: int) -> StepResult:
+        """Undo a step of the arbitor.
+
+        Return the new state, reward, whether we're done, and some (empty) additional info.
+        """
+        # The chosen coalition for revealing, skipping the singletons
+        chosen_coalition = self.explorable_coalitions[action]
+        self.incomplete_game.unreveal_value(chosen_coalition)
+        self.incomplete_game.compute_bounds()
+        self.steps_taken -= 1
+
+        return self.state, self.reward, self.done, False, {"chosen_coalition": chosen_coalition.id}

@@ -94,3 +94,18 @@ class TestICGGym(TestCase):
 
     def test_gym_env(self):
         check_env(self.icg_gym)
+
+    def test_step_unstep(self):
+        test_functions = [
+            ("steps_taken", lambda x: x.steps_taken),
+            ("reward", lambda x: x.reward.tolist()),
+            ("state", lambda x: x.state.tolist()),
+        ]
+        for i, coalition in enumerate(self.icg_gym.explorable_coalitions):
+            for test_name, test in test_functions:
+                with self.subTest(coalition=coalition, test=test_name):
+                    initial = test(self.icg_gym)
+                    self.icg_gym.step(i)
+                    self.icg_gym.unstep(i)
+                    self.assertEqual(initial, test(self.icg_gym))
+

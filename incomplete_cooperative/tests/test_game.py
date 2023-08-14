@@ -166,3 +166,24 @@ class TestGame(TestCase):
         self.assertFalse(self.game.full)
         dummy_fill(self.game)
         self.assertTrue(self.game.full)
+
+    def test_game_value_set_unset(self):
+        self.game.set_value(10, Coalition(1))
+        self.assertEqual(self.game.get_value(Coalition(1)), 10)
+        self.game.unset_value(Coalition(1))
+        self.assertRaises(ValueError, self.game.get_value, Coalition(1))
+        self.assertFalse(self.game.is_value_known(Coalition(1)))
+
+    def test_game_value_unreveal(self):
+        self.game.reveal_value(10, Coalition(1))
+        self.assertEqual(self.game.get_value(Coalition(1)), 10)
+        self.game.unreveal_value(Coalition(1))
+        self.assertRaises(ValueError, self.game.get_value, Coalition(1))
+        self.assertFalse(self.game.is_value_known(Coalition(1)))
+
+    def test_game_value_unreveal_not_known(self):
+        self.game.reveal_value(10, Coalition(1))
+        self.assertEqual(self.game.get_value(Coalition(1)), 10)
+        self.game.unreveal_value(Coalition(1))
+        self.game.unreveal_value(Coalition(1))
+        self.assertFalse(self.game.is_value_known(Coalition(1)))
