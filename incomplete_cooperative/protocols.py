@@ -41,6 +41,7 @@ class MutableGame(Game, Protocol):
         """Set value of a specific coalition."""
 
 
+@runtime_checkable
 class IncompleteGame(Game, Protocol):
     """Incomplete game."""
 
