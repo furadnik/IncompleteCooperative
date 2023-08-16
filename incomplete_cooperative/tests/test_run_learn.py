@@ -1,15 +1,16 @@
 """Tests suite of learning."""
-from typing import cast
-from tempfile import TemporaryDirectory
-from pathlib import Path
-from os import chdir
-from unittest.mock import patch
-from unittest import TestCase
-from incomplete_cooperative.run.save import Output
-from incomplete_cooperative.run.model import ModelInstance, _env_generator
-from incomplete_cooperative.run.learn import learn_func
-from incomplete_cooperative.run.eval import eval_func
 from argparse import Namespace
+from os import chdir
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from typing import cast
+from unittest import TestCase
+from unittest.mock import patch
+
+from incomplete_cooperative.run.eval import eval_func
+from incomplete_cooperative.run.learn import learn_func
+from incomplete_cooperative.run.model import ModelInstance, _env_generator
+from incomplete_cooperative.run.save import Output
 
 
 class GetLearningResultMixin:

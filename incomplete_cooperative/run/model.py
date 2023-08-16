@@ -38,15 +38,7 @@ ACTIVATION_FNS = {
 
 def _env_generator(instance: ModelInstance) -> Env:  # pragma: nocover
     """Generate environment."""
-    bounds_computer = BOUNDS[instance.game_class]
-    game_generator = GENERATORS[instance.game_generator]
-
-    incomplete_game = IncompleteCooperativeGame(instance.number_of_players, bounds_computer)
-    env = ICG_Gym(incomplete_game,
-                  partial(game_generator, instance.number_of_players),
-                  minimal_game_coalitions(incomplete_game),
-                  done_after_n_actions=instance.run_steps_limit)
-
+    env = instance.env
     return ActionMasker(env, cast(Callable[[Env], np.ndarray], ICG_Gym.valid_action_mask))
 
 
@@ -73,6 +65,18 @@ class ModelInstance:
             self.model_dir = Path(self.model_dir)
         if self.model_path is None:
             self.model_path = self.model_dir / "model"
+
+    @property
+    def env(self) -> ICG_Gym:
+        """Get env."""
+        bounds_computer = BOUNDS[self.game_class]
+        game_generator = GENERATORS[self.game_generator]
+
+        incomplete_game = IncompleteCooperativeGame(self.number_of_players, bounds_computer)
+        return ICG_Gym(incomplete_game,
+                       partial(game_generator, self.number_of_players),
+                       minimal_game_coalitions(incomplete_game),
+                       done_after_n_actions=self.run_steps_limit)
 
     @classmethod
     def from_parsed_arguments(cls, args: Namespace) -> ModelInstance:
