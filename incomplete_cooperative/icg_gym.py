@@ -1,11 +1,13 @@
 """An Agent Gym for Incomplete Cooperative Games."""
-from typing import Any, Callable, Iterable
+from typing import Any, Callable, Iterable, cast
 
 import gymnasium as gym  # type: ignore
 import numpy as np
 
 from .coalitions import Coalition, all_coalitions, grand_coalition
 from .exploitability import compute_exploitability
+from .game import IncompleteCooperativeGame
+from .normalize import normalize_game
 from .protocols import (Game, Info, MutableIncompleteGame, State, StepResult,
                         Value)
 
@@ -28,6 +30,7 @@ class ICG_Gym(gym.Env):
         self.incomplete_game = game
         self.generator = game_generator
         self.full_game = game_generator()
+        normalize_game(cast(IncompleteCooperativeGame, self.full_game))
 
         self.done_after_n_actions = done_after_n_actions
         self.steps_taken = 0
@@ -40,6 +43,7 @@ class ICG_Gym(gym.Env):
 
         # setup the gym.
         self.reset()
+        assert self.full_game.get_value(grand_coalition(self.full_game)) == 1
         self.observation_space = gym.spaces.Box(
             low=np.zeros(len(self.explorable_coalitions), Value),
             high=np.ones(len(self.explorable_coalitions), Value) * self.full_game.get_value(
@@ -73,6 +77,7 @@ class ICG_Gym(gym.Env):
         """Reset the game into initial state."""
         super().reset(seed=seed, options=options)
         self.full_game = self.generator()
+        normalize_game(cast(IncompleteCooperativeGame, self.full_game))
         self.incomplete_game.set_known_values(self.full_game.get_values(self.initially_known_coalitions),
                                               self.initially_known_coalitions)
         self.incomplete_game.compute_bounds()
