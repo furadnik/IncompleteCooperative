@@ -7,12 +7,16 @@ from tempfile import TemporaryDirectory
 from unittest import TestCase
 from unittest.mock import patch
 
+from stable_baselines3.common.vec_env import DummyVecEnv  # type: ignore
+from stable_baselines3.common.vec_env import SubprocVecEnv
+
+from incomplete_cooperative.protocols import Solver
 from incomplete_cooperative.random_player import RandomPolicy
 from incomplete_cooperative.run.eval import add_eval_parser, eval_func
 from incomplete_cooperative.run.learn import add_learn_parser, learn_func
 from incomplete_cooperative.run.model import ModelInstance, add_model_arguments
-from stable_baselines3.common.vec_env import SubprocVecEnv, DummyVecEnv  # type: ignore
 from incomplete_cooperative.run.save import SAVERS
+from incomplete_cooperative.run.solve import add_solve_parser, solve_func
 
 
 class TestAddModelArguments(TestCase):
@@ -148,3 +152,46 @@ class TestEval(TestCase):
         self.assertFalse(parsed.eval_deterministic)
         parsed = self.ap.parse_args(["--eval-deterministic"])
         self.assertTrue(parsed.eval_deterministic)
+
+
+class TestSolve(TestCase):
+
+    def setUp(self):
+        self.model = ModelInstance(number_of_players=3)
+
+        self._tmp = TemporaryDirectory()
+        chdir(self._tmp.name)
+
+    def get_parsed_args(self, name="greedy"):
+        ap = ArgumentParser()
+        add_solve_parser(ap)
+        parsed_args = ap.parse_args(["--solve-repetitions", "1", "--solver", name])
+        return parsed_args
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def run_solve_test(self, path):
+        self.model.model_dir = path
+        self.model.unique_name = "asdf"
+        solve_func(self.model, self.get_parsed_args())  # TODO: implement later.
+        self.assertEqual(len(list(path.iterdir())), 3)
+        found = False
+        self.assertEqual(set(SAVERS.keys()), set(x.name for x in path.iterdir()))
+        for file in path.iterdir():
+            if file.suffix == ".json":
+                with file.open("r") as f:
+                    self.assertEqual(list(json.load(f)["asdf"].keys()), ["exploitability", "actions", "metadata"])
+                    found = True
+        self.assertTrue(found)
+
+    def test_function_proper(self):
+        self.assertEqual(self.get_parsed_args().func, solve_func)
+
+    def test_run_solve(self):
+        path = Path(self._tmp.name)
+        self.run_solve_test(path)
+
+    def test_run_solve_create_folder(self):
+        path = Path(self._tmp.name) / "model"
+        self.run_solve_test(path)
