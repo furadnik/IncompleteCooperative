@@ -7,6 +7,7 @@ from typing import cast
 from unittest import TestCase
 from unittest.mock import patch
 
+from incomplete_cooperative.coalitions import Coalition
 from incomplete_cooperative.run.eval import eval_func
 from incomplete_cooperative.run.learn import learn_func
 from incomplete_cooperative.run.model import ModelInstance, _env_generator
@@ -62,7 +63,7 @@ class TestSimpleGame(LearningTester, TestCase):
     kwargs = {
         "number_of_players": 4,
         "game_generator": "factory_fixed",
-        "learn_total_timesteps": 4000,
+        "learn_total_timesteps": 6000,
         "steps_per_update": 512,
         "eval_deterministic": True,
         "eval_repetitions": 100,
@@ -79,6 +80,7 @@ class TestSimpleGame(LearningTester, TestCase):
         for i in range(env.valid_action_mask().shape[0]):
             _, reward, _, _, out_dict = env.step(i)
             action = out_dict["chosen_coalition"]
+            print(-reward, Coalition(action))
             env.reset()
             if reward == best_reward:
                 best_actions.append(action)
