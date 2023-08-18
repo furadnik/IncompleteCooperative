@@ -47,6 +47,6 @@ def eval_func(instance: ModelInstance, parsed_args) -> None:
 def add_eval_parser(parser) -> None:
     """Fill in the parser with arguments for evaluating the model."""
     parser.add_argument("--eval-output-path", default=".", type=str)
-    parser.add_argument("--eval-repetitions", default=100, type=int)
+    parser.add_argument("--eval-repetitions", default=3000, type=int)
     parser.add_argument("--eval-deterministic", action="store_true")
     parser.set_defaults(func=eval_func)
