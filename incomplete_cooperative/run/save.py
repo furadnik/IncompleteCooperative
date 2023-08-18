@@ -1,13 +1,14 @@
 """Handle saving files output."""
 import json
+from argparse import Namespace
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
-from argparse import Namespace
+from typing import Any, cast
 
-from incomplete_cooperative.coalitions import Coalition
 import matplotlib.pyplot as plt  # type: ignore
 import numpy as np
+
+from incomplete_cooperative.coalitions import Coalition
 
 
 @dataclass
@@ -56,8 +57,13 @@ def save_exploitability_plot(path: Path, unique_name: str, output: Output) -> No
     fig_data = output.exploitability
     data_length = len(output.exploitability_list)
     fig, ax = plt.subplots()
-    plt.errorbar(
-        range(data_length), np.mean(fig_data, 1), yerr=np.std(fig_data, 1))
+    ax.grid(zorder=-1)
+    mean = np.mean(fig_data, 1)
+    stde = np.std(fig_data, 1)
+    plt.plot(
+        range(data_length), mean, zorder=3)
+    plt.fill_between(
+        range(data_length), mean + stde, mean - stde, zorder=3, alpha=0.3)
     ax.set_ylim(bottom=0)
     plt.savefig((path / unique_name).with_suffix(".png"))
     plt.close('all')
@@ -74,11 +80,12 @@ def save_draw_coalitions(path: Path, unique_name: str, output: Output) -> None:
         time_slice = all_data[i]
         fig, ax = plt.subplots()
         labels, counts = np.unique(time_slice, return_counts=True)
+        ax.grid(zorder=-1)
         ax.set_xticks(labels,
                       [list(Coalition(int(x)).players) for x in labels],
                       rotation='vertical')
         # transform counts to percentage
-        ax.bar(labels, counts / all_data.shape[1], align='center')
+        ax.bar(labels, counts / all_data.shape[1], align='center', zorder=3)
         plt.autoscale()
         plt.tight_layout()
         plt.savefig((unique_path / str(i + 1)).with_suffix(".png"))
