@@ -52,4 +52,8 @@ def main(ap: ArgumentParser = get_argument_parser(),
 
 if __name__ == '__main__':  # pragma: no cover
     multiprocessing.set_start_method("forkserver")
+    if '-V' in sys.argv or '--version' in sys.argv:
+        from . import __version__
+        print(__version__)
+        sys.exit(0)
     main()
