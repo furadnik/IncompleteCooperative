@@ -1,13 +1,17 @@
 """Handle saving files output."""
+from __future__ import annotations
+
 import json
+from argparse import Namespace
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
-from argparse import Namespace
 
-from incomplete_cooperative.coalitions import Coalition
 import matplotlib.pyplot as plt  # type: ignore
 import numpy as np
+
+from incomplete_cooperative.coalitions import Coalition
+from incomplete_cooperative.protocols import Value
 
 
 @dataclass
@@ -47,6 +51,24 @@ class Output:
         return {"exploitability": self.exploitability_list,
                 "actions": self.actions_list,
                 "metadata": self.metadata}
+
+    @classmethod
+    def from_file(cls, path: Path, unique_name: str) -> Output:
+        """Parse the json data back to self."""
+        with path.open("r") as f:
+            data = json.load(f)
+
+        return cls.from_json(data[unique_name])
+
+    @classmethod
+    def from_json(cls, data: dict) -> Output:
+        """Parse the json data back to self."""
+        data["metadata"]["func"] = data["metadata"]["run_type"]
+        data["parsed_args"] = Namespace(**data.pop("metadata"))
+        data["exploitability"] = np.array(data["exploitability"], dtype=Value)
+        data["actions"] = np.array(data["actions"], dtype=int)
+
+        return cls(**data)
 
 
 def save_exploitability_plot(path: Path, unique_name: str, output: Output) -> None:
