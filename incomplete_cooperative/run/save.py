@@ -95,18 +95,33 @@ def save_draw_coalitions(path: Path, unique_name: str, output: Output) -> None:
     unique_path = path / unique_name
     unique_path.mkdir(parents=True)
     all_data = output.actions
+    number_of_coalitions = int(np.max(all_data)) + 1
 
     plt.margins(0.2)
     for i in range(all_data.shape[0]):
         time_slice = all_data[i]
         fig, ax = plt.subplots()
-        labels, counts = np.unique(time_slice, return_counts=True)
+        labels, some_counts = np.unique(time_slice, return_counts=True)
+        counts = np.zeros(number_of_coalitions)
+
+        for label, count in zip(labels, some_counts / all_data.shape[1]):
+            counts[int(label)] = count
+
+        # combine them together
+        labels_with_counts = sorted(zip(
+            # generate coalitions
+            (list(Coalition(int(x)).players) for x in range(number_of_coalitions)), counts),
+            key=lambda x: len(x[0]))  # sort by coalition
+
+        # now split them apart again, but sorted
+        new_labels = [x[0] for x in labels_with_counts]
+        new_counts = [x[1] for x in labels_with_counts]
+
         ax.grid(zorder=-1)
-        ax.set_xticks(labels,
-                      [list(Coalition(int(x)).players) for x in labels],
+        ax.set_xticks(range(number_of_coalitions),
+                      new_labels,
                       rotation='vertical')
-        # transform counts to percentage
-        ax.bar(labels, counts / all_data.shape[1], align='center', zorder=3)
+        ax.bar(range(number_of_coalitions), new_counts, align='center', zorder=3)
         plt.autoscale()
         plt.tight_layout()
         plt.savefig((unique_path / str(i + 1)).with_suffix(".png"))
