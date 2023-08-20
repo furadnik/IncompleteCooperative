@@ -13,7 +13,7 @@ from .save import Output, save
 def best_states_func(instance: ModelInstance, parsed_args) -> None:
     """Get best states."""
     env = instance.env
-    if instance.run_steps_limit is None:
+    if instance.run_steps_limit is None:  # pragma: no cover
         instance.run_steps_limit = 2**instance.number_of_players
     rewards_all = np.zeros((instance.run_steps_limit + 1,
                             1))
