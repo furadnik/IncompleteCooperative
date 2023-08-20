@@ -11,12 +11,13 @@ from stable_baselines3.common.vec_env import DummyVecEnv  # type: ignore
 from stable_baselines3.common.vec_env import SubprocVecEnv
 
 from incomplete_cooperative.random_player import RandomPolicy
+from incomplete_cooperative.run.best_states import (add_best_states_parser,
+                                                    best_states_func)
 from incomplete_cooperative.run.eval import add_eval_parser, eval_func
 from incomplete_cooperative.run.learn import add_learn_parser, learn_func
 from incomplete_cooperative.run.model import ModelInstance, add_model_arguments
 from incomplete_cooperative.run.save import SAVERS
 from incomplete_cooperative.run.solve import add_solve_parser, solve_func
-from incomplete_cooperative.run.best_states import best_states_func, add_best_states_parser
 
 
 class TestAddModelArguments(TestCase):
@@ -200,7 +201,7 @@ class TestSolve(TestCase):
 class TestBestStates(TestCase):
 
     def setUp(self):
-        self.model = ModelInstance(number_of_players=4)
+        self.model = ModelInstance(number_of_players=4, run_steps_limit=4)
 
         self._tmp = TemporaryDirectory()
         chdir(self._tmp.name)
