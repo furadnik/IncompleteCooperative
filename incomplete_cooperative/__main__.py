@@ -7,11 +7,13 @@ from .run.eval import add_eval_parser
 from .run.learn import add_learn_parser
 from .run.model import ModelInstance, add_model_arguments
 from .run.solve import add_solve_parser
+from .run.best_states import add_best_states_parser
 
 COMMANDS = {
     "learn": add_learn_parser,
     "eval": add_eval_parser,
-    "solve": add_solve_parser
+    "solve": add_solve_parser,
+    "best_states": add_best_states_parser
 }
 
 
