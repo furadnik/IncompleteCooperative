@@ -30,14 +30,18 @@ class GetLearningResultMixin:
     def _saver(self, path: Path, unique_name: str, output: Output) -> None:
         self._output = output
 
+    def get_saver_output(self, func, instance, args) -> Output:
+        """Get output of a saver from running func."""
+        with patch("incomplete_cooperative.run.save.SAVERS", {"saver": self._saver}):
+            func(instance, args)
+        return self._output
+
     def get_learning_results(self, **kwargs) -> Output:
         """Get results of learning."""
         args, instance = self.get_instance(**kwargs)
-        with patch("incomplete_cooperative.run.save.SAVERS", {"saver": self._saver}):
-            if not instance.random_player:
-                learn_func(instance, args)
-            eval_func(instance, args)
-        return self._output
+        if not instance.random_player:
+            learn_func(instance, args)
+        return self.get_saver_output(eval_func, instance, args)
 
 
 class LearningTester(GetLearningResultMixin):

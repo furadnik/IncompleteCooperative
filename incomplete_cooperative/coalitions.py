@@ -88,9 +88,11 @@ def player_to_coalition(player: Player) -> Coalition:
     return Coalition(2**player)
 
 
-def grand_coalition(game: Game) -> Coalition:
+def grand_coalition(players: Game | int) -> Coalition:
     """Get grand coalition."""
-    return Coalition(2**game.number_of_players - 1)
+    if isinstance(players, Game):
+        players = players.number_of_players
+    return Coalition(2**players - 1)
 
 
 def all_coalitions(players: Game | int) -> Iterable[Coalition]:

@@ -9,7 +9,7 @@ from .protocols import BoundableIncompleteGame
 
 def _sub_coalitions(coalition: Coalition, game: BoundableIncompleteGame) -> Iterator[Coalition]:
     """Generate sub-coalitions for a coalition."""
-    return filter(lambda x: x & coalition != coalition and x | coalition == coalition,
+    return filter(lambda x: x & coalition != coalition and x | coalition == coalition and len(x),
                   all_coalitions(game))
 
 
