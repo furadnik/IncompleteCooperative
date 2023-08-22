@@ -3,11 +3,11 @@ import multiprocessing
 import sys
 from argparse import ArgumentParser
 
+from .run.best_states import add_best_states_parser
 from .run.eval import add_eval_parser
 from .run.learn import add_learn_parser
 from .run.model import ModelInstance, add_model_arguments
 from .run.solve import add_solve_parser
-from .run.best_states import add_best_states_parser
 
 COMMANDS = {
     "learn": add_learn_parser,
@@ -52,10 +52,15 @@ def main(ap: ArgumentParser = get_argument_parser(),
     parsed_args.func(instance, parsed_args)
 
 
-if __name__ == '__main__':  # pragma: no cover
+def run_main() -> None:  # pragma: no cover
+    """Prep and run the main script."""
     multiprocessing.set_start_method("forkserver")
     if '-V' in sys.argv or '--version' in sys.argv:
         from . import __version__
         print(__version__)
         sys.exit(0)
     main()
+
+
+if __name__ == '__main__':  # pragma: no cover
+    run_main()
