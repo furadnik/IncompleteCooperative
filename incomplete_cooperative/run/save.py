@@ -76,6 +76,18 @@ class Output:
         return cls(**data)
 
 
+def get_outputs_from_file(path: Path) -> dict[str, Output]:
+    """Get outputs from `data.json` path."""
+    with path.open("r") as f:
+        data = json.load(f)
+    return get_outputs(data)
+
+
+def get_outputs(data: dict[str, Any]) -> dict[str, Output]:
+    """Get outputs from `data`."""
+    return {key: Output.from_json(value) for key, value in data.items()}
+
+
 def save_exploitability_plot(path: Path, unique_name: str, output: Output) -> None:
     """Save exploitability data to a figure."""
     if not path.exists():

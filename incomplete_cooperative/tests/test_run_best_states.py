@@ -9,6 +9,9 @@ from .test_run_learn import GetLearningResultMixin
 
 class TestBestStates(GetLearningResultMixin, TestCase):
 
+    # account for float precision
+    epsilon = 0.0000000001
+
     def test_first_step_same(self):
         args, instance = self.get_instance(number_of_players=4, solve_repetitions=1,
                                            run_steps_limit=6,
@@ -18,5 +21,5 @@ class TestBestStates(GetLearningResultMixin, TestCase):
         self.assertEqual(greedy_out.avg_exploitability[0], best_out.avg_exploitability[0])
         self.assertEqual(greedy_out.avg_exploitability[1], best_out.avg_exploitability[1])
         for j in range(7):
-            self.assertGreaterEqual(greedy_out.avg_exploitability[j],
+            self.assertGreaterEqual(greedy_out.avg_exploitability[j] + self.epsilon,
                                     best_out.avg_exploitability[j])
