@@ -5,7 +5,7 @@ import json
 from argparse import Namespace
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, cast
+from typing import Any
 
 import matplotlib.pyplot as plt  # type: ignore
 import numpy as np
@@ -28,8 +28,8 @@ class Output:
         return np.average(self.exploitability[-1])
 
     @property
-    def avg_exploitability(self) -> float:
-        """Compute the average of final exploitabilities."""
+    def avg_exploitabilities(self) -> np.ndarray:
+        """Compute the average of exploitabilities."""
         return np.mean(self.exploitability, 1)
 
     @property
