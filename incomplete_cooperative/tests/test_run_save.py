@@ -9,7 +9,9 @@ from unittest import TestCase
 
 import numpy as np
 
-from incomplete_cooperative.run.save import (SAVERS, Output, json_serializer,
+from incomplete_cooperative.run.save import (SAVERS, Output,
+                                             get_outputs_from_file,
+                                             json_serializer,
                                              save_exploitability_plot,
                                              save_json)
 
@@ -95,7 +97,9 @@ class TestJsonSaver(TestSaverMixin, TestCase):
                 output = getOutput()
                 save_json(self.path, "foobar", output)
                 new_output = Output.from_file(self.path, "foobar")
+                new_output_from_multiple = get_outputs_from_file(self.path)["foobar"]
                 self.assertEqual(test(new_output), test(output))
+                self.assertEqual(test(new_output_from_multiple), test(output))
 
 
 class TestExplPlotSave(TestSaverMixin, TestCase):
