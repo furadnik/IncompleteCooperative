@@ -23,7 +23,6 @@ from ..coalitions import minimal_game_coalitions
 from ..game import IncompleteCooperativeGame
 from ..generators import GENERATORS
 from ..icg_gym import ICG_Gym
-from ..random_player import RandomPolicy
 
 ENVIRONMENTS: dict[str, type[SubprocVecEnv] | type[DummyVecEnv]] = {
     "parallel": SubprocVecEnv,
@@ -51,7 +50,6 @@ class ModelInstance:
     game_generator: str = "factory"
     steps_per_update: int = 2048
     parallel_environments: int = 2
-    random_player: bool = False
     run_steps_limit: int | None = None
     model_dir: Path = Path(".")
     model_path: Path = None  # type: ignore[assignment]
@@ -104,8 +102,6 @@ class ModelInstance:
     def model(self) -> MaskablePPO:
         """Get model."""
         envs = self.env_generator()
-        if self.random_player:
-            return MaskablePPO(RandomPolicy, envs, n_steps=self.steps_per_update, verbose=10)
         return MaskablePPO.load(self.model_path, envs) if self.model_path.with_suffix(".zip").exists() \
             else MaskablePPO("MlpPolicy", envs, n_steps=self.steps_per_update,
                              policy_kwargs={"activation_fn": self.policy_activation_fn_choice}, verbose=10)
@@ -128,7 +124,6 @@ def add_model_arguments(ap) -> None:
                     type=int, help="Steps in one epoch when learning.")
     ap.add_argument("--parallel-environments", default=defaults.parallel_environments, type=int)
     ap.add_argument("--run-steps-limit", default=defaults.run_steps_limit, type=int)
-    ap.add_argument("--random-player", action="store_true")
     ap.add_argument("--model-dir", type=Path, default=defaults.model_dir)
     ap.add_argument("--model-path", type=Path, required=False)
     ap.add_argument("--unique-name", type=str, required=False, default=defaults.unique_name)
