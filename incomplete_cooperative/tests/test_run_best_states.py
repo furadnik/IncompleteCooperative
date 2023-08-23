@@ -18,8 +18,8 @@ class TestBestStates(GetLearningResultMixin, TestCase):
                                            solver="greedy", func="foobar")
         greedy_out = self.get_saver_output(solve_func, instance, args)
         best_out = self.get_saver_output(best_states_func, instance, args)
-        self.assertEqual(greedy_out.avg_exploitability[0], best_out.avg_exploitability[0])
-        self.assertEqual(greedy_out.avg_exploitability[1], best_out.avg_exploitability[1])
+        self.assertEqual(greedy_out.avg_exploitabilities[0], best_out.avg_exploitabilities[0])
+        self.assertEqual(greedy_out.avg_exploitabilities[1], best_out.avg_exploitabilities[1])
         for j in range(7):
-            self.assertGreaterEqual(greedy_out.avg_exploitability[j] + self.epsilon,
-                                    best_out.avg_exploitability[j])
+            self.assertGreaterEqual(greedy_out.avg_exploitabilities[j] + self.epsilon,
+                                    best_out.avg_exploitabilities[j])
