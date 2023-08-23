@@ -12,6 +12,7 @@ from incomplete_cooperative.run.eval import eval_func
 from incomplete_cooperative.run.learn import learn_func
 from incomplete_cooperative.run.model import ModelInstance, _env_generator
 from incomplete_cooperative.run.save import Output
+from incomplete_cooperative.run.solve import solve_func
 
 
 class GetLearningResultMixin:
@@ -36,11 +37,15 @@ class GetLearningResultMixin:
             func(instance, args)
         return self._output
 
+    def get_random_results(self, **kwargs) -> Output:
+        """Get results of random solver."""
+        args, instance = self.get_instance(solver="random", **kwargs)
+        return self.get_saver_output(solve_func, instance, args)
+
     def get_learning_results(self, **kwargs) -> Output:
         """Get results of learning."""
         args, instance = self.get_instance(**kwargs)
-        if not instance.random_player:
-            learn_func(instance, args)
+        learn_func(instance, args)
         return self.get_saver_output(eval_func, instance, args)
 
 
@@ -51,12 +56,12 @@ class LearningTester(GetLearningResultMixin):
     def test_better_than_random(self):
         print(self.kwargs)
         learned_output = self.get_learning_results(**self.kwargs)
-        random_output = self.get_learning_results(random_player=True, **self.kwargs)
+        random_output = self.get_random_results(**self.kwargs)
         self.assertLess(learned_output.avg_final_exploitability,
                         random_output.avg_final_exploitability, msg=learned_output)
 
     def test_random_is_random(self):
-        random_results = self.get_learning_results(random_player=True, **self.kwargs)
+        random_results = self.get_random_results(**self.kwargs)
         actions_list = random_results.actions.flatten().tolist()
         distinct_actions = list(set(actions_list))
         self.assertGreater(len(distinct_actions), 1, msg=actions_list)
@@ -71,6 +76,7 @@ class TestSimpleGame(LearningTester, TestCase):
         "steps_per_update": 256,
         "eval_deterministic": True,
         "eval_repetitions": 100,
+        "solve_repetitions": 100,
         "run_steps_limit": 1,
     }
 

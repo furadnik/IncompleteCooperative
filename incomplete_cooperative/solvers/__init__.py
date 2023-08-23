@@ -1,6 +1,10 @@
 """Custom solvers module."""
-from .greedy import GreedySolver
+from incomplete_cooperative.protocols import Solver
 
-SOLVERS = {
-    "greedy": GreedySolver
+from .greedy import GreedySolver
+from .random import RandomSolver
+
+SOLVERS: dict[str, type[Solver]] = {
+    "greedy": GreedySolver,
+    "random": RandomSolver
 }
