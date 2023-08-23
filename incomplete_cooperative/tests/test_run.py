@@ -10,7 +10,6 @@ from unittest.mock import patch
 from stable_baselines3.common.vec_env import DummyVecEnv  # type: ignore
 from stable_baselines3.common.vec_env import SubprocVecEnv
 
-from incomplete_cooperative.random_player import RandomPolicy
 from incomplete_cooperative.run.best_states import (add_best_states_parser,
                                                     best_states_func)
 from incomplete_cooperative.run.eval import add_eval_parser, eval_func
@@ -75,10 +74,6 @@ class TestModelInstance(TestCase):
         with patch("incomplete_cooperative.run.model.MaskablePPO") as m:
             self.model.model
             m.load.assert_called_once()
-
-    def test_get_random_model(self):
-        model = ModelInstance(random_player=True).model
-        self.assertIsInstance(model.policy, RandomPolicy)
 
 
 class TestLearn(TestCase):

@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from unittest import TestCase
 
 from incomplete_cooperative.protocols import Solver
-from incomplete_cooperative.solvers import GreedySolver
+from incomplete_cooperative.solvers import SOLVERS, GreedySolver, RandomSolver
 
 from .utils import GymMixin
 
@@ -13,6 +13,10 @@ class TestSolverMixin(GymMixin, ABC):
     @abstractmethod
     def get_solver(self) -> Solver:
         """Get the solver."""
+
+    def test_solver_in_solvers(self):
+        solver = self.get_solver()
+        self.assertTrue(any(isinstance(solver, x) for x in SOLVERS.values()))
 
     def test_valid_run(self):
         """Test that the gym isn't affected at any point."""
@@ -30,3 +34,9 @@ class TestGreedy(TestSolverMixin, TestCase):
 
     def get_solver(self) -> Solver:
         return GreedySolver()
+
+
+class TestRandom(TestSolverMixin, TestCase):
+
+    def get_solver(self) -> Solver:
+        return RandomSolver()
