@@ -157,9 +157,9 @@ class TestGame(TestCase):
         self.assertEqual(self.game.get_lower_bound(Coalition(3)), .5)
 
     def test_compare_games(self):
-        self.assertEqual(self.game, IncompleteCooperativeGame(self.game.number_of_players, lambda x: None))
+        self.assertEqual(self.game, IncompleteCooperativeGame(self.game.number_of_players, dummy_bounds))
         dummy_fill(self.game)
-        self.assertNotEqual(self.game, IncompleteCooperativeGame(self.game.number_of_players, lambda x: None))
+        self.assertNotEqual(self.game, IncompleteCooperativeGame(self.game.number_of_players, dummy_bounds))
         self.assertRaises(AttributeError, lambda: self.game == 42)
 
     def test_is_game_full(self):

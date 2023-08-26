@@ -80,34 +80,37 @@ class ICG_Gym(gym.Env):
         normalize_game(cast(IncompleteCooperativeGame, self.full_game))
         self.incomplete_game.set_known_values(self.full_game.get_values(self.initially_known_coalitions),
                                               self.initially_known_coalitions)
-        self.incomplete_game.compute_bounds()
         self.steps_taken = 0
 
         return self.state, {}
+
+    def step_no_return(self, action: int) -> None:
+        """Implement one step of the arbitor, reveal coalition and compute exploitability."""
+        # The chosen coalition for revealing, skipping the singletons
+        chosen_coalition = self.explorable_coalitions[action]
+        self.incomplete_game.reveal_value(self.full_game.get_value(chosen_coalition),
+                                          chosen_coalition)
+        self.steps_taken += 1
 
     def step(self, action: int) -> StepResult:
         """Implement one step of the arbitor, reveal coalition and compute exploitability.
 
         Return the new state, reward, whether we're done, and some (empty) additional info.
         """
+        self.step_no_return(action)
+        return self.state, self.reward, self.done, False, {"chosen_coalition": chosen_coalition.id}
+
+    def unstep_no_return(self, action: int) -> None:
+        """Undo a step of the arbitor."""
         # The chosen coalition for revealing, skipping the singletons
         chosen_coalition = self.explorable_coalitions[action]
-        self.incomplete_game.reveal_value(self.full_game.get_value(chosen_coalition),
-                                          chosen_coalition)
-        self.incomplete_game.compute_bounds()
-        self.steps_taken += 1
-
-        return self.state, self.reward, self.done, False, {"chosen_coalition": chosen_coalition.id}
+        self.incomplete_game.unreveal_value(chosen_coalition)
+        self.steps_taken -= 1
 
     def unstep(self, action: int) -> StepResult:
         """Undo a step of the arbitor.
 
         Return the new state, reward, whether we're done, and some (empty) additional info.
         """
-        # The chosen coalition for revealing, skipping the singletons
-        chosen_coalition = self.explorable_coalitions[action]
-        self.incomplete_game.unreveal_value(chosen_coalition)
-        self.incomplete_game.compute_bounds()
-        self.steps_taken -= 1
-
+        self.unstep_no_return(action)
         return self.state, self.reward, self.done, False, {"chosen_coalition": chosen_coalition.id}

@@ -27,6 +27,7 @@ class IncompleteCooperativeGame:
         """Save basic game info."""
         self.number_of_players = number_of_players
         self._bounds_computer = bounds_computer
+        self.valid_bounds = False
         self._values = np.zeros((2**self.number_of_players, 3), Value)
         self._init_values()
 
@@ -61,16 +62,19 @@ class IncompleteCooperativeGame:
         self._values[coalition.id, self._values_upper_index] = value
         self._values[coalition.id, self._values_lower_index] = value
         self._values[coalition.id, self._values_is_known_index] = 1
+        self.valid_bounds = False
 
     def unset_value(self, coalition: Coalition) -> None:
         """Set value of a coalition."""
         self._values[coalition.id, self._values_upper_index] = 0
         self._values[coalition.id, self._values_lower_index] = 0
         self._values[coalition.id, self._values_is_known_index] = 0
+        self.valid_bounds = False
 
     def set_values(self, values: Values,
                    coalitions: Iterable[Coalition] | None = None) -> None:
         """Set multiple values."""
+        self.valid_bounds = False
         if coalitions is not None:
             indices = np.fromiter(map(lambda x: x.id, coalitions), int, np.size(values))
             self._values[indices, self._values_upper_index] = values
@@ -88,31 +92,45 @@ class IncompleteCooperativeGame:
 
     def compute_bounds(self) -> None:
         """Compute the bounds."""
+        self.valid_bounds = True
         self._bounds_computer(self)
+        self.valid_bounds = True
 
     def get_upper_bound(self, coalition: Coalition) -> Value:
         """Get upper bound for a coalition."""
+        if not self.valid_bounds:
+            self.compute_bounds()
         return self._values[coalition.id, self._values_upper_index]
 
     def get_upper_bounds(self, coalitions: Iterable[Coalition] | None = None) -> Values:
         """Get upper bounds for coalitions."""
+        if not self.valid_bounds:
+            self.compute_bounds()
         return self._filter_out_coalitions(self._values[:, self._values_upper_index], coalitions)
 
     def get_lower_bound(self, coalition: Coalition) -> Value:
         """Get lower bound for a coalition."""
+        if not self.valid_bounds:
+            self.compute_bounds()
         return self._values[coalition.id, self._values_lower_index]
 
     def get_lower_bounds(self, coalitions: Iterable[Coalition] | None = None) -> Values:
         """Get upper bounds for coalitions."""
+        if not self.valid_bounds:
+            self.compute_bounds()
         return self._filter_out_coalitions(self._values[:, self._values_lower_index], coalitions)
 
     def get_interval(self, coalition: Coalition) -> np.ndarray[Literal[2], np.dtype[Value]]:
         """Get the interval, ie. both the upper and lower bounds."""
+        if not self.valid_bounds:
+            self.compute_bounds()
         return self._values[coalition.id, self._values_lower_index:self._values_upper_index + 1]
 
     def get_intervals(self, coalitions: Iterable[Coalition] | None = None
                       ) -> np.ndarray[tuple[Any, Literal[2]], np.dtype[Value]]:
         """Get the intervals for (some) coalitions. Defaults to all."""
+        if not self.valid_bounds:
+            self.compute_bounds()
         r = self._values[:, self._values_lower_index:self._values_upper_index + 1]
         return self._filter_out_coalitions(r, coalitions)
 
@@ -169,7 +187,7 @@ class IncompleteCooperativeGame:
 
     def set_upper_bounds(self, values: Values,
                          coalitions: Iterable[Coalition] | None = None) -> None:
-        """Set values of (some) coalitions the game. Defaults to all coalitions."""
+        """Set upper bounds of (some) coalitions the game. Defaults to all coalitions."""
         if coalitions is not None:
             coalitions = list(coalitions)
             all_values = np.zeros(len(self._values), dtype=Value)
@@ -181,12 +199,12 @@ class IncompleteCooperativeGame:
         np.copyto(self._values[:, self._values_upper_index], all_values, where=relevant_positions)
 
     def set_upper_bound(self, value: ValueIn, coalition: Coalition) -> None:
-        """Set value of a specific coalition."""
+        """Set an upper bound of a specific coalition."""
         self._values[coalition.id, self._values_upper_index] = value
 
     def set_lower_bounds(self, values: Values,
                          coalitions: Iterable[Coalition] | None = None) -> None:
-        """Set values of (some) coalitions the game. Defaults to all coalitions."""
+        """Set lower bounds of (some) coalitions the game. Defaults to all coalitions."""
         if coalitions is not None:
             coalitions = list(coalitions)
             all_values = np.zeros(len(self._values), dtype=Value)
@@ -198,13 +216,17 @@ class IncompleteCooperativeGame:
         np.copyto(self._values[:, self._values_lower_index], all_values, where=relevant_positions)
 
     def set_lower_bound(self, value: ValueIn, coalition: Coalition) -> None:
-        """Set value of a specific coalition."""
+        """Set a lower bound of a specific coalition."""
         self._values[coalition.id, self._values_lower_index] = value
 
     def __eq__(self, other) -> bool:
         """Compare two games."""
         if not isinstance(other, IncompleteCooperativeGame):
             raise AttributeError("Cannot compare games with anything else than games.")
+        if not self.valid_bounds:
+            self.compute_bounds()
+        if not other.valid_bounds:
+            other.compute_bounds()
         return bool(np.all(self._values == other._values))
 
     @property
