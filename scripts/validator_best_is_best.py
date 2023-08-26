@@ -14,7 +14,8 @@ EPSILON = 0.000000001
 def validate_data(data: dict[str, Output]) -> None:
     """Return output."""
     if "best_states" not in data.keys():
-        return  # no best, nothing to validate
+        print("No best, nothing to validate.")
+        return
     # make them a little better to account for float precision
     best_exploitabilities = data["best_states"].avg_exploitabilities - EPSILON
 
@@ -23,6 +24,7 @@ def validate_data(data: dict[str, Output]) -> None:
         for i in range(exploitability.shape[0]):
             assert np.all(exploitability[i] >= best_exploitabilities[i]), \
                 f"{key}, ex:{exploitability[i].tolist()}, bst:{best_exploitabilities[i]}"
+    print("OK.")
 
 
 def main(path=Path(argv[1])) -> None:
