@@ -37,6 +37,5 @@ class TestBestStates(GetLearningResultMixin, TestCase):
         target_array = np.full((3, 3), np.nan)
         for i in range(len(coalitions)):
             fill_in_coalitions(target_array[i], coalitions[i])
-        self.assertTrue(np.all(
-            (target_array == expected) | (np.isnan(target_array) & np.isnan(expected))),
-            msg=str(target_array) + str(expected))
+        self.assertTrue(np.array_equal(target_array, expected, equal_nan=True),
+                        msg=str(target_array) + str(expected))

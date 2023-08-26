@@ -112,7 +112,10 @@ def save_draw_coalitions(path: Path, unique_name: str, output: Output) -> None:
     unique_path = path / unique_name
     unique_path.mkdir(parents=True)
     all_data = output.actions
-    number_of_coalitions = int(np.max(all_data)) + 1
+    # approximate the number of coalitions: at least as many as the biggest id of a chosen one.
+    number_of_coalitions = int(np.max(all_data, initial=-1,
+                                      where=(np.logical_not(np.isnan(all_data)))  # exclude nans
+                                      )) + 1
 
     plt.margins(0.2)
     for i in range(all_data.shape[0]):
@@ -122,7 +125,8 @@ def save_draw_coalitions(path: Path, unique_name: str, output: Output) -> None:
         counts = np.zeros(number_of_coalitions)
 
         for label, count in zip(labels, some_counts / all_data.shape[1]):
-            counts[int(label)] = count
+            if not np.isnan(label):
+                counts[int(label)] = count
 
         # combine them together
         labels_with_counts = sorted(zip(
