@@ -3,8 +3,10 @@ from typing import Iterator
 
 import numpy as np
 
+from incomplete_cooperative.gameplay import \
+    get_exploitabilities_of_action_sequences
 from incomplete_cooperative.icg_gym import ICG_Gym
-from incomplete_cooperative.protocols import Value
+from incomplete_cooperative.protocols import Game, MutableIncompleteGame, Value
 
 from .model import ModelInstance
 from .save import Output, save
@@ -46,29 +48,30 @@ def get_best_rewards(env: ICG_Gym, max_steps: int) -> tuple[np.ndarray, list[lis
         A list of lists of chosen coalitions at each step for the best results.
     """
     initial_reward = env.reward
+    assert not np.any(env.incomplete_game.are_values_known(env.explorable_coalitions))
+    assert np.all(env.incomplete_game.are_values_known(env.initially_known_coalitions))
     best_rewards = np.full((max_steps,), initial_reward)
     best_actions: list[list[int]] = [[] for _ in range(max_steps)]
-    for steps, coalitions, reward in get_values(env, max_steps):
+    for steps, coalitions, reward in get_values(env.incomplete_game, env.full_game, max_steps):
         if steps != 0 and best_rewards[steps - 1] < reward:
             best_rewards[steps - 1] = reward
             best_actions[steps - 1] = coalitions
     return best_rewards, best_actions
 
 
-def get_values(env: ICG_Gym, max_steps: int, chosen_coalitions: list[int] = [],
-               steps_taken: int = 0, current_index: int = 0) -> Iterator[tuple[int, list[int], Value]]:
-    """Get values for steps."""
-    if steps_taken >= max_steps:
-        yield steps_taken, list(chosen_coalitions), env.reward
-        return
-    if current_index >= env.valid_action_mask().shape[0]:
-        yield steps_taken, list(chosen_coalitions), env.reward
-        return
-    yield from get_values(env, max_steps, chosen_coalitions, steps_taken, current_index + 1)
-    _, _, _, _, info = env.step(current_index)
-    yield from get_values(env, max_steps, chosen_coalitions + [info["chosen_coalition"]],
-                          steps_taken + 1, current_index + 1)
-    env.unstep(current_index)
+def get_values(game: MutableIncompleteGame, full_game: Game,
+               max_steps: int) -> Iterator[tuple[int, list[int], Value]]:
+    """Get values for steps.
+
+    Returns: An iterator of tuples:
+        The number of steps taken.
+        The coalition ids of steps taken.
+        The reward of that configuration.
+    """
+    for action_sequence, value in get_exploitabilities_of_action_sequences(
+        game, full_game, max_steps
+    ):
+        yield len(action_sequence), [x.id for x in action_sequence], -value
 
 
 def add_best_states_parser(parser) -> None:

@@ -1,5 +1,6 @@
 """Tests for the `run` module."""
 from unittest import TestCase
+from incomplete_cooperative.coalitions import Coalition
 
 import numpy as np
 
@@ -18,14 +19,14 @@ class TestBestStates(GetLearningResultMixin, TestCase):
     def test_first_step_same(self):
         args, instance = self.get_instance(number_of_players=4, solve_repetitions=1,
                                            run_steps_limit=6,
-                                           solver="greedy", func="foobar")
+                                           solver="greedy", func="foobar", game_generator="factory_fixed")
         greedy_out = self.get_saver_output(solve_func, instance, args)
         best_out = self.get_saver_output(best_states_func, instance, args)
         self.assertEqual(greedy_out.avg_exploitabilities[0], best_out.avg_exploitabilities[0])
         self.assertEqual(greedy_out.avg_exploitabilities[1], best_out.avg_exploitabilities[1])
         for j in range(7):
             self.assertGreaterEqual(greedy_out.avg_exploitabilities[j] + self.epsilon,
-                                    best_out.avg_exploitabilities[j])
+                                    best_out.avg_exploitabilities[j], j)
 
     def test_fill_in_coalitions(self):
         coalitions = [
