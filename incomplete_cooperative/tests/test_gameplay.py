@@ -120,14 +120,18 @@ class TestActionSeqExploitabilities(IncompleteGameMixin, TestCase):
                         game, game_full):
                     self.assertEqual(set(action_sequence).union(include), set(include))
 
-    def actions_exploitability_correct(self) -> None:
+    def test_actions_exploitability_correct(self) -> None:
         missed_coalitions = [x for x in all_coalitions(4) if x not in minimal_game_coalitions(
             self.get_game(number_of_players=4))]
         for action_sequence, exploitability in get_exploitabilities_of_action_sequences(
             game=self.get_game_miss_coals(missed_coalitions, number_of_players=4),
-            full_game=self.get_game(number_of_players=4)
+            full_game=self.get_game_miss_coals(missed_coals=[], number_of_players=4)
         ):
-            new_game = self.get_game_miss_coals(number_of_players=4)
-            for action in action_sequence:
-                new_game.reveal_value(self.get_game(number_of_players=4).get_value(action), action)
-            self.assertEqual(compute_exploitability(new_game), exploitability)
+            with self.subTest(action_sequence=action_sequence):
+                new_game = self.get_game_miss_coals(missed_coals=missed_coalitions, number_of_players=4)
+                for action in action_sequence:
+                    new_game.reveal_value(self.get_game_miss_coals(missed_coals=[],
+                                                                   number_of_players=4).get_value(action),
+                                          action)
+                new_game.compute_bounds()
+                self.assertEqual(compute_exploitability(new_game), exploitability, action_sequence)
