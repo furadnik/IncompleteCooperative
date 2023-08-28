@@ -24,7 +24,12 @@ class IncompleteCooperativeGame:
 
     def __init__(self, number_of_players: int,
                  bounds_computer: Callable[[BoundableIncompleteGame], None]) -> None:
-        """Save basic game info."""
+        """Save basic game info.
+
+        Arguments:
+            number_of_players: The number of players in the game.
+            bounds_computer: The function that _modifies_ the game with bounds.
+        """
         self.number_of_players = number_of_players
         self._bounds_computer = bounds_computer
         self._values = np.zeros((2**self.number_of_players, 3), Value)
