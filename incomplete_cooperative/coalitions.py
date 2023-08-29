@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Iterable
 
-from .protocols import Game, Player
+from .protocols import Game, IncompleteGame, Player
 
 
 class Coalition:
@@ -113,3 +113,8 @@ def exclude_coalition(exclude: Coalition, coalitions: Iterable[Coalition]) -> It
     """Get coalitions that do not icnlude anyone from the `exclude` coalition."""
     return filter(lambda coalition: not len(coalition & exclude),
                   coalitions)
+
+
+def get_known_coalitions(game: IncompleteGame) -> Iterable[Coalition]:
+    """Get the coalitions that are known."""
+    return (x for x in all_coalitions(game) if game.is_value_known(x))

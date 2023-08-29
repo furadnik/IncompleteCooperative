@@ -2,6 +2,7 @@
 from incomplete_cooperative.bounds import compute_bounds_superadditive
 from incomplete_cooperative.coalitions import Coalition, all_coalitions
 from incomplete_cooperative.game import IncompleteCooperativeGame
+from incomplete_cooperative.generators import factory_generator
 from incomplete_cooperative.icg_gym import ICG_Gym
 from incomplete_cooperative.protocols import MutableIncompleteGame
 
@@ -18,6 +19,14 @@ class IncompleteGameMixin:
     def get_game(self, *, number_of_players=6) -> IncompleteCooperativeGame:
         """Get game based on params."""
         return IncompleteCooperativeGame(number_of_players, compute_bounds_superadditive)
+
+    def get_game_miss_coals(self, missed_coals=[Coalition(1)], filler=factory_generator,
+                            number_of_players=6) -> IncompleteCooperativeGame:
+        """Get game with pre-defined coalitions missing."""
+        game = factory_generator(number_of_players, 0, compute_bounds_superadditive)
+        for coal in missed_coals:
+            game.unset_value(coal)
+        return game
 
 
 class GymMixin(IncompleteGameMixin):
