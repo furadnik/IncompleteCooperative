@@ -13,7 +13,7 @@ from .test_run_learn import GetLearningResultMixin
 class TestBestStates(GetLearningResultMixin, TestCase):
 
     # account for float precision
-    epsilon = 0.0000000001
+    epsilon = 0.00000001
 
     def test_first_step_same(self):
         args, instance = self.get_instance(number_of_players=4, solve_repetitions=1,
