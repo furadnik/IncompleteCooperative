@@ -52,26 +52,15 @@ def get_best_rewards(env: ICG_Gym, max_steps: int) -> tuple[np.ndarray, list[lis
     assert np.all(env.incomplete_game.are_values_known(env.initially_known_coalitions))
     best_rewards = np.full((max_steps,), initial_reward)
     best_actions: list[list[int]] = [[] for _ in range(max_steps)]
-    for steps, coalitions, reward in get_values(env.incomplete_game, env.full_game, max_steps):
+    for act_sequence, value in get_exploitabilities_of_action_sequences(env.incomplete_game, env.full_game, max_steps):
+        steps = len(act_sequence)
+        coalitions = [x.id for x in act_sequence]
+        reward = -value
+
         if steps != 0 and best_rewards[steps - 1] < reward:
             best_rewards[steps - 1] = reward
             best_actions[steps - 1] = coalitions
     return best_rewards, best_actions
-
-
-def get_values(game: MutableIncompleteGame, full_game: Game,
-               max_steps: int) -> Iterator[tuple[int, list[int], Value]]:
-    """Get values for steps.
-
-    Returns: An iterator of tuples:
-        The number of steps taken.
-        The coalition ids of steps taken.
-        The reward of that configuration.
-    """
-    for action_sequence, value in get_exploitabilities_of_action_sequences(
-        game, full_game, max_steps
-    ):
-        yield len(action_sequence), [x.id for x in action_sequence], -value
 
 
 def add_best_states_parser(parser) -> None:
