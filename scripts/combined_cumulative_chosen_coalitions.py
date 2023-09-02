@@ -77,7 +77,7 @@ def main(path: Path = Path(sys.argv[1]), title: str = sys.argv[2]) -> None:
         steps = min(len(Output.from_file(data, x).actions_list) for x in data_keys)
         chosen_coalitions = [(x, Output.from_file(data, x).actions) for x in data_keys]
         for step in range(steps):
-            step_path = save_path / str(step)
+            step_path = save_path / str(step + 1)
             # steps in title are counted from 1.
             draw_combined_graph(chosen_coalitions, step_path, f"{title} - step {step + 1}", step)
 
