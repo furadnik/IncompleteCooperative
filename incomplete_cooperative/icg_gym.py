@@ -43,7 +43,7 @@ class ICG_Gym(gym.Env):
 
         # setup the gym.
         self.reset()
-        assert self.full_game.get_value(grand_coalition(self.full_game)) == 1
+        assert self.full_game.get_value(grand_coalition(self.full_game)) == 1  # nosec
         self.observation_space = gym.spaces.Box(
             low=np.zeros(len(self.explorable_coalitions), Value),
             high=np.ones(len(self.explorable_coalitions), Value) * self.full_game.get_value(

@@ -48,8 +48,8 @@ def get_best_rewards(env: ICG_Gym, max_steps: int) -> tuple[np.ndarray, list[lis
         A list of lists of chosen coalitions at each step for the best results.
     """
     initial_reward = env.reward
-    assert not np.any(env.incomplete_game.are_values_known(env.explorable_coalitions))
-    assert np.all(env.incomplete_game.are_values_known(env.initially_known_coalitions))
+    assert not np.any(env.incomplete_game.are_values_known(env.explorable_coalitions))  # nosec
+    assert np.all(env.incomplete_game.are_values_known(env.initially_known_coalitions))  # nosec
     best_rewards = np.full((max_steps,), initial_reward)
     best_actions: list[list[int]] = [[] for _ in range(max_steps)]
     for steps, coalitions, reward in get_values(env.incomplete_game, env.full_game, max_steps):

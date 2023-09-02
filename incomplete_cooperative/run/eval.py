@@ -25,7 +25,7 @@ def eval_func(instance: ModelInstance, parsed_args) -> None:
             action, _ = model.predict(
                 obs, action_masks=action_masks, deterministic=parsed_args.eval_deterministic)
             obs, rewards, dones, info = env.step(action)
-            assert isinstance(obs, np.ndarray)
+            assert isinstance(obs, np.ndarray)  # nosec
             rewards_all[episode + 1, repetition, :] += rewards
             # map the `action` (index in explorable coalitions) to `coalition`.
             actions_all[episode, repetition, :] = np.vectorize(lambda x: x["chosen_coalition"])(info)
