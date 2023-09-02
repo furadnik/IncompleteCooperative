@@ -3,10 +3,11 @@ from typing import Iterator
 
 import numpy as np
 
+from incomplete_cooperative.coalitions import Coalition
 from incomplete_cooperative.gameplay import \
     get_exploitabilities_of_action_sequences
 from incomplete_cooperative.icg_gym import ICG_Gym
-from incomplete_cooperative.protocols import Game, MutableIncompleteGame, Value
+from incomplete_cooperative.protocols import Value
 
 from .model import ModelInstance
 from .save import Output, save
@@ -22,7 +23,8 @@ def best_states_func(instance: ModelInstance, parsed_args) -> None:
     actions_all = np.full((instance.run_steps_limit,
                            instance.run_steps_limit), np.nan)
     rewards_all[0, 0] = env.reward
-    best_rewards, best_coalitions = get_best_rewards(instance.env, instance.run_steps_limit)
+    best_rewards, best_coalitions = get_best_rewards(instance.env, instance.run_steps_limit,
+                                                     parsed_args.sampling_repetitions)
     for episode in range(instance.run_steps_limit):
         rewards_all[episode + 1, 0] = best_rewards[episode]
         fill_in_coalitions(actions_all[episode], best_coalitions[episode])
@@ -40,7 +42,7 @@ def fill_in_coalitions(target_array: np.ndarray, coalitions: list[int]) -> None:
         target_array[i] = coal
 
 
-def get_best_rewards(env: ICG_Gym, max_steps: int) -> tuple[np.ndarray, list[list[int]]]:
+def get_best_rewards(env: ICG_Gym, max_steps: int, repetitions: int) -> tuple[np.ndarray, list[list[int]]]:
     """Return best rewards.
 
     Returns: A tuple:
@@ -52,7 +54,7 @@ def get_best_rewards(env: ICG_Gym, max_steps: int) -> tuple[np.ndarray, list[lis
     assert np.all(env.incomplete_game.are_values_known(env.initially_known_coalitions))  # nosec
     best_rewards = np.full((max_steps,), initial_reward)
     best_actions: list[list[int]] = [[] for _ in range(max_steps)]
-    for act_sequence, value in get_exploitabilities_of_action_sequences(env.incomplete_game, env.full_game, max_steps):
+    for act_sequence, value in get_values(env, repetitions, max_steps):
         steps = len(act_sequence)
         coalitions = [x.id for x in act_sequence]
         reward = -value
@@ -63,6 +65,21 @@ def get_best_rewards(env: ICG_Gym, max_steps: int) -> tuple[np.ndarray, list[lis
     return best_rewards, best_actions
 
 
+def get_values(env: ICG_Gym, repetitions: int, max_steps: int) -> Iterator[tuple[list[Coalition], Value]]:
+    """Get by sampling."""
+    initial = list(get_exploitabilities_of_action_sequences(env.incomplete_game, env.full_game, max_steps))
+    actions = (x[0] for x in initial)
+    values = np.fromiter((x[1] for x in initial), Value)
+    for _ in range(repetitions - 1):
+        env.reset()
+        values += np.fromiter((x[1] for x in get_exploitabilities_of_action_sequences(
+            env.incomplete_game, env.full_game, max_steps)),
+            Value, values.shape[0])
+    values /= repetitions
+    return zip(actions, values)
+
+
 def add_best_states_parser(parser) -> None:
     """Fill in the parser with arguments for solving the game."""
     parser.set_defaults(func=best_states_func)
+    parser.add_argument("--sampling-repetitions", default=1, type=int)
