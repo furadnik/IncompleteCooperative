@@ -10,7 +10,8 @@ from typing import Any
 import matplotlib.pyplot as plt  # type: ignore
 import numpy as np
 
-from incomplete_cooperative.coalitions import Coalition
+from incomplete_cooperative.coalitions import (Coalition,
+                                               minimal_game_coalitions)
 from incomplete_cooperative.protocols import Value
 
 
@@ -116,6 +117,8 @@ def save_draw_coalitions(path: Path, unique_name: str, output: Output) -> None:
     number_of_coalitions = int(np.max(all_data, initial=-1,
                                       where=(np.logical_not(np.isnan(all_data)))  # exclude nans
                                       )) + 1
+    approx_number_of_players = max(Coalition(number_of_coalitions).players) + 1
+    minimal_game = list(minimal_game_coalitions(approx_number_of_players))
 
     plt.margins(0.2)
     for i in range(all_data.shape[0]):
@@ -129,10 +132,13 @@ def save_draw_coalitions(path: Path, unique_name: str, output: Output) -> None:
                 counts[int(label)] = count
 
         # combine them together
-        labels_with_counts = sorted(zip(
-            # generate coalitions
-            (list(Coalition(int(x)).players) for x in range(number_of_coalitions)), counts),
-            key=lambda x: len(x[0]))  # sort by coalition
+        all_coals_with_counts = zip((Coalition(x) for x in range(number_of_coalitions)), counts)
+
+        # filter out minimal game's coalitions, get just coal's players, sort by coal length
+        labels_with_counts = sorted(
+            ((list(coal.players), n) for coal, n in all_coals_with_counts if coal not in minimal_game),
+            key=lambda x: len(x[0])
+        )
 
         # now split them apart again, but sorted
         new_labels = [x[0] for x in labels_with_counts]
@@ -140,10 +146,10 @@ def save_draw_coalitions(path: Path, unique_name: str, output: Output) -> None:
 
         ax.set_ylim(bottom=0, top=1)
         ax.grid(zorder=-1)
-        ax.set_xticks(range(number_of_coalitions),
+        ax.set_xticks(range(len(new_labels)),
                       new_labels,
                       rotation='vertical')
-        ax.bar(range(number_of_coalitions), new_counts, align='center', zorder=3)
+        ax.bar(range(len(new_labels)), new_counts, align='center', zorder=3)
         plt.autoscale()
         plt.tight_layout()
         plt.savefig((unique_path / str(i + 1)).with_suffix(".png"))
