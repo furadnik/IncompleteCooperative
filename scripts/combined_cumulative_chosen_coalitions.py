@@ -48,12 +48,13 @@ def draw_combined_graph(chosen_coalitions: list[tuple[str, np.ndarray]],
     width_of_bar = 1 / (number_of_bars + 1)
     starting_shift = -0.5 + width_of_bar
 
+    labels: list = []
     for i, (name, coalitions) in enumerate(chosen_coalitions):
         color = next(colors)
         number_of_coalitions, _, minimal_game = approx_game(coalitions)
         labels = add_to_plt(coalitions, NAME_MAP.get(name, name), color, step,
                             name not in ALREADY_CUMULATIVE, number_of_coalitions, minimal_game,
-                            width_of_bar, starting_shift + i * width_of_bar)
+                            width_of_bar, starting_shift + i * width_of_bar) or labels
     plt.legend()
     plt.xticks(range(len(labels)), labels, rotation='vertical')
     plt.title(title, family="monospace")
