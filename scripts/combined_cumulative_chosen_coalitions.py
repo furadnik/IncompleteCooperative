@@ -32,8 +32,8 @@ def add_to_plt(data: np.ndarray, name: str, color: Any, step: int, cumulative: b
             distribution = [x + y for x, y in zip(distribution, get_coalition_distribution(
                 number_of_coalitions, data[i], minimal_game)[1])]
 
-    line = plt.bar([i + shift for i in range(len(labels))], distribution, width, color=color, zorder=4, label=name)
-    return line
+    plt.bar([i + shift for i in range(len(labels))], distribution, width, color=color, zorder=4, label=name)
+    return labels
 
 
 def draw_combined_graph(chosen_coalitions: list[tuple[str, np.ndarray]],
@@ -42,7 +42,6 @@ def draw_combined_graph(chosen_coalitions: list[tuple[str, np.ndarray]],
     colors = get_colors(len(chosen_coalitions))
     plt.grid(zorder=-1, alpha=.3)
     plt.ylim(bottom=0, top=1)
-    lines = []
 
     # compute bar with and placement
     number_of_bars = len(chosen_coalitions)
@@ -52,13 +51,14 @@ def draw_combined_graph(chosen_coalitions: list[tuple[str, np.ndarray]],
     for i, (name, coalitions) in enumerate(chosen_coalitions):
         color = next(colors)
         number_of_coalitions, _, minimal_game = approx_game(coalitions)
-        lines.append(add_to_plt(coalitions, NAME_MAP.get(name, name), color, step,
-                                name not in ALREADY_CUMULATIVE, number_of_coalitions, minimal_game,
-                                width_of_bar, starting_shift + i * width_of_bar))
+        labels = add_to_plt(coalitions, NAME_MAP.get(name, name), color, step,
+                            name not in ALREADY_CUMULATIVE, number_of_coalitions, minimal_game,
+                            width_of_bar, starting_shift + i * width_of_bar)
     plt.legend()
+    plt.xticks(range(len(labels)), labels, rotation='vertical')
     plt.title(title, family="monospace")
-    plt.xlabel("Steps")
-    plt.ylabel("Exploitability")
+    plt.xlabel("Coalition")
+    plt.ylabel("Probability")
     plt.savefig(output_path)
     plt.close('all')
 
