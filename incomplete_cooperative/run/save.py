@@ -12,7 +12,7 @@ import numpy as np
 
 from incomplete_cooperative.coalitions import (Coalition,
                                                minimal_game_coalitions)
-from incomplete_cooperative.protocols import Value
+from incomplete_cooperative.protocols import Player, Value
 
 
 @dataclass
@@ -108,48 +108,74 @@ def save_exploitability_plot(path: Path, unique_name: str, output: Output) -> No
     plt.close('all')
 
 
-def save_draw_coalitions(path: Path, unique_name: str, output: Output) -> None:
-    """Draw coalition distribution in each step."""
-    unique_path = path / unique_name
-    unique_path.mkdir(parents=True)
-    all_data = output.actions
+def get_coalition_distribution(number_of_coalitions: int, data: np.ndarray,
+                               minimal_game: list[Coalition]) -> tuple[list[list[Player]], list[float]]:
+    """Get the labels (players) and distribution of coalitions chosen at a given time.
+
+    Arguments:
+        number_of_coalitions: the total coalitions in the game (lower estimate).
+        data: the chosen coalitions in a given time slice.
+        minimal_game: the coalitions in a minimal game (will not be shown in the plot).
+    """
+    labels, some_counts = np.unique(data, return_counts=True)
+    counts = np.zeros(number_of_coalitions)
+
+    for label, count in zip(labels, some_counts / data.shape[0]):
+        if not np.isnan(label):
+            counts[int(label)] = count
+
+    # combine them together
+    all_coals_with_counts = zip((Coalition(x) for x in range(number_of_coalitions)), counts)
+
+    # filter out minimal game's coalitions, get just coal's players, sort by coal length
+    labels_with_counts = sorted(
+        ((list(coal.players), n) for coal, n in all_coals_with_counts if coal not in minimal_game),
+        key=lambda x: len(x[0])
+    )
+
+    # now split them apart again, but sorted
+    new_labels = [x[0] for x in labels_with_counts]
+    new_counts = [x[1] for x in labels_with_counts]
+    return new_labels, new_counts
+
+
+def approx_game(all_data: np.ndarray) -> tuple[int, int, list[Coalition]]:
+    """Return approximations about the game.
+
+    Returns a tuple:
+        The number of coalitions (lower bound).
+        The number of players (lower bound).
+        The coalitions of minimal game according to the approx number of players.
+    """
     # approximate the number of coalitions: at least as many as the biggest id of a chosen one.
     number_of_coalitions = int(np.max(all_data, initial=-1,
                                       where=(np.logical_not(np.isnan(all_data)))  # exclude nans
                                       )) + 1
     approx_number_of_players = max(Coalition(number_of_coalitions).players) + 1
     minimal_game = list(minimal_game_coalitions(approx_number_of_players))
+    return number_of_coalitions, approx_number_of_players, minimal_game
+
+
+def save_draw_coalitions(path: Path, unique_name: str, output: Output) -> None:
+    """Draw coalition distribution in each step."""
+    unique_path = path / unique_name
+    unique_path.mkdir(parents=True)
+    all_data = output.actions
+    number_of_coalitions, approx_number_of_players, minimal_game = approx_game(all_data)
 
     plt.margins(0.2)
     for i in range(all_data.shape[0]):
         time_slice = all_data[i]
         fig, ax = plt.subplots()
-        labels, some_counts = np.unique(time_slice, return_counts=True)
-        counts = np.zeros(number_of_coalitions)
-
-        for label, count in zip(labels, some_counts / all_data.shape[1]):
-            if not np.isnan(label):
-                counts[int(label)] = count
-
-        # combine them together
-        all_coals_with_counts = zip((Coalition(x) for x in range(number_of_coalitions)), counts)
-
-        # filter out minimal game's coalitions, get just coal's players, sort by coal length
-        labels_with_counts = sorted(
-            ((list(coal.players), n) for coal, n in all_coals_with_counts if coal not in minimal_game),
-            key=lambda x: len(x[0])
-        )
-
-        # now split them apart again, but sorted
-        new_labels = [x[0] for x in labels_with_counts]
-        new_counts = [x[1] for x in labels_with_counts]
+        labels, distribution = get_coalition_distribution(number_of_coalitions, time_slice,
+                                                          minimal_game)
 
         ax.set_ylim(bottom=0, top=1)
         ax.grid(zorder=-1)
-        ax.set_xticks(range(len(new_labels)),
-                      new_labels,
+        ax.set_xticks(range(len(labels)),
+                      labels,
                       rotation='vertical')
-        ax.bar(range(len(new_labels)), new_counts, align='center', zorder=3)
+        ax.bar(range(len(labels)), distribution, align='center', zorder=3)
         plt.autoscale()
         plt.tight_layout()
         plt.savefig((unique_path / str(i + 1)).with_suffix(".png"))
