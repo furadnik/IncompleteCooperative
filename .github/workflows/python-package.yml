@@ -37,6 +37,9 @@ jobs:
     - name: Test docstrings
       run: |
         python -m pydocstyle incomplete_cooperative
+    - name: Test security with bandit
+      run: |
+        python -m bandit -r incomplete_cooperative
     - name: Test code coverage
       run: |
         python -m coverage report --show-missing --fail-under=100
