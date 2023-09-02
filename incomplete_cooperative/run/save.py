@@ -138,6 +138,7 @@ def save_draw_coalitions(path: Path, unique_name: str, output: Output) -> None:
         new_labels = [x[0] for x in labels_with_counts]
         new_counts = [x[1] for x in labels_with_counts]
 
+        ax.set_ylim(bottom=0, top=1)
         ax.grid(zorder=-1)
         ax.set_xticks(range(number_of_coalitions),
                       new_labels,
