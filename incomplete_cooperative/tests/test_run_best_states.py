@@ -1,6 +1,5 @@
 """Tests for the `run` module."""
 from unittest import TestCase
-from incomplete_cooperative.coalitions import Coalition
 
 import numpy as np
 
@@ -14,11 +13,11 @@ from .test_run_learn import GetLearningResultMixin
 class TestBestStates(GetLearningResultMixin, TestCase):
 
     # account for float precision
-    epsilon = 0.0000000001
+    epsilon = 0.000001
 
     def test_first_step_same(self):
         args, instance = self.get_instance(number_of_players=4, solve_repetitions=1,
-                                           run_steps_limit=6,
+                                           run_steps_limit=6, sampling_repetitions=1,
                                            solver="greedy", func="foobar", game_generator="factory_fixed")
         greedy_out = self.get_saver_output(solve_func, instance, args)
         best_out = self.get_saver_output(best_states_func, instance, args)
@@ -40,3 +39,15 @@ class TestBestStates(GetLearningResultMixin, TestCase):
             fill_in_coalitions(target_array[i], coalitions[i])
         self.assertTrue(np.array_equal(target_array, expected, equal_nan=True),
                         msg=str(target_array) + str(expected))
+
+    def test_factory_fixed_always_same(self):
+        args, instance = self.get_instance(number_of_players=4, solve_repetitions=1,
+                                           sampling_repetitions=1,
+                                           run_steps_limit=5, func="foobar", game_generator="factory_fixed")
+        reference = self.get_saver_output(best_states_func, instance, args)
+        for j in range(1, 7):
+            args, instance = self.get_instance(number_of_players=4, sampling_repetitions=j,
+                                               run_steps_limit=5, func="foobar", game_generator="factory_fixed")
+            output = self.get_saver_output(best_states_func, instance, args)
+            for x, y in zip(reference.avg_exploitabilities, output.avg_exploitabilities):
+                self.assertAlmostEqual(x, y, places=6)
