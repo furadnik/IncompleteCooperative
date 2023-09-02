@@ -58,6 +58,8 @@ def draw_combined_graph(chosen_coalitions: list[tuple[str, np.ndarray]],
     plt.legend()
     plt.xticks(range(len(labels)), labels, rotation='vertical')
     plt.title(title, family="monospace")
+    plt.autoscale()
+    plt.tight_layout(pad=2)
     plt.xlabel("Coalition")
     plt.ylabel("Probability")
     plt.savefig(output_path)
