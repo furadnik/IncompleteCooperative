@@ -101,6 +101,12 @@ class TestJsonSaver(TestSaverMixin, TestCase):
                 self.assertEqual(test(new_output), test(output))
                 self.assertEqual(test(new_output_from_multiple), test(output))
 
+    def test_save_load_nan(self):
+        output = getOutput(actions=np.full((1, 1), np.nan))
+        save_json(self.path, "foobar", output)
+        new_output = Output.from_file(self.path, "foobar")
+        self.assertTrue(np.isnan(new_output.actions[0, 0]))
+
 
 class TestExplPlotSave(TestSaverMixin, TestCase):
 

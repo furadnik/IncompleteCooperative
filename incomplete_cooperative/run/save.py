@@ -72,7 +72,7 @@ class Output:
         data["metadata"]["func"] = data["metadata"]["run_type"]
         data["parsed_args"] = Namespace(**data.pop("metadata"))
         data["exploitability"] = np.array(data["exploitability"], dtype=Value)
-        data["actions"] = np.array(data["actions"], dtype=int)
+        data["actions"] = np.array(data["actions"])
 
         return cls(**data)
 
