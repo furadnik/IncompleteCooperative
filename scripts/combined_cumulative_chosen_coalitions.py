@@ -18,7 +18,7 @@ from incomplete_cooperative.run.save import (Output, approx_game,
 from scripts.find_data_jsons import find_data_jsons
 from scripts.plot_base import NAME_MAP, get_colors
 
-ALREADY_CUMULATIVE = ["best_states"]
+ALREADY_CUMULATIVE = ["best_states", "expected_best_states"]
 
 
 def add_to_plt(data: np.ndarray, name: str, color: Any, step: int, cumulative: bool,
