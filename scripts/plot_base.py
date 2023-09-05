@@ -25,6 +25,4 @@ NAME_MAP = {
 
 def get_colors(number: int) -> Iterator:
     """Get colors from CMAP."""
-    if number == 1:
-        return iter([CMAP(.5)])
-    return map(CMAP, map(lambda x: x / (number - 1), range(number)))
+    return map(CMAP, map(lambda x: (x + 1) / (number + 2), range(number)))
