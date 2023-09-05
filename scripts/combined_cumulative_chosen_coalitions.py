@@ -16,7 +16,7 @@ from incomplete_cooperative.coalitions import Coalition
 from incomplete_cooperative.run.save import (Output, approx_game,
                                              get_coalition_distribution)
 from scripts.find_data_jsons import find_data_jsons
-from scripts.plot_base import NAME_MAP, get_colors
+from scripts.plot_base import NAME_MAP, filter_func, get_colors
 
 ALREADY_CUMULATIVE = ["best_states"]
 
@@ -77,8 +77,8 @@ def main(path: Path = Path(sys.argv[1]), title: str = sys.argv[2]) -> None:
             data_keys = json.load(f).keys()
 
         # a tuple (name, chosen_coalitions) of all runs
-        steps = min(len(Output.from_file(data, x).actions_list) for x in data_keys)
-        chosen_coalitions = [(x, Output.from_file(data, x).actions) for x in data_keys]
+        steps = min(len(Output.from_file(data, x).actions_list) for x in data_keys if filter_func(x))
+        chosen_coalitions = [(x, Output.from_file(data, x).actions) for x in data_keys if filter_func(x)]
         for step in range(steps):
             step_path = save_path / str(step + 1)
             # steps in title are counted from 1.
