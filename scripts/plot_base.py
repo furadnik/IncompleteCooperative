@@ -19,6 +19,7 @@ NAME_MAP = {
     "eval": "PPO",
     "solve_greedy": "Local Optimal",
     "best_states": "Global Optimal",
+    "expected_best_states": "Best Average",
 }
 
 
