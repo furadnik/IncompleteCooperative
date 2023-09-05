@@ -1,4 +1,5 @@
 """Base stuff regarding plotting."""
+import sys
 from typing import Iterator
 
 import matplotlib as mpl  # type: ignore
@@ -27,3 +28,6 @@ NAME_MAP = {
 def get_colors(number: int) -> Iterator:
     """Get colors from CMAP."""
     return map(CMAP, map(lambda x: (x + 1) / (number + 2), range(number)))
+
+
+filter_func = (lambda x: x in sys.argv[3].split(",")) if len(sys.argv) == 4 else lambda x: True
