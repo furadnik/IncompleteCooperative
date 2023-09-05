@@ -25,7 +25,8 @@ def add_to_plt(data: np.ndarray, name: str, color: Any, step: int, cumulative: b
                number_of_coalitions: int, minimal_game: list[Coalition], width: float, shift: float) -> Any:
     """Add data drawing to plot."""
     if not cumulative:
-        labels, distribution = get_coalition_distribution(number_of_coalitions, data[step], minimal_game)
+        labels, distribution = get_coalition_distribution(number_of_coalitions, data[step] * data[step].shape[0],
+                                                          minimal_game)
     else:
         labels, distribution = get_coalition_distribution(number_of_coalitions, data[step], minimal_game)
         for i in range(step):
