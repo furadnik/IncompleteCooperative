@@ -69,7 +69,7 @@ def get_greedy_rewards(env: ICG_Gym, max_steps: int, repetitions: int) -> tuple[
         next_action_sequences = (action_sequence + [a] for a in possible_actions)
         next_sequences_w_rewards = list(filter(lambda x: x[1] is not None,
                                         ((a, get_action_value(a)) for a in next_action_sequences)))
-        action_sequence, value = min(next_sequences_w_rewards, key=lambda x: cast(Value, x[1]))
+        action_sequence, value = max(next_sequences_w_rewards, key=lambda x: cast(Value, x[1]))
         assert value is not None  # nosec
         steps = len(action_sequence)
         coalitions = [x.id for x in action_sequence]
