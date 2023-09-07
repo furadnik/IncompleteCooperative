@@ -88,7 +88,7 @@ def get_values(env: ICG_Gym, repetitions: int, max_steps: int) -> Iterator[tuple
     initial = list(get_exploitabilities_of_action_sequences(env.incomplete_game, env.full_game, max_steps))
     actions = (x[0] for x in initial)
     values = np.fromiter((x[1] for x in initial), Value)
-    for _ in range(repetitions - 1):
+    for _ in range(repetitions - 1):  # pragma: no cover
         env.reset()
         values += np.fromiter((x[1] for x in get_exploitabilities_of_action_sequences(
             env.incomplete_game, env.full_game, max_steps)),
