@@ -20,7 +20,7 @@ NAME_MAP = {
     "eval": "PPO",
     "solve_greedy": "Online Greedy",
     "best_states": "Online Optimal",
-    "solve_offline_greedy": "Offline Greedy",
+    "expected_greedy": "Offline Greedy",
     "expected_best_states": "Offline Optimal",
 }
 
