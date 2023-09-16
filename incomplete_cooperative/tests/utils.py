@@ -1,10 +1,13 @@
 """Utils for testing."""
+import numpy as np
+
 from incomplete_cooperative.bounds import compute_bounds_superadditive
 from incomplete_cooperative.coalitions import Coalition, all_coalitions
 from incomplete_cooperative.game import IncompleteCooperativeGame
 from incomplete_cooperative.generators import factory_generator
+from incomplete_cooperative.graph_game import GraphCooperativeGame
 from incomplete_cooperative.icg_gym import ICG_Gym
-from incomplete_cooperative.protocols import MutableIncompleteGame
+from incomplete_cooperative.protocols import MutableIncompleteGame, Value
 
 
 def trivial_fill(game: MutableIncompleteGame) -> None:
@@ -40,3 +43,17 @@ class GymMixin(IncompleteGameMixin):
         transformed_known_coalitions = list(map(Coalition, filter(lambda x: x < 2**incomplete_game.number_of_players,
                                                                   known_coalitions)))
         return ICG_Gym(incomplete_game, lambda: full_game, transformed_known_coalitions)
+
+
+class GraphGameMixin:
+    """Mixin for testing graph game."""
+
+    def get_game(self, n_players=4) -> GraphCooperativeGame:
+        """Get the graph game."""
+        return GraphCooperativeGame(np.random.rand(n_players, n_players).astype(Value))
+
+    def to_incomplete(self, game: GraphCooperativeGame) -> IncompleteCooperativeGame:
+        """Turn a graph game into an incomplete game."""
+        incom = IncompleteCooperativeGame(game.number_of_players, compute_bounds_superadditive)
+        incom.set_values(game.get_values(), all_coalitions(incom))
+        return incom
