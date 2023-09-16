@@ -124,7 +124,7 @@ class TestEval(TestCase):
         for file in path.iterdir():
             if file.suffix == ".json":
                 with file.open("r") as f:
-                    self.assertEqual(list(json.load(f)["asdf"].keys()), ["exploitability", "actions", "metadata"])
+                    self.assertEqual(list(json.load(f)["asdf"].keys()), ["data", "actions", "metadata"])
                     found = True
         self.assertTrue(found)
 
@@ -178,7 +178,7 @@ class TestSolve(TestCase):
         for file in path.iterdir():
             if file.suffix == ".json":
                 with file.open("r") as f:
-                    self.assertEqual(list(json.load(f)["asdf"].keys()), ["exploitability", "actions", "metadata"])
+                    self.assertEqual(list(json.load(f)["asdf"].keys()), ["data", "actions", "metadata"])
                     found = True
         self.assertTrue(found)
 
@@ -221,7 +221,7 @@ class TestBestStates(TestCase):
         for file in path.iterdir():
             if file.suffix == ".json":
                 with file.open("r") as f:
-                    self.assertEqual(list(json.load(f)["asdf"].keys()), ["exploitability", "actions", "metadata"])
+                    self.assertEqual(list(json.load(f)["asdf"].keys()), ["data", "actions", "metadata"])
                     found = True
         self.assertTrue(found)
 
@@ -264,7 +264,7 @@ class TestGreedy(TestCase):
         for file in path.iterdir():
             if file.suffix == ".json":
                 with file.open("r") as f:
-                    self.assertEqual(list(json.load(f)["asdf"].keys()), ["exploitability", "actions", "metadata"])
+                    self.assertEqual(list(json.load(f)["asdf"].keys()), ["data", "actions", "metadata"])
                     found = True
         self.assertTrue(found)
 

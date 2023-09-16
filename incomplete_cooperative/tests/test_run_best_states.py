@@ -21,11 +21,11 @@ class TestBestStates(GetLearningResultMixin, TestCase):
                                            solver="greedy", func="foobar", game_generator="factory_fixed")
         greedy_out = self.get_saver_output(solve_func, instance, args)
         best_out = self.get_saver_output(best_states_func, instance, args)
-        self.assertEqual(greedy_out.avg_exploitabilities[0], best_out.avg_exploitabilities[0])
-        self.assertEqual(greedy_out.avg_exploitabilities[1], best_out.avg_exploitabilities[1])
+        self.assertEqual(greedy_out.avg_data[0], best_out.avg_data[0])
+        self.assertEqual(greedy_out.avg_data[1], best_out.avg_data[1])
         for j in range(7):
-            self.assertGreaterEqual(greedy_out.avg_exploitabilities[j] + self.epsilon,
-                                    best_out.avg_exploitabilities[j], j)
+            self.assertGreaterEqual(greedy_out.avg_data[j] + self.epsilon,
+                                    best_out.avg_data[j], j)
 
     def test_fill_in_coalitions(self):
         coalitions = [
@@ -49,5 +49,5 @@ class TestBestStates(GetLearningResultMixin, TestCase):
             args, instance = self.get_instance(number_of_players=4, sampling_repetitions=j,
                                                run_steps_limit=5, func="foobar", game_generator="factory_fixed")
             output = self.get_saver_output(best_states_func, instance, args)
-            for x, y in zip(reference.avg_exploitabilities, output.avg_exploitabilities):
+            for x, y in zip(reference.avg_data, output.avg_data):
                 self.assertAlmostEqual(x, y, places=6)
