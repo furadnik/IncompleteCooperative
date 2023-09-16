@@ -17,10 +17,10 @@ def validate_data(data: dict[str, Output]) -> None:
         print("No best, nothing to validate.")
         return
     # make them a little better to account for float precision
-    best_exploitabilities = data["best_states"].avg_exploitabilities - EPSILON
+    best_exploitabilities = data["best_states"].avg_data - EPSILON
 
     for key, output in data.items():
-        exploitability = output.exploitability
+        exploitability = output.data
         for i in range(exploitability.shape[0]):
             assert np.all(exploitability[i] >= best_exploitabilities[i]), \
                 f"{key}, ex:{exploitability[i].tolist()}, bst:{best_exploitabilities[i]}"

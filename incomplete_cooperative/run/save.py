@@ -19,19 +19,19 @@ from incomplete_cooperative.protocols import Player, Value
 class Output:
     """Hold all the output information."""
 
-    exploitability: np.ndarray
+    data: np.ndarray
     actions: np.ndarray
     parsed_args: Namespace
 
     @property
-    def avg_final_exploitability(self) -> float:
+    def data_avg_final(self) -> float:
         """Compute the average of final exploitabilities."""
-        return np.average(self.exploitability[-1])
+        return np.average(self.data[-1])
 
     @property
-    def avg_exploitabilities(self) -> np.ndarray:
+    def avg_data(self) -> np.ndarray:
         """Compute the average of exploitabilities."""
-        return np.mean(self.exploitability, 1)
+        return np.mean(self.data, 1)
 
     @property
     def metadata(self) -> dict:
@@ -42,19 +42,19 @@ class Output:
         return args_dict
 
     @property
-    def exploitability_list(self) -> list[list[float]]:
-        """Turn exploitability to a list."""
-        return self.exploitability.tolist()
+    def data_list(self) -> list[list[float]]:
+        """Turn data to a list."""
+        return self.data.tolist()
 
     @property
     def actions_list(self) -> list[list[float]]:
-        """Turn exploitability to a list."""
+        """Turn data to a list."""
         return self.actions.tolist()
 
     @property
     def json(self) -> dict:
         """Generate a dictionary representation."""
-        return {"exploitability": self.exploitability_list,
+        return {"data": self.data_list,
                 "actions": self.actions_list,
                 "metadata": self.metadata}
 
@@ -71,7 +71,7 @@ class Output:
         """Parse the json data back to self."""
         data["metadata"]["func"] = data["metadata"]["run_type"]
         data["parsed_args"] = Namespace(**data.pop("metadata"))
-        data["exploitability"] = np.array(data["exploitability"], dtype=Value)
+        data["data"] = np.array(data["data"], dtype=Value)
         data["actions"] = np.array(data["actions"])
 
         return cls(**data)
@@ -89,12 +89,12 @@ def get_outputs(data: dict[str, Any]) -> dict[str, Output]:
     return {key: Output.from_json(value) for key, value in data.items()}
 
 
-def save_exploitability_plot(path: Path, unique_name: str, output: Output) -> None:
-    """Save exploitability data to a figure."""
+def save_data_plot(path: Path, unique_name: str, output: Output) -> None:
+    """Save data to a figure."""
     if not path.exists():
         path.mkdir(parents=True)
-    fig_data = output.exploitability
-    data_length = len(output.exploitability_list)
+    fig_data = output.data
+    data_length = len(output.data_list)
     fig, ax = plt.subplots()
     ax.grid(zorder=-1)
     mean = np.mean(fig_data, 1)
@@ -200,7 +200,7 @@ def json_serializer(obj: Any) -> Any:
 
 
 SAVERS = {
-    "exploitability_plots": save_exploitability_plot,
+    "data_plots": save_data_plot,
     "data.json": save_json,
     "chosen_coalitions": save_draw_coalitions
 }

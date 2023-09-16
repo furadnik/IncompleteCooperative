@@ -11,8 +11,7 @@ import numpy as np
 
 from incomplete_cooperative.run.save import (SAVERS, Output,
                                              get_outputs_from_file,
-                                             json_serializer,
-                                             save_exploitability_plot,
+                                             json_serializer, save_data_plot,
                                              save_json)
 
 
@@ -65,7 +64,7 @@ class TestJsonSaver(TestSaverMixin, TestCase):
     def test_save_first(self):
         save_json(self.path, "foobar", getOutput())
         self.assertHasJson(self.path, {"foobar": {"metadata": {"foo": "bar", "baz": 42, "run_type": "eval"},
-                                                  "exploitability": [[3, 1, 2]],
+                                                  "data": [[3, 1, 2]],
                                                   "actions": [[0, 1]]}})
 
     def test_save_second(self):
@@ -73,22 +72,22 @@ class TestJsonSaver(TestSaverMixin, TestCase):
         save_json(self.path, "foobar", getOutput())
         save_json(self.path, "baz", getOutput(actions=np.array([[3, 4]])))
         self.assertHasJson(self.path, {"foobar": {"metadata": {"foo": "bar", "baz": 42, "run_type": "eval"},
-                                                  "exploitability": [[3, 1, 2]],
+                                                  "data": [[3, 1, 2]],
                                                   "actions": [[0, 1]]},
                                        "baz": {"metadata": {"foo": "bar", "baz": 42, "run_type": "eval"},
-                                               "exploitability": [[3, 1, 2]],
+                                               "data": [[3, 1, 2]],
                                                "actions": [[3, 4]]}})
 
     def test_save_second_same_name(self):
         save_json(self.path, "foobar", getOutput())
         save_json(self.path, "foobar", getOutput(actions=np.array([[3, 4]])))
         self.assertHasJson(self.path, {"foobar": {"metadata": {"foo": "bar", "baz": 42, "run_type": "eval"},
-                                                  "exploitability": [[3, 1, 2]],
+                                                  "data": [[3, 1, 2]],
                                                   "actions": [[0, 1]]}})
 
     def test_save_load_same(self):
         tests = [
-            lambda x: x.exploitability.tolist(),
+            lambda x: x.data.tolist(),
             lambda x: x.actions.tolist(),
             lambda x: x.metadata,
         ]
@@ -110,17 +109,17 @@ class TestJsonSaver(TestSaverMixin, TestCase):
 
 class TestExplPlotSave(TestSaverMixin, TestCase):
 
-    func = "exploitability_plots"
+    func = "data_plots"
 
     def test_save_plots(self):
-        save_exploitability_plot(self.path, "asdf", getOutput())
+        save_data_plot(self.path, "asdf", getOutput())
         self.assertTrue(self.path.exists())
         self.assertTrue((self.path / "asdf.png").exists())
         self.assertTrue((self.path / "asdf.png").is_file())
 
     def test_save_plots_multiple(self):
-        save_exploitability_plot(self.path, "asdfg", getOutput())
-        save_exploitability_plot(self.path, "asdf", getOutput())
+        save_data_plot(self.path, "asdfg", getOutput())
+        save_data_plot(self.path, "asdf", getOutput())
         self.assertTrue(self.path.exists())
         self.assertTrue((self.path / "asdf.png").exists())
         self.assertTrue((self.path / "asdf.png").is_file())
