@@ -1,11 +1,12 @@
 from unittest import TestCase
 
-from incomplete_cooperative.coalitions import all_coalitions
-from incomplete_cooperative.generators import factory_generator
-from incomplete_cooperative.normalize import normalize_game
-from incomplete_cooperative.coalitions import Coalition, grand_coalition
 from incomplete_cooperative.bounds import compute_bounds_superadditive
+from incomplete_cooperative.coalitions import (Coalition, all_coalitions,
+                                               grand_coalition)
 from incomplete_cooperative.exploitability import compute_exploitability
+from incomplete_cooperative.generators import (factory_generator,
+                                               graph_generator)
+from incomplete_cooperative.normalize import normalize_game
 
 
 class TestFactoryGenerator(TestCase):
@@ -101,3 +102,11 @@ class TestFactoryGenerator(TestCase):
                 factory_zero_forget.compute_bounds()
                 self.assertEqual(compute_exploitability(factory_other_forget),
                                  compute_exploitability(factory_zero_forget))
+
+
+class TestGraphGenerator(TestCase):
+
+    def test_size_correct(self):
+        for players in range(3, 10):
+            graph = graph_generator(players)
+            self.assertEqual(graph.number_of_players, players)

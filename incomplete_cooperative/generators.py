@@ -3,9 +3,12 @@ from functools import partial
 from random import randrange
 from typing import Callable
 
+import numpy as np
+
 from .coalitions import all_coalitions
 from .game import IncompleteCooperativeGame
-from .protocols import GameGenerator
+from .graph_game import GraphCooperativeGame
+from .protocols import GameGenerator, Value
 
 
 def _none_bounds_computer(self) -> None:  # pragma: nocover
@@ -25,7 +28,14 @@ def factory_generator(number_of_players: int, owner: int | None = None,
     return game
 
 
-GENERATORS: dict[str, GameGenerator] = {  # TODO: supported
+def graph_generator(number_of_players: int) -> GraphCooperativeGame:
+    """Generate a `factory` game."""
+    game_matrix = np.random.rand(number_of_players, number_of_players).astype(Value)
+    return GraphCooperativeGame(game_matrix)
+
+
+GENERATORS: dict[str, GameGenerator] = {
     "factory": factory_generator,
+    "graph": graph_generator,
     "factory_fixed": partial(factory_generator, owner=0),
 }
