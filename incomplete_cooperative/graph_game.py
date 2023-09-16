@@ -16,6 +16,13 @@ CoalitionPlayers = Iterable[int]
 LOGGER = logging.getLogger(__name__)
 
 
+def _polish_graph_matrix(matrix: np.ndarray) -> None:
+    """Polish the graph matrix."""
+    for i in range(matrix.shape[0]):
+        for j in range(i, matrix.shape[1]):
+            matrix[j, i] = 0
+
+
 class GraphCooperativeGame:
     """Represent a full graph game."""
 
@@ -27,6 +34,7 @@ class GraphCooperativeGame:
         """
         self.number_of_players = graph_matrix.shape[0]
         self._graph_matrix = np.copy(graph_matrix)
+        _polish_graph_matrix(self._graph_matrix)
 
     def __repr__(self) -> str:  # pragma: no cover
         """Representation of icg."""
