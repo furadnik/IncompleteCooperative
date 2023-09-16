@@ -16,7 +16,7 @@ from stable_baselines3.common.env_util import make_vec_env  # type: ignore
 from stable_baselines3.common.vec_env import DummyVecEnv  # type: ignore
 from stable_baselines3.common.vec_env import SubprocVecEnv  # type: ignore
 from stable_baselines3.common.vec_env import VecEnv
-from torch.nn.modules.activation import ReLU, Tanh
+from torch.nn.modules.activation import ReLU, Tanh  # type: ignore
 
 from ..bounds import BOUNDS
 from ..coalitions import minimal_game_coalitions
@@ -56,6 +56,7 @@ class ModelInstance:
     unique_name: str = str(datetime.now().isoformat())
     environment: str = "sequential"
     policy_activation_fn: str = "relu"
+    gamma: float = 1
 
     def __post_init__(self) -> None:
         """Exit model path."""
@@ -104,7 +105,8 @@ class ModelInstance:
         envs = self.env_generator()
         return MaskablePPO.load(self.model_path, envs) if self.model_path.with_suffix(".zip").exists() \
             else MaskablePPO("MlpPolicy", envs, n_steps=self.steps_per_update,
-                             policy_kwargs={"activation_fn": self.policy_activation_fn_choice}, verbose=10)
+                             policy_kwargs={"activation_fn": self.policy_activation_fn_choice},
+                             verbose=10, gamma=self.gamma)
 
     def save(self, model: MaskablePPO) -> None:
         """Save model."""
@@ -126,6 +128,7 @@ def add_model_arguments(ap) -> None:
     ap.add_argument("--run-steps-limit", default=defaults.run_steps_limit, type=int)
     ap.add_argument("--model-dir", type=Path, default=defaults.model_dir)
     ap.add_argument("--model-path", type=Path, required=False)
+    ap.add_argument("--gamma", type=float, required=False, default=defaults.gamma)
     ap.add_argument("--unique-name", type=str, required=False, default=defaults.unique_name)
     ap.add_argument("--environment", type=str, required=False, default=defaults.environment)
     ap.add_argument("--policy-activation-fn", type=str, choices=ACTIVATION_FNS.keys(), required=False,
