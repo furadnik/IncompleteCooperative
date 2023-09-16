@@ -6,14 +6,11 @@ import numpy as np
 from incomplete_cooperative.coalitions import Coalition, all_coalitions
 from incomplete_cooperative.game import IncompleteCooperativeGame
 from incomplete_cooperative.graph_game import GraphCooperativeGame
-from incomplete_cooperative.protocols import Value
+
+from .utils import GraphGameMixin
 
 
-class TestGraphCG(TestCase):
-
-    def get_game(self, n_players=4) -> GraphCooperativeGame:
-        """Get the graph game."""
-        return GraphCooperativeGame(np.random.rand(n_players, n_players).astype(Value))
+class TestGraphCG(GraphGameMixin, TestCase):
 
     def test_number_of_players(self):
         for i in range(1, 30):
