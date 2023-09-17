@@ -29,7 +29,6 @@ class ICG_Gym(gym.Env):
         self.incomplete_game = game
         self._game_generator = game_generator
         self.full_game = self.generator()
-        normalize_game(cast(IncompleteCooperativeGame, self.full_game))
 
         self.done_after_n_actions = done_after_n_actions
         self.steps_taken = 0
@@ -42,7 +41,6 @@ class ICG_Gym(gym.Env):
 
         # setup the gym.
         self.reset()
-        assert self.full_game.get_value(grand_coalition(self.full_game)) == 1  # nosec
         self.observation_space = gym.spaces.Box(
             low=np.zeros(len(self.explorable_coalitions), Value),
             high=np.ones(len(self.explorable_coalitions), Value) * self.full_game.get_value(
