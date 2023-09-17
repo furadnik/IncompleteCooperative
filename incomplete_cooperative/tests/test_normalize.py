@@ -49,7 +49,7 @@ class TestNormalizeIncompleteGame(TestCase):
         denormalize_game(other, norminfo)
         for coalition in all_coalitions(other):
             with self.subTest(coalition=coalition):
-                self.assertAlmostEqual(self.game.get_value(coalition), other.get_value(coalition), 6)
+                self.assertAlmostEqual(self.game.get_value(coalition), other.get_value(coalition))
 
 
 class TestNormalizeGraphGame(GraphGameMixin, TestCase):
@@ -59,7 +59,7 @@ class TestNormalizeGraphGame(GraphGameMixin, TestCase):
             game = self.get_game(n_players=i)
             self.assertNotEqual(game.get_value(grand_coalition(game)), 1)
             normalize_game(game)
-            self.assertAlmostEqual(game.get_value(grand_coalition(game)), 1, 5, msg=game)
+            self.assertAlmostEqual(game.get_value(grand_coalition(game)), 1, msg=game)
 
     def test_graph_equal_incomplete(self):
         for i in range(2, 12):
@@ -67,14 +67,14 @@ class TestNormalizeGraphGame(GraphGameMixin, TestCase):
             incomplete = self.to_incomplete(game)
             normalize_game(game)
             normalize_game(incomplete)
-            self.assertAlmostEqual(np.max(np.abs(game.get_values() - incomplete.get_values())), 0, 6, game)
+            self.assertAlmostEqual(np.max(np.abs(game.get_values() - incomplete.get_values())), 0, msg=game)
 
     def test_graph_zero_game(self):
         for i in range(2, 12):
             game = self.get_game(n_players=i)
             game._graph_matrix = np.zeros_like(game._graph_matrix)
             normalize_game(game)
-            self.assertAlmostEqual(game.get_value(grand_coalition(game)), 0, 6, game)
+            self.assertAlmostEqual(game.get_value(grand_coalition(game)), 0, msg=game)
 
     def test_denormalize_normalized(self):
         for i in range(2, 12):
@@ -82,4 +82,4 @@ class TestNormalizeGraphGame(GraphGameMixin, TestCase):
             other = GraphCooperativeGame(game._graph_matrix)
             norminfo = normalize_game(other)
             denormalize_game(other, norminfo)
-            self.assertAlmostEqual(np.max(np.abs(game.get_values() - other.get_values())), 0, 5, game)
+            self.assertAlmostEqual(np.max(np.abs(game.get_values() - other.get_values())), 0, msg=game)

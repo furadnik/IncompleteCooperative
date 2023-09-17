@@ -50,4 +50,4 @@ class TestBestStates(GetLearningResultMixin, TestCase):
                                                run_steps_limit=5, func="foobar", game_generator="factory_fixed")
             output = self.get_saver_output(best_states_func, instance, args)
             for x, y in zip(reference.avg_data, output.avg_data):
-                self.assertAlmostEqual(x, y, places=6)
+                self.assertAlmostEqual(x, y)
