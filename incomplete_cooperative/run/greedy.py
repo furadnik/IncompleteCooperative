@@ -68,7 +68,7 @@ def get_greedy_rewards(env: ICG_Gym, max_steps: int, repetitions: int) -> tuple[
         steps = len(action_sequence)
         coalitions = [x.id for x in action_sequence[0]]
 
-        if best_exploitabilities[steps] > np.mean(sample_values[:, action_sequence[1]]):
+        if np.mean(best_exploitabilities[steps]) > np.mean(sample_values[:, action_sequence[1]]):
             best_exploitabilities[steps] = sample_values[:, action_sequence[1]]
             greedy_actions[steps] = coalitions
 
