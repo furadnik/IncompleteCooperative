@@ -57,6 +57,7 @@ class ModelInstance:
     environment: str = "sequential"
     policy_activation_fn: str = "relu"
     gamma: float = 1
+    ent_coef: float = 0.01
 
     def __post_init__(self) -> None:
         """Exit model path."""
@@ -104,7 +105,7 @@ class ModelInstance:
         """Get model."""
         envs = self.env_generator()
         return MaskablePPO.load(self.model_path, envs) if self.model_path.with_suffix(".zip").exists() \
-            else MaskablePPO("MlpPolicy", envs, n_steps=self.steps_per_update,
+            else MaskablePPO("MlpPolicy", envs, n_steps=self.steps_per_update, ent_coef=self.ent_coef,
                              policy_kwargs={"activation_fn": self.policy_activation_fn_choice},
                              verbose=10, gamma=self.gamma)
 
@@ -128,6 +129,7 @@ def add_model_arguments(ap) -> None:
     ap.add_argument("--run-steps-limit", default=defaults.run_steps_limit, type=int)
     ap.add_argument("--model-dir", type=Path, default=defaults.model_dir)
     ap.add_argument("--model-path", type=Path, required=False)
+    ap.add_argument("--ent-coef", type=float, required=False, default=defaults.ent_coef)
     ap.add_argument("--gamma", type=float, required=False, default=defaults.gamma)
     ap.add_argument("--unique-name", type=str, required=False, default=defaults.unique_name)
     ap.add_argument("--environment", type=str, required=False, default=defaults.environment)
