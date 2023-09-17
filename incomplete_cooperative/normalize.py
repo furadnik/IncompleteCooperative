@@ -12,6 +12,7 @@ from incomplete_cooperative.protocols import Game, MutableGame, Value
 # norm info is information about the game that is required to undo the normalization
 # that is the value of the singletons, and the value of grand coalitions without the singletons
 NormInfo = tuple[Value, np.ndarray[Any, np.dtype[Value]]]
+NormalizableGame = MutableGame | GraphCooperativeGame
 
 
 def _get_norminfo(game: Game) -> NormInfo:
@@ -22,7 +23,7 @@ def _get_norminfo(game: Game) -> NormInfo:
     return grand_coalition_value, singleton_values
 
 
-def normalize_game(game: MutableGame | GraphCooperativeGame) -> NormInfo:
+def normalize_game(game: NormalizableGame) -> NormInfo:
     """Normalize a game. Must not be minimal."""
     norm_info = _get_norminfo(game)
     if isinstance(game, GraphCooperativeGame):
@@ -67,7 +68,7 @@ def _normalize_graph_game(game: GraphCooperativeGame) -> None:
     game._graph_matrix /= grand_coalition_value
 
 
-def denormalize_game(game: MutableGame | GraphCooperativeGame, normalization_info: NormInfo) -> None:
+def denormalize_game(game: NormalizableGame, normalization_info: NormInfo) -> None:
     """Reconstruct the original game from normalization information."""
     if isinstance(game, GraphCooperativeGame):
         _denormalize_graph_game(game, normalization_info)

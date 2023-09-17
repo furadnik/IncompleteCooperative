@@ -1,10 +1,13 @@
 """A module containing helpers for manipulating the `Game`s."""
 from itertools import chain, combinations
-from typing import Iterable
+from typing import Any, Iterable
+
+import numpy as np
 
 from .coalitions import Coalition, all_coalitions, get_known_coalitions
 from .exploitability import compute_exploitability
-from .protocols import Game, IncompleteGame, MutableIncompleteGame, Value
+from .protocols import (Game, GameGenerator, IncompleteGame,
+                        MutableIncompleteGame, Value)
 
 Action = Coalition  # we are choosing a coalition
 ActionSequence = list[Action]
@@ -49,3 +52,32 @@ def get_exploitabilities_of_action_sequences(
         apply_action_sequence(game, full_game, action_sequence, include=known_coalitions)
         game.compute_bounds()
         yield action_sequence, compute_exploitability(game)
+
+
+def sample_exploitabilities_of_action_sequences(
+        game: MutableIncompleteGame, full_game_generator: GameGenerator, samples: int = 1,
+        **kwargs: Any
+) -> tuple[list[ActionSequence], np.ndarray[Any, np.dtype[Value]]]:
+    """Sample exploitabilities of action sequences."""
+    initially_known_coalitions = list(get_known_coalitions(game))
+
+    # get action list and initial row of the values
+    full_game = full_game_generator(game.number_of_players)
+    game.set_known_values(full_game.get_values(initially_known_coalitions),
+                          initially_known_coalitions)
+    initial_run = list(get_exploitabilities_of_action_sequences(
+        game, full_game, **kwargs))
+    actions = [x[0] for x in initial_run]
+    initial_values = np.fromiter((x[1] for x in initial_run), Value)
+    # generate an empty array of values
+    values = np.zeros((samples, initial_values.shape[0]), dtype=Value)
+    # add the initial values as first row
+    values[0] = initial_values
+
+    for i in range(1, samples):
+        full_game = full_game_generator(game.number_of_players)
+        game.set_known_values(full_game.get_values(initially_known_coalitions),
+                              initially_known_coalitions)
+        values[i] = np.fromiter((x[1] for x in get_exploitabilities_of_action_sequences(game, full_game, **kwargs)),
+                                Value, initial_values.shape[0])
+    return actions, values

@@ -7,16 +7,15 @@ import numpy as np
 from .coalitions import Coalition, all_coalitions, grand_coalition
 from .exploitability import compute_exploitability
 from .game import IncompleteCooperativeGame
-from .normalize import normalize_game
-from .protocols import (Game, Info, MutableIncompleteGame, State, StepResult,
-                        Value)
+from .normalize import NormalizableGame, normalize_game
+from .protocols import Info, MutableIncompleteGame, State, StepResult, Value
 
 
 class ICG_Gym(gym.Env):
     """A `gym.Env` for incomplete cooperative games."""
 
     def __init__(self, game: MutableIncompleteGame,
-                 game_generator: Callable[[], Game],
+                 game_generator: Callable[[], NormalizableGame],
                  initially_known_coalitions: Iterable[Coalition],
                  done_after_n_actions: int | None = None) -> None:
         """Initialize gym.
@@ -28,8 +27,8 @@ class ICG_Gym(gym.Env):
         super().__init__()
 
         self.incomplete_game = game
-        self.generator = game_generator
-        self.full_game = game_generator()
+        self._game_generator = game_generator
+        self.full_game = self.generator()
         normalize_game(cast(IncompleteCooperativeGame, self.full_game))
 
         self.done_after_n_actions = done_after_n_actions
@@ -50,6 +49,12 @@ class ICG_Gym(gym.Env):
                 grand_coalition(self.full_game)),
             dtype=Value)
         self.action_space = gym.spaces.Discrete(len(self.explorable_coalitions))
+
+    def generator(self) -> NormalizableGame:
+        """Generate a normalized game."""
+        game = self._game_generator()
+        normalize_game(game)
+        return game
 
     def valid_action_mask(self) -> np.ndarray:
         """Get valid actions for the agent."""

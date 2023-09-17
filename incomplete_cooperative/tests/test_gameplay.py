@@ -7,7 +7,8 @@ from incomplete_cooperative.coalitions import (Coalition, all_coalitions,
 from incomplete_cooperative.exploitability import compute_exploitability
 from incomplete_cooperative.gameplay import (
     apply_action_sequence, get_exploitabilities_of_action_sequences,
-    possible_action_sequences, possible_next_actions)
+    possible_action_sequences, possible_next_actions,
+    sample_exploitabilities_of_action_sequences)
 
 from .utils import IncompleteGameMixin
 
@@ -135,3 +136,26 @@ class TestActionSeqExploitabilities(IncompleteGameMixin, TestCase):
                                           action)
                 new_game.compute_bounds()
                 self.assertEqual(compute_exploitability(new_game), exploitability, action_sequence)
+
+
+class TestSampleExploitabilities(IncompleteGameMixin, TestCase):
+
+    def test_sample_one_game(self):
+        players = 4
+        initially_unknown = set(all_coalitions(players)).difference(set(minimal_game_coalitions(players)))
+        game_full = self.get_game_miss_coals([])
+        for samples in [1, 4]:
+            game = self.get_game_miss_coals(
+                number_of_players=players, missed_coals=initially_unknown)
+            with self.subTest(samples=samples):
+                action_sequence, values = sample_exploitabilities_of_action_sequences(game,
+                                                                                      lambda x: game_full, samples)
+                self.assertEqual(values.shape[0], samples)
+                for i, action in enumerate(action_sequence):
+                    with self.subTest(action=action):
+                        known_coals = set(minimal_game_coalitions(players)).union(action)
+                        game.set_known_values(game_full.get_values(known_coals), known_coals)
+                        game.compute_bounds()
+                        for j in range(samples):
+                            with self.subTest(sample=j):
+                                self.assertAlmostEqual(values[j, i], compute_exploitability(game))
