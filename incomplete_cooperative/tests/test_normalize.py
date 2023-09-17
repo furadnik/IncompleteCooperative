@@ -5,7 +5,8 @@ import numpy as np
 from incomplete_cooperative.coalitions import (all_coalitions, grand_coalition,
                                                player_to_coalition)
 from incomplete_cooperative.game import IncompleteCooperativeGame
-from incomplete_cooperative.normalize import normalize_game
+from incomplete_cooperative.graph_game import GraphCooperativeGame
+from incomplete_cooperative.normalize import denormalize_game, normalize_game
 
 from .utils import GraphGameMixin
 
@@ -41,6 +42,15 @@ class TestNormalizeIncompleteGame(TestCase):
         normalize_game(self.game)
         self.assertEqual(self.game.get_value(grand_coalition(self.game)), 0)
 
+    def test_denormalize_normalized(self):
+        other = IncompleteCooperativeGame(6, lambda x: None)
+        fill(other)
+        norminfo = normalize_game(other)
+        denormalize_game(other, norminfo)
+        for coalition in all_coalitions(other):
+            with self.subTest(coalition=coalition):
+                self.assertAlmostEqual(self.game.get_value(coalition), other.get_value(coalition), 6)
+
 
 class TestNormalizeGraphGame(GraphGameMixin, TestCase):
 
@@ -65,3 +75,11 @@ class TestNormalizeGraphGame(GraphGameMixin, TestCase):
             game._graph_matrix = np.zeros_like(game._graph_matrix)
             normalize_game(game)
             self.assertAlmostEqual(game.get_value(grand_coalition(game)), 0, 6, game)
+
+    def test_denormalize_normalized(self):
+        for i in range(2, 12):
+            game = self.get_game(n_players=i)
+            other = GraphCooperativeGame(game._graph_matrix)
+            norminfo = normalize_game(other)
+            denormalize_game(other, norminfo)
+            self.assertAlmostEqual(np.max(np.abs(game.get_values() - other.get_values())), 0, 5, game)
