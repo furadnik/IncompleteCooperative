@@ -51,7 +51,7 @@ def draw_combined_graph(chosen_coalitions: list[tuple[str, np.ndarray]],
 
     labels: list = []
     for i, (name, coalitions) in enumerate(chosen_coalitions):
-        color = next(colors)
+        color, _ = next(colors)
         number_of_coalitions, _, minimal_game = approx_game(coalitions)
         labels = add_to_plt(coalitions, NAME_MAP.get(name, name), color, step,
                             name not in ALREADY_CUMULATIVE, number_of_coalitions, minimal_game,
