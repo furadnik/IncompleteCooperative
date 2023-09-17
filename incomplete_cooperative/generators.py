@@ -34,7 +34,7 @@ def graph_generator(number_of_players: int) -> GraphCooperativeGame:
     return GraphCooperativeGame(game_matrix)
 
 
-GENERATORS: dict[str, GameGenerator] = {
+GENERATORS: dict[str, Callable[[int], GraphCooperativeGame | IncompleteCooperativeGame]] = {
     "factory": factory_generator,
     "graph": graph_generator,
     "factory_fixed": partial(factory_generator, owner=0),

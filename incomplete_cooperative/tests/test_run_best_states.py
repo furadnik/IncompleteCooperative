@@ -22,7 +22,7 @@ class TestBestStates(GetLearningResultMixin, TestCase):
         greedy_out = self.get_saver_output(solve_func, instance, args)
         best_out = self.get_saver_output(best_states_func, instance, args)
         self.assertEqual(greedy_out.avg_data[0], best_out.avg_data[0])
-        self.assertEqual(greedy_out.avg_data[1], best_out.avg_data[1])
+        self.assertEqual(greedy_out.avg_data[1], best_out.avg_data[1], best_out.avg_data)
         for j in range(7):
             self.assertGreaterEqual(greedy_out.avg_data[j] + self.epsilon,
                                     best_out.avg_data[j], j)
