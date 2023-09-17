@@ -4,6 +4,7 @@ from typing import Iterator
 
 import matplotlib as mpl  # type: ignore
 from matplotlib import colormaps
+from matplotlib.colors import Colormap
 
 mpl.rcParams.update({
     'axes.labelsize': 16,
@@ -23,11 +24,17 @@ NAME_MAP = {
     "expected_greedy": "Offline Greedy",
     "expected_best_states": "Offline Optimal",
 }
+LINE_STYLES = ["solid", "dashed", "dashdot", "dotted"]
 
 
-def get_colors(number: int) -> Iterator:
-    """Get colors from CMAP."""
-    return map(CMAP, map(lambda x: (x + 1) / (number + 2), range(number)))
+def get_colors(number: int) -> Iterator[tuple[Colormap, str]]:
+    """Get colors from CMAP.
+
+    Returns an iterator of tuples:
+        the color as a color map,
+        a line style associated with it.
+    """
+    return ((CMAP((x + 1) / (number + 2)), LINE_STYLES[x % len(LINE_STYLES)]) for x in range(number))
 
 
 filter_func = (lambda x: x in sys.argv[3].split(",")) if len(sys.argv) == 4 else lambda x: True
