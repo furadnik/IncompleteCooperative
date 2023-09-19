@@ -1,5 +1,6 @@
 """A module containing helpers for manipulating the `Game`s."""
 from itertools import chain, combinations
+from multiprocessing import Pool
 from typing import Any, Iterable
 
 import numpy as np
@@ -43,15 +44,24 @@ def apply_action_sequence(game: MutableIncompleteGame, full_game: Game,
     game.set_known_values(full_game.get_values(action_sequence), action_sequence)
 
 
+def _get_act_sequence_exploitability(game: MutableIncompleteGame, full_game: Game, action_sequence: ActionSequence,
+                                     known_coalitions: list[Coalition]
+                                     ) -> tuple[ActionSequence, Value]:  # pragma: no cover - multiprocessing
+    """Get the exploitability of an action sequence."""
+    apply_action_sequence(game, full_game, action_sequence, include=known_coalitions)
+    game.compute_bounds()
+    return action_sequence, compute_exploitability(game)
+
+
 def get_exploitabilities_of_action_sequences(
         game: MutableIncompleteGame, full_game: Game, max_size: int | None = None
 ) -> Iterable[tuple[ActionSequence, Value]]:
     """Get exploitabilities of action sequences."""
     known_coalitions = list(get_known_coalitions(game))
-    for action_sequence in possible_action_sequences(game, max_size=max_size):
-        apply_action_sequence(game, full_game, action_sequence, include=known_coalitions)
-        game.compute_bounds()
-        yield action_sequence, compute_exploitability(game)
+    with Pool() as p:
+        return p.starmap(
+            _get_act_sequence_exploitability,
+            ((game, full_game, seq, known_coalitions) for seq in possible_action_sequences(game, max_size=max_size)))
 
 
 def sample_exploitabilities_of_action_sequences(
