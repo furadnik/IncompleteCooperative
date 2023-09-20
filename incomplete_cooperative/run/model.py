@@ -57,7 +57,7 @@ class ModelInstance:
     environment: str = "sequential"
     policy_activation_fn: str = "relu"
     gamma: float = 1
-    ent_coef: float = 0.01
+    ent_coef: float = 0.1
 
     def __post_init__(self) -> None:
         """Exit model path."""
