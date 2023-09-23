@@ -4,6 +4,7 @@ from random import randrange
 from typing import Callable
 
 import numpy as np
+import pyfmtools as fmp  # type: ignore[import]
 
 from .coalitions import all_coalitions
 from .game import IncompleteCooperativeGame
@@ -36,6 +37,23 @@ def graph_generator(number_of_players: int,
     return GraphCooperativeGame(game_matrix)
 
 
+def convex_generator(number_of_players: int) -> IncompleteCooperativeGame:
+    """Generate a `convex` game."""
+    # generate the coalition values using the pyfmtools library
+    env = fmp.fm_init(number_of_players)
+    while True:
+        size, values = fmp.generate_fmconvex_tsort(1, number_of_players, number_of_players - 1, 1000, 1, 1000, env)
+        values_2bit = fmp.ConvertCard2Bit(values, env)
+        if fmp.IsMeasureSupermodular(values_2bit, env):
+            break
+    fmp.fm_free(env)
+
+    # convert the values to a game
+    game = IncompleteCooperativeGame(number_of_players)
+    game.set_values(values, all_coalitions(game))
+    return game
+
+
 _gen = np.random.default_rng()
 GENERATORS: dict[str, Callable[[int], GraphCooperativeGame | IncompleteCooperativeGame]] = {
     "factory": factory_generator,
@@ -50,4 +68,5 @@ GENERATORS: dict[str, Callable[[int], GraphCooperativeGame | IncompleteCooperati
        for alpha in range(1, 6) for beta in range(1, 6)},
     "graph_03_03": partial(graph_generator, dist_fn=partial(_gen.beta, 0.3, 0.3)),
     "graph_poiss5": partial(graph_generator, dist_fn=partial(_gen.poisson, 5)),
+    "convex": convex_generator,
 }

@@ -2,9 +2,15 @@ from unittest import TestCase
 
 from incomplete_cooperative.bounds import compute_bounds_superadditive
 from incomplete_cooperative.coalitions import (Coalition, all_coalitions,
-                                               grand_coalition)
+                                               get_singletons, grand_coalition)
 from incomplete_cooperative.exploitability import compute_exploitability
+<<<<<<< HEAD
 from incomplete_cooperative.generators import GENERATORS, factory_generator
+=======
+from incomplete_cooperative.generators import (convex_generator,
+                                               factory_generator,
+                                               graph_generator)
+>>>>>>> 0501046 (Fix #39 - Add uniform convex game sampling.)
 from incomplete_cooperative.normalize import normalize_game
 
 
@@ -110,3 +116,16 @@ class TestGraphGenerator(TestCase):
             for players in range(3, 10):
                 graph = generator(players)
                 self.assertEqual(graph.number_of_players, players)
+
+
+class TestConvexGenerator(TestCase):
+
+    def test_size_correct(self):
+        for players in range(3, 10):
+            game = convex_generator(players)
+            self.assertEqual(game.number_of_players, players)
+
+    def test_is_normalized(self):
+        for players in range(3, 10):
+            game = convex_generator(players)
+            self.assertEqual(game.get_value(grand_coalition(game)), 1)
