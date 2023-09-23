@@ -64,7 +64,7 @@ def get_greedy_rewards(env: ICG_Gym, max_steps: int, repetitions: int) -> tuple[
                                           ((a, get_action_index(a)) for a in next_action_sequences)))
         # get the optimal action sequence
         action_sequence = cast(tuple[list[Coalition], int],
-                               max(next_action_indices, key=lambda x: np.mean(sample_values[:, cast(int, x[1])])))
+                               min(next_action_indices, key=lambda x: np.mean(sample_values[:, cast(int, x[1])])))
         steps = len(action_sequence[0])
         coalitions = [x.id for x in action_sequence[0]]
 
