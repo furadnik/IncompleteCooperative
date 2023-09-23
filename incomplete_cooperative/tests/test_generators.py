@@ -2,15 +2,10 @@ from unittest import TestCase
 
 from incomplete_cooperative.bounds import compute_bounds_superadditive
 from incomplete_cooperative.coalitions import (Coalition, all_coalitions,
-                                               get_singletons, grand_coalition)
+                                               grand_coalition)
 from incomplete_cooperative.exploitability import compute_exploitability
-<<<<<<< HEAD
-from incomplete_cooperative.generators import GENERATORS, factory_generator
-=======
-from incomplete_cooperative.generators import (convex_generator,
-                                               factory_generator,
-                                               graph_generator)
->>>>>>> 0501046 (Fix #39 - Add uniform convex game sampling.)
+from incomplete_cooperative.generators import (GENERATORS, convex_generator,
+                                               factory_generator)
 from incomplete_cooperative.normalize import normalize_game
 
 
