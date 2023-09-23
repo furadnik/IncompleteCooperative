@@ -23,7 +23,7 @@ class IncompleteCooperativeGame:
     _values_upper_index = 2
 
     def __init__(self, number_of_players: int,
-                 bounds_computer: Callable[[BoundableIncompleteGame], None]) -> None:
+                 bounds_computer: Callable[[BoundableIncompleteGame], None] = lambda x: None) -> None:
         """Save basic game info.
 
         Arguments:
