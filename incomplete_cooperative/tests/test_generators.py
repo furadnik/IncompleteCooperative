@@ -4,8 +4,7 @@ from incomplete_cooperative.bounds import compute_bounds_superadditive
 from incomplete_cooperative.coalitions import (Coalition, all_coalitions,
                                                grand_coalition)
 from incomplete_cooperative.exploitability import compute_exploitability
-from incomplete_cooperative.generators import (factory_generator,
-                                               graph_generator)
+from incomplete_cooperative.generators import GENERATORS, factory_generator
 from incomplete_cooperative.normalize import normalize_game
 
 
@@ -107,6 +106,7 @@ class TestFactoryGenerator(TestCase):
 class TestGraphGenerator(TestCase):
 
     def test_size_correct(self):
-        for players in range(3, 10):
-            graph = graph_generator(players)
-            self.assertEqual(graph.number_of_players, players)
+        for name, generator in filter(lambda x: "graph" in x[0], GENERATORS.items()):
+            for players in range(3, 10):
+                graph = generator(players)
+                self.assertEqual(graph.number_of_players, players)
