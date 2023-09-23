@@ -15,6 +15,10 @@ CoalitionPlayers = Iterable[int]
 LOGGER = logging.getLogger(__name__)
 
 
+def _none_bounds(game: BoundableIncompleteGame) -> None:
+    """Do nothing."""
+
+
 class IncompleteCooperativeGame:
     """Represent a game."""
 
@@ -23,7 +27,7 @@ class IncompleteCooperativeGame:
     _values_upper_index = 2
 
     def __init__(self, number_of_players: int,
-                 bounds_computer: Callable[[BoundableIncompleteGame], None] = lambda x: None) -> None:
+                 bounds_computer: Callable[[BoundableIncompleteGame], None] = _none_bounds) -> None:
         """Save basic game info.
 
         Arguments:
