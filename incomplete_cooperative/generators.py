@@ -4,7 +4,6 @@ from random import randrange
 from typing import Callable
 
 import numpy as np
-import pyfmtools as fmp  # type: ignore[import]
 
 from .coalitions import all_coalitions
 from .game import IncompleteCooperativeGame
@@ -39,6 +38,8 @@ def graph_generator(number_of_players: int,
 
 def convex_generator(number_of_players: int) -> IncompleteCooperativeGame:
     """Generate a `convex` game."""
+    import pyfmtools as fmp  # type: ignore[import]
+
     # generate the coalition values using the pyfmtools library
     env = fmp.fm_init(number_of_players)
     while True:
