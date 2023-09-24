@@ -15,8 +15,16 @@ def best_states_func(instance: ModelInstance, parsed_args) -> None:
         instance.run_steps_limit = 2**instance.number_of_players
     actions_all = np.full((instance.run_steps_limit + 1,
                            instance.run_steps_limit), np.nan)
-    exploitability, best_coalitions = get_best_exploitability(instance.env, instance.run_steps_limit,
-                                                              parsed_args.sampling_repetitions)
+    exploitability = None
+    for repetition in range(parsed_args.eval_repetitions):
+        exploitability_rep, best_coalitions = get_best_exploitability(instance.env, instance.run_steps_limit,
+                                                                      parsed_args.sampling_repetitions)
+        if exploitability is None:
+            exploitability = exploitability_rep
+        else:
+            exploitability = np.hstack((exploitability, exploitability_rep))
+    assert exploitability is not None  # nosec
+
     for episode in range(len(best_coalitions)):
         fill_in_coalitions(actions_all[episode], best_coalitions[episode])
     save(instance.model_dir, instance.unique_name,
@@ -58,3 +66,4 @@ def add_best_states_parser(parser) -> None:
     """Fill in the parser with arguments for solving the game."""
     parser.set_defaults(func=best_states_func)
     parser.add_argument("--sampling-repetitions", default=1, type=int)
+    parser.add_argument("--eval-repetitions", default=1, type=int)

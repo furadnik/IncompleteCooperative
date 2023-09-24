@@ -18,11 +18,12 @@ class TestBestStates(GetLearningResultMixin, TestCase):
     def test_first_step_same(self):
         args, instance = self.get_instance(number_of_players=4, solve_repetitions=1,
                                            run_steps_limit=6, sampling_repetitions=1,
+                                           eval_repetitions=1,
                                            solver="greedy", func="foobar", game_generator="factory_fixed")
         greedy_out = self.get_saver_output(solve_func, instance, args)
         best_out = self.get_saver_output(best_states_func, instance, args)
         self.assertEqual(greedy_out.avg_data[0], best_out.avg_data[0])
-        self.assertEqual(greedy_out.avg_data[1], best_out.avg_data[1], best_out.avg_data)
+        self.assertEqual(greedy_out.avg_data[1], best_out.avg_data[1])
         for j in range(7):
             self.assertGreaterEqual(greedy_out.avg_data[j] + self.epsilon,
                                     best_out.avg_data[j], j)
@@ -43,11 +44,23 @@ class TestBestStates(GetLearningResultMixin, TestCase):
     def test_factory_fixed_always_same(self):
         args, instance = self.get_instance(number_of_players=4, solve_repetitions=1,
                                            sampling_repetitions=1,
+                                           eval_repetitions=1,
                                            run_steps_limit=5, func="foobar", game_generator="factory_fixed")
         reference = self.get_saver_output(best_states_func, instance, args)
         for j in range(1, 7):
             args, instance = self.get_instance(number_of_players=4, sampling_repetitions=j,
+                                               eval_repetitions=1,
                                                run_steps_limit=5, func="foobar", game_generator="factory_fixed")
             output = self.get_saver_output(best_states_func, instance, args)
             for x, y in zip(reference.avg_data, output.avg_data):
                 self.assertAlmostEqual(x, y)
+
+    def test_data_shape_multiple_eval_rep(self):
+        args, instance = self.get_instance(number_of_players=4, solve_repetitions=1,
+                                           run_steps_limit=6, sampling_repetitions=6,
+                                           eval_repetitions=3,
+                                           solver="best_states", func="foobar",
+                                           game_generator="factory_fixed")
+        best_out = self.get_saver_output(best_states_func, instance, args)
+        self.assertEqual(best_out.data.shape, (7, 3 * 6))
+        self.assertAlmostEqual(np.all(np.abs(best_out.avg_data - best_out.data[:, 0])), 0)
