@@ -1,7 +1,7 @@
 """A module containing helpers for manipulating the `Game`s."""
 from itertools import chain, combinations
 from multiprocessing import Pool
-from typing import Any, Iterable
+from typing import Any, Iterable, Sequence
 
 import numpy as np
 
@@ -91,3 +91,27 @@ def sample_exploitabilities_of_action_sequences(
         values[i] = np.fromiter((x[1] for x in get_exploitabilities_of_action_sequences(game, full_game, **kwargs)),
                                 Value, initial_values.shape[0])
     return actions, values
+
+
+def get_exploitabilities_of_action_sequence(
+        game: MutableIncompleteGame, full_games: Iterable[Game],
+        action_sequence: ActionSequence
+) -> Iterable[Value]:
+    """Apply an action sequence to an iterable of games."""
+    known_coalitions = list(get_known_coalitions(game))
+    with Pool() as p:
+        return map(lambda x: x[1], p.starmap(
+            _get_act_sequence_exploitability,
+            ((game, full_game, action_sequence, known_coalitions) for full_game in full_games)))
+
+
+def get_expected_exploitabilities_of_action_sequences(
+        game: MutableIncompleteGame, full_games: Sequence[Game],
+        action_sequences: Iterable[ActionSequence]
+) -> Iterable[Value]:
+    """Get the expected exploitabilities of a list of action sequences."""
+    number_of_games = len(full_games)
+    for action_sequence in action_sequences:
+        yield np.mean(np.fromiter(
+            get_exploitabilities_of_action_sequence(game, full_games, action_sequence),
+            Value, count=number_of_games))

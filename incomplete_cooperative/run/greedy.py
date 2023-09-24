@@ -1,12 +1,12 @@
 """Get best states from the coalitions."""
-from typing import cast
 
 import numpy as np
 
-from incomplete_cooperative.coalitions import Coalition, all_coalitions
+from incomplete_cooperative.coalitions import Coalition
 from incomplete_cooperative.gameplay import \
-    sample_exploitabilities_of_action_sequences
+    get_expected_exploitabilities_of_action_sequences
 from incomplete_cooperative.icg_gym import ICG_Gym
+from incomplete_cooperative.protocols import Value
 
 from .model import ModelInstance
 from .save import Output, save
@@ -44,35 +44,28 @@ def get_greedy_rewards(env: ICG_Gym, max_steps: int, repetitions: int) -> tuple[
     """
     initial_reward = env.reward
     best_exploitabilities = np.full((max_steps + 1, repetitions), -initial_reward)
-    greedy_actions: list[list[int]] = [[] for _ in range(max_steps + 1)]
-    sample_actions, sample_values = sample_exploitabilities_of_action_sequences(
-        env.incomplete_game, lambda x: env.generator(), repetitions, max_size=max_steps)
-    action_value_map = list((sorted(a, key=lambda x: x.id), i) for i, a in enumerate(sample_actions))
 
-    print(action_value_map)
-    print(max_steps)
+    incomplete_game = env.incomplete_game
+    generated_games = [env.generator() for _ in range(repetitions)]
 
-    def get_action_index(action_sequence) -> int | None:
-        action_sequence = sorted(action_sequence, key=lambda x: x.id)
-        return next((i for a, i in action_value_map if a == action_sequence), None)
+    possible_actions = set(env.explorable_coalitions)
+    action_sequence: list[Coalition] = []
+    while len(action_sequence) < max_steps:
+        possible_next_action_sequences = [action_sequence + [action]
+                                          for action in possible_actions]
+        expected_exploitabilities = np.fromiter(
+            get_expected_exploitabilities_of_action_sequences(
+                incomplete_game, generated_games, possible_next_action_sequences),
+            dtype=Value, count=len(possible_next_action_sequences))
 
-    possible_actions = list(all_coalitions(env.full_game))
-    action_sequence: tuple[list[Coalition], int] = [], 0
-    while len(action_sequence[0]) < max_steps:
-        next_action_sequences = (action_sequence[0] + [a] for a in possible_actions)
-        next_action_indices = list(filter(lambda x: x[1] is not None,
-                                          ((a, get_action_index(a)) for a in next_action_sequences)))
-        # get the optimal action sequence
-        action_sequence = cast(tuple[list[Coalition], int],
-                               min(next_action_indices, key=lambda x: np.mean(sample_values[:, cast(int, x[1])])))
-        steps = len(action_sequence[0])
-        coalitions = [x.id for x in action_sequence[0]]
+        best_action_index = np.argmax(expected_exploitabilities)
+        best_action = possible_next_action_sequences[best_action_index][-1]
 
-        if np.mean(best_exploitabilities[steps]) > np.mean(sample_values[:, action_sequence[1]]):
-            best_exploitabilities[steps] = sample_values[:, action_sequence[1]]
-            greedy_actions[steps] = coalitions
+        action_sequence.append(best_action)
+        possible_actions.remove(best_action)
+        best_exploitabilities[len(action_sequence)] = expected_exploitabilities[best_action_index]
 
-    return best_exploitabilities, greedy_actions
+    return best_exploitabilities, [list(x.players) for x in action_sequence]
 
 
 def add_greedy_parser(parser) -> None:
