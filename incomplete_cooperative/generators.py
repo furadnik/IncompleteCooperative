@@ -51,7 +51,7 @@ def convex_generator(number_of_players: int) -> IncompleteCooperativeGame:
 
     # convert the values to a game
     game = IncompleteCooperativeGame(number_of_players)
-    game.set_values(values, all_coalitions(game))
+    game.set_values(values_2bit, all_coalitions(game))
     return game
 
 
