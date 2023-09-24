@@ -16,26 +16,14 @@ def greedy_func(instance: ModelInstance, parsed_args) -> None:
     """Get greedy best states."""
     if instance.run_steps_limit is None:  # pragma: no cover
         instance.run_steps_limit = 2**instance.number_of_players
-    actions_all = np.full((instance.run_steps_limit + 1,
-                           instance.run_steps_limit), np.nan)
     exploitability, best_coalitions = get_greedy_rewards(instance.env, instance.run_steps_limit,
                                                          parsed_args.sampling_repetitions)
-    for episode in range(len(best_coalitions)):
-        fill_in_coalitions(actions_all[episode], best_coalitions[episode])
+    actions_all = np.reshape(np.array(best_coalitions), (1, len(best_coalitions)))
     save(instance.model_dir, instance.unique_name,
          Output(exploitability, actions_all, parsed_args))
 
 
-def fill_in_coalitions(target_array: np.ndarray, coalitions: list[int]) -> None:
-    """Fill in the coalitions one by one to the target array.
-
-    Note: `target_array` is an output parameter.
-    """
-    for i, coal in enumerate(coalitions):
-        target_array[i] = coal
-
-
-def get_greedy_rewards(env: ICG_Gym, max_steps: int, repetitions: int) -> tuple[np.ndarray, list[list[int]]]:
+def get_greedy_rewards(env: ICG_Gym, max_steps: int, repetitions: int) -> tuple[np.ndarray, list[int]]:
     """Return best rewards.
 
     Returns: A tuple:
@@ -65,7 +53,7 @@ def get_greedy_rewards(env: ICG_Gym, max_steps: int, repetitions: int) -> tuple[
         possible_actions.remove(best_action)
         best_exploitabilities[len(action_sequence)] = expected_exploitabilities[best_action_index]
 
-    return best_exploitabilities, [list(x.players) for x in action_sequence]
+    return best_exploitabilities, [x.id for x in action_sequence]
 
 
 def add_greedy_parser(parser) -> None:
