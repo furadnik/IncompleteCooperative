@@ -124,3 +124,14 @@ class TestConvexGenerator(TestCase):
         for players in range(3, 10):
             game = convex_generator(players)
             self.assertEqual(game.get_value(grand_coalition(game)), 1)
+
+    def test_is_convex(self):
+        for players in range(3, 10):
+            with self.subTest(players=players):
+                game = convex_generator(players)
+                for S in all_coalitions(players):
+                    for T in all_coalitions(players):
+                        with self.subTest(S=S, T=T):
+                            lhs = game.get_value(S) + game.get_value(T)
+                            rhs = game.get_value(S & T) + game.get_value(S | T)
+                            self.assertLessEqual(lhs, rhs)
