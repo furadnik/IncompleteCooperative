@@ -66,3 +66,4 @@ def add_best_states_parser(parser) -> None:
     """Fill in the parser with arguments for solving the game."""
     parser.set_defaults(func=best_states_func)
     parser.add_argument("--sampling-repetitions", default=1, type=int)
+    parser.add_argument("--eval-repetitions", default=1, type=int)
