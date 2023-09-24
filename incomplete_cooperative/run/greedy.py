@@ -18,7 +18,7 @@ def greedy_func(instance: ModelInstance, parsed_args) -> None:
         instance.run_steps_limit = 2**instance.number_of_players
     exploitability, best_coalitions = get_greedy_rewards(instance.env, instance.run_steps_limit,
                                                          parsed_args.sampling_repetitions)
-    actions_all = np.reshape(np.array(best_coalitions), (1, len(best_coalitions)))
+    actions_all = np.reshape(np.array(best_coalitions), (len(best_coalitions), 1))
     save(instance.model_dir, instance.unique_name,
          Output(exploitability, actions_all, parsed_args))
 
