@@ -46,7 +46,7 @@ def get_greedy_rewards(env: ICG_Gym, max_steps: int, repetitions: int) -> tuple[
                 incomplete_game, generated_games, possible_next_action_sequences),
             dtype=Value, count=len(possible_next_action_sequences))
 
-        best_action_index = np.argmax(expected_exploitabilities)
+        best_action_index = np.argmin(expected_exploitabilities)
         best_action = possible_next_action_sequences[best_action_index][-1]
 
         action_sequence.append(best_action)
