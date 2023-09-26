@@ -4,8 +4,9 @@ from incomplete_cooperative.bounds import compute_bounds_superadditive
 from incomplete_cooperative.coalitions import (Coalition, all_coalitions,
                                                grand_coalition)
 from incomplete_cooperative.exploitability import compute_exploitability
-from incomplete_cooperative.generators import (GENERATORS, convex_generator,
-                                               factory_generator)
+from incomplete_cooperative.generators import (
+    GENERATORS, convex_generator, factory_cheerleader_next_generator,
+    factory_generator)
 from incomplete_cooperative.normalize import normalize_game
 
 
@@ -135,3 +136,11 @@ class TestConvexGenerator(TestCase):
                             lhs = game.get_value(S) + game.get_value(T)
                             rhs = game.get_value(S & T) + game.get_value(S | T)
                             self.assertLessEqual(lhs, rhs)
+
+
+class TestCheerleaderGenerator(TestCase):
+
+    def test_size_correct(self):
+        for players in range(3, 10):
+            game = factory_cheerleader_next_generator(players)
+            self.assertEqual(game.number_of_players, players)

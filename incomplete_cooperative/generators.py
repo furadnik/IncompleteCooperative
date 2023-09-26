@@ -1,5 +1,6 @@
 """Generators of games."""
 from functools import partial
+from math import exp
 from random import randrange
 from typing import Callable
 
@@ -15,17 +16,56 @@ def _none_bounds_computer(self) -> None:  # pragma: nocover
     return None
 
 
+def _fac_sq_fn(val: int) -> int:  # pragma: nocover
+    return val**2
+
+
+def _fac_one_fn(val: int) -> int:  # pragma: nocover
+    return 1
+
+
 def factory_generator(number_of_players: int, owner: int | None = None,
-                      bounds_computer: Callable = _none_bounds_computer) -> IncompleteCooperativeGame:
+                      bounds_computer: Callable = _none_bounds_computer,
+                      value_fn: Callable = lambda x: x,
+                      random_weights: bool = False
+                      ) -> IncompleteCooperativeGame:
     """Generate a `factory` game."""
     owner = randrange(0, number_of_players) if owner is None else owner  # nosec
+    weights = 10 * np.random.rand(number_of_players) if random_weights else np.ones(number_of_players)
+    weights[owner] = 0
     game = IncompleteCooperativeGame(number_of_players, bounds_computer)
     for coalition in all_coalitions(game):
         if owner not in coalition:
             game.set_value(0, coalition)
         else:
-            game.set_value((len(coalition) - 1), coalition)
+            game.set_value(value_fn(np.sum(weights[list(coalition.players)])), coalition)
     return game
+
+
+def factory_cheerleader_generator(number_of_players: int, owner: int | None = None,
+                                  cheerleader: int | None = None,
+                                  bounds_computer: Callable = _none_bounds_computer) -> IncompleteCooperativeGame:
+    """Generate a `factory` game with a cheerleader."""
+    owner = randrange(0, number_of_players) if owner is None else owner  # nosec
+    while cheerleader is None or cheerleader == owner:  # pragma: no cover
+        cheerleader = randrange(0, number_of_players)  # nosec
+
+    game = IncompleteCooperativeGame(number_of_players, bounds_computer)
+    for coalition in all_coalitions(game):
+        coalition_value = 3 * (len(coalition) - 2) if cheerleader in coalition else len(coalition) - 1
+        if owner not in coalition:
+            game.set_value(0, coalition)
+        else:
+            game.set_value(coalition_value, coalition)
+    return game
+
+
+def factory_cheerleader_next_generator(number_of_players: int, bounds_computer: Callable = _none_bounds_computer
+                                       ) -> IncompleteCooperativeGame:
+    """Generate a `factory` game with a cheerleader, who is owner+1."""
+    owner = randrange(0, number_of_players)  # nosec
+    cheerleader = (owner + 1) % number_of_players
+    return factory_cheerleader_generator(number_of_players, owner, cheerleader, bounds_computer)
 
 
 def graph_generator(number_of_players: int,
@@ -58,16 +98,27 @@ def convex_generator(number_of_players: int) -> IncompleteCooperativeGame:
 _gen = np.random.default_rng()
 GENERATORS: dict[str, Callable[[int], GraphCooperativeGame | IncompleteCooperativeGame]] = {
     "factory": factory_generator,
+    "factory_one": partial(factory_generator, value_fn=_fac_one_fn),
+    "factory_square": partial(factory_generator, value_fn=_fac_sq_fn),
+    "factory_exp": partial(factory_generator, value_fn=exp),
     "factory_fixed": partial(factory_generator, owner=0),
+    "factory_cheerleader": factory_cheerleader_generator,
+    "factory_cheerleader_next": factory_cheerleader_next_generator,
+    "noisy_factory": partial(factory_generator, random_weights=True),
+    "noisy_factory_square": partial(factory_generator, value_fn=_fac_sq_fn, random_weights=True),
+    "noisy_factory_exp": partial(factory_generator, value_fn=exp, random_weights=True),
+    "noisy_factory_fixed": partial(factory_generator, owner=0, random_weights=True),
+    "noisy_factory_cheerleader": partial(factory_cheerleader_generator, random_weights=True),
+    "noisy_factory_cheerleader_next": partial(factory_cheerleader_next_generator, random_weights=True),
     "graph": graph_generator,
     "graph_tirangular": partial(graph_generator, dist_fn=partial(_gen.triangular, 0, 0.6, 1)),
     "graph_increasing": partial(graph_generator, dist_fn=partial(_gen.triangular, 0, 1, 1)),
     "graph_decreasing": partial(graph_generator, dist_fn=partial(_gen.triangular, 0, 0, 1)),
-    "graph_poiss": partial(graph_generator, dist_fn=partial(_gen.poisson, 1)),
     # graph_beta_{alpha}_{beta} ; alpha, beta \in [1, 5]
     **{f"graph_beta_{alpha}_{beta}": partial(graph_generator, dist_fn=partial(_gen.beta, alpha, beta))
        for alpha in range(1, 6) for beta in range(1, 6)},
     "graph_03_03": partial(graph_generator, dist_fn=partial(_gen.beta, 0.3, 0.3)),
-    "graph_poiss5": partial(graph_generator, dist_fn=partial(_gen.poisson, 5)),
+    **{f"graph_poiss_{lam}": partial(graph_generator, dist_fn=partial(_gen.poisson, lam))
+       for lam in [0.1, 0.01, 0.5, 1, 5, 10, 50]},
     "convex": convex_generator,
 }
