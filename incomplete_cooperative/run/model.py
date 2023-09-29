@@ -35,7 +35,7 @@ ACTIVATION_FNS = {
 }
 
 
-def _env_generator(instance: ModelInstance) -> Env:  # pragma: nocover
+def _env_generator(instance: ModelInstance) -> ActionMasker:  # pragma: nocover
     """Generate environment."""
     env = instance.env
     return ActionMasker(env, cast(Callable[[Env], np.ndarray], ICG_Gym.valid_action_mask))
@@ -88,6 +88,10 @@ class ModelInstance:
     def environment_class(self) -> type[DummyVecEnv] | type[SubprocVecEnv]:
         """TODO: implement later."""
         return ENVIRONMENTS.get(self.environment, DummyVecEnv)
+
+    def non_vec_env_generator(self) -> ActionMasker:
+        """Get the masked env, not as vector."""
+        return _env_generator(self)
 
     def env_generator(self) -> VecEnv:
         """Create parallel environments."""

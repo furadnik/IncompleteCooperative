@@ -7,7 +7,13 @@ import numpy as np
 from .coalitions import Coalition, all_coalitions, grand_coalition
 from .exploitability import compute_exploitability
 from .normalize import NormalizableGame, normalize_game
-from .protocols import Info, MutableIncompleteGame, State, StepResult, Value
+from .protocols import (IncompleteGame, Info, MutableIncompleteGame, State,
+                        StepResult, Value)
+
+
+def compute_reward(game: IncompleteGame) -> Value:
+    """Compute the reward of the game."""
+    return -compute_exploitability(game)
 
 
 class ICG_Gym(gym.Env):
@@ -60,7 +66,7 @@ class ICG_Gym(gym.Env):
     @property
     def reward(self) -> Value:  # type: ignore
         """Return reward -- negative exploitability."""
-        return -compute_exploitability(self.incomplete_game)
+        return compute_reward(self.incomplete_game)
 
     @property
     def done(self) -> bool:
