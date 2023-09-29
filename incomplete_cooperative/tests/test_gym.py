@@ -4,6 +4,7 @@ from stable_baselines3.common.env_checker import check_env
 
 from incomplete_cooperative.coalitions import Coalition
 from incomplete_cooperative.icg_gym import ICG_Gym
+from incomplete_cooperative.normalize import normalize_game
 
 from .utils import GymMixin
 
@@ -102,3 +103,9 @@ class TestICGGym(TestCase, GymMixin):
                     self.icg_gym.step(i)
                     self.icg_gym.unstep(i)
                     self.assertEqual(initial, test(self.icg_gym))
+
+    def test_gym_reset_original(self):
+        _, info = self.icg_gym.reset()
+        self.assertNotEqual(info["game"], self.icg_gym.full_game)
+        normalize_game(info["game"])
+        self.assertEqual(info["game"], self.icg_gym.full_game)

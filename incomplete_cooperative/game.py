@@ -224,4 +224,5 @@ class IncompleteCooperativeGame:
     def copy(self) -> IncompleteCooperativeGame:
         """Copy the game."""
         new = IncompleteCooperativeGame(self.number_of_players, self._bounds_computer)
+        new._values = np.copy(self._values)
         return new

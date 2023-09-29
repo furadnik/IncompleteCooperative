@@ -1,12 +1,11 @@
 """An Agent Gym for Incomplete Cooperative Games."""
-from typing import Any, Callable, Iterable, cast
+from typing import Any, Callable, Iterable
 
 import gymnasium as gym  # type: ignore
 import numpy as np
 
 from .coalitions import Coalition, all_coalitions, grand_coalition
 from .exploitability import compute_exploitability
-from .game import IncompleteCooperativeGame
 from .normalize import NormalizableGame, normalize_game
 from .protocols import Info, MutableIncompleteGame, State, StepResult, Value
 
@@ -27,8 +26,9 @@ class ICG_Gym(gym.Env):
         super().__init__()
 
         self.incomplete_game = game
-        self._game_generator = game_generator
+        self.generator = game_generator
         self.full_game = self.generator()
+        normalize_game(self.full_game)
 
         self.done_after_n_actions = done_after_n_actions
         self.steps_taken = 0
@@ -47,12 +47,6 @@ class ICG_Gym(gym.Env):
                 grand_coalition(self.full_game)),
             dtype=Value)
         self.action_space = gym.spaces.Discrete(len(self.explorable_coalitions))
-
-    def generator(self) -> NormalizableGame:
-        """Generate a normalized game."""
-        game = self._game_generator()
-        normalize_game(game)
-        return game
 
     def valid_action_mask(self) -> np.ndarray:
         """Get valid actions for the agent."""
@@ -80,13 +74,14 @@ class ICG_Gym(gym.Env):
         """Reset the game into initial state."""
         super().reset(seed=seed, options=options)
         self.full_game = self.generator()
-        normalize_game(cast(IncompleteCooperativeGame, self.full_game))
+        original = self.full_game.copy()
+        normalize_game(self.full_game)
         self.incomplete_game.set_known_values(self.full_game.get_values(self.initially_known_coalitions),
                                               self.initially_known_coalitions)
         self.incomplete_game.compute_bounds()
         self.steps_taken = 0
 
-        return self.state, {}
+        return self.state, {"game": original}
 
     def step(self, action: int) -> StepResult:
         """Implement one step of the arbitor, reveal coalition and compute exploitability.
