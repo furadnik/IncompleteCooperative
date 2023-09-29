@@ -6,6 +6,7 @@ import numpy as np
 from incomplete_cooperative.coalitions import Coalition, all_coalitions
 from incomplete_cooperative.game import IncompleteCooperativeGame
 from incomplete_cooperative.graph_game import GraphCooperativeGame
+from incomplete_cooperative.normalize import normalize_game
 
 from .utils import GraphGameMixin
 
@@ -64,3 +65,11 @@ class TestGraphCG(GraphGameMixin, TestCase):
         other = IncompleteCooperativeGame(4, lambda x: None)
         other.set_values(game.get_values(), all_coalitions(other))
         self.assertEqual(game, other)
+
+    def test_copy(self):
+        for players in range(3, 60):
+            game = self.get_game(n_players=players)
+            other = game.copy()
+            self.assertEqual(game, other, game)
+            normalize_game(other)
+            self.assertNotEqual(game, other, game)

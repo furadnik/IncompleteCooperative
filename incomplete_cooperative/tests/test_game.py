@@ -187,3 +187,9 @@ class TestGame(TestCase):
         self.game.unreveal_value(Coalition(1))
         self.game.unreveal_value(Coalition(1))
         self.assertFalse(self.game.is_value_known(Coalition(1)))
+
+    def test_copy(self):
+        game = self.game.copy()
+        game.set_value(100, Coalition(1))
+        self.assertFalse(self.game.is_value_known(Coalition(1)))
+        self.assertTrue(game.is_value_known(Coalition(1)))

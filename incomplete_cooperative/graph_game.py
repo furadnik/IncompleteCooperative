@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 from itertools import combinations
-from typing import Any, Iterable
+from typing import Any, Iterable, cast
 
 import numpy as np
 
@@ -62,3 +62,7 @@ class GraphCooperativeGame:
             return self.number_of_players == other.number_of_players and \
                 bool(np.all(self.get_values() == other.get_values()))
         raise AttributeError("Cannot compare games with anything else than games.")
+
+    def copy(self) -> GraphCooperativeGame:
+        """Copy the game."""
+        return GraphCooperativeGame(self._graph_matrix.copy())

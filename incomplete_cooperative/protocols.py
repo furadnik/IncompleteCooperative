@@ -1,10 +1,16 @@
 """Protocols specifying `Game`s."""
 from __future__ import annotations
 
+import sys
 from typing import (TYPE_CHECKING, Any, Callable, Iterable, Literal, Protocol,
                     runtime_checkable)
 
 import numpy as np
+
+if sys.version_info >= (3, 11):  # pragma: no cover
+    from typing import Self
+else:  # pragma: no cover
+    from typing_extensions import Self
 
 if TYPE_CHECKING:  # pragma: no cover
     from .coalitions import Coalition
@@ -28,6 +34,9 @@ class Game(Protocol):
 
     def get_value(self, coalition: Coalition) -> Value:
         """Get value for a specific coalition."""
+
+    def copy(self) -> Self:
+        """Return a deep copy of the game."""
 
 
 class MutableGame(Game, Protocol):
