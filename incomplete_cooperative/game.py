@@ -2,12 +2,12 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable, Iterable, Literal
+from typing import Any, Callable, Iterable, Literal, cast
 
 import numpy as np
 
 from .coalitions import Coalition
-from .protocols import BoundableIncompleteGame, Value, ValueIn, Values
+from .protocols import BoundableIncompleteGame, Self, Value, ValueIn, Values
 
 Coalitions = Iterable[Coalition]
 CoalitionPlayers = Iterable[int]
@@ -220,3 +220,8 @@ class IncompleteCooperativeGame:
     def full(self) -> bool:
         """Decide whether the game is fully known."""
         return bool(np.all(self.are_values_known()))
+
+    def copy(self) -> IncompleteCooperativeGame:
+        """Copy the game."""
+        new = IncompleteCooperativeGame(self.number_of_players, self._bounds_computer)
+        return new
