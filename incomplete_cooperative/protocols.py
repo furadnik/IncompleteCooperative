@@ -14,6 +14,7 @@ else:  # pragma: no cover
 
 if TYPE_CHECKING:  # pragma: no cover
     from .coalitions import Coalition
+    from .normalize import NormalizableGame
 
 Player = int
 Value = np.float64
@@ -159,6 +160,18 @@ class Gym(Protocol):
 
     def valid_action_mask(self) -> np.ndarray:
         """Get valid actions for the agent."""
+
+    @property
+    def incomplete_game(self) -> MutableIncompleteGame:
+        """The incomplete game."""
+
+    @property
+    def initially_known_coalitions(self) -> list[Coalition]:
+        """A list of coalitions that are initially known."""
+
+    @property
+    def explorable_coalitions(self) -> list[Coalition]:
+        """A list of coalitions that aren't initially known."""
 
 
 class Solver(Protocol):

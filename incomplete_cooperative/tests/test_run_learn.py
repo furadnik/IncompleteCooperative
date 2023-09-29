@@ -98,7 +98,7 @@ class TestSimpleGame(LearningTester, TestCase):
                 best_reward = reward
                 best_actions = [action]
         for action in results.actions.flatten().tolist():
-            self.assertIn(action, best_actions)
+            self.assertIn(action, best_actions, results.actions)
 
 
 class TestSimpleGameParallel(TestSimpleGame):

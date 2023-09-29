@@ -15,18 +15,18 @@ class TestBestStates(GetLearningResultMixin, TestCase):
     # account for float precision
     epsilon = 0.000001
 
-    # def test_first_step_same(self):
-    #     args, instance = self.get_instance(number_of_players=4, solve_repetitions=1,
-    #                                        run_steps_limit=6, sampling_repetitions=1,
-    #                                        eval_repetitions=1,
-    #                                        solver="greedy", func="foobar", game_generator="factory_fixed")
-    #     greedy_out = self.get_saver_output(solve_func, instance, args)
-    #     best_out = self.get_saver_output(best_states_func, instance, args)
-    #     self.assertEqual(greedy_out.avg_data[0], best_out.avg_data[0])
-    #     self.assertEqual(greedy_out.avg_data[1], best_out.avg_data[1])
-    #     for j in range(7):
-    #         self.assertGreaterEqual(greedy_out.avg_data[j] + self.epsilon,
-    #                                 best_out.avg_data[j], j)
+    def test_first_step_same(self):
+        args, instance = self.get_instance(number_of_players=4, solve_repetitions=1,
+                                           run_steps_limit=6, sampling_repetitions=1,
+                                           eval_repetitions=1,
+                                           solver="greedy", func="foobar", game_generator="factory_fixed")
+        greedy_out = self.get_saver_output(solve_func, instance, args)
+        best_out = self.get_saver_output(best_states_func, instance, args)
+        self.assertEqual(greedy_out.avg_data[0], best_out.avg_data[0], greedy_out.avg_data)
+        self.assertEqual(greedy_out.avg_data[1], best_out.avg_data[1], greedy_out.avg_data)
+        for j in range(7):
+            self.assertGreaterEqual(greedy_out.avg_data[j] + self.epsilon,
+                                    best_out.avg_data[j], j)
 
     def test_fill_in_coalitions(self):
         coalitions = [

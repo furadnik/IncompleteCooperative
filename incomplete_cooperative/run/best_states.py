@@ -1,11 +1,10 @@
 """Get best states from the coalitions."""
-import time
-
 import numpy as np
 
 from incomplete_cooperative.gameplay import \
     sample_exploitabilities_of_action_sequences
 from incomplete_cooperative.icg_gym import ICG_Gym
+from incomplete_cooperative.protocols import Value
 
 from .model import ModelInstance
 from .save import Output, save
@@ -49,8 +48,8 @@ def get_best_exploitability(env: ICG_Gym, max_steps: int, repetitions: int) -> t
         A `np.ndarray` with the best rewards in each step.
         A list of lists of chosen coalitions at each step for the best results.
     """
-    initial_reward = env.reward
-    best_exploitabilities = np.full((max_steps + 1, repetitions), -initial_reward)
+    initial_placeholder_value = -1
+    best_exploitabilities = np.full((max_steps + 1, repetitions), initial_placeholder_value, dtype=Value)
     best_actions: list[list[int]] = [[] for _ in range(max_steps + 1)]
     sample_actions, sample_values = sample_exploitabilities_of_action_sequences(
         env.incomplete_game, lambda x: env.generator(), samples=repetitions, max_size=max_steps)
@@ -58,7 +57,8 @@ def get_best_exploitability(env: ICG_Gym, max_steps: int, repetitions: int) -> t
         steps = len(act_sequence)
         coalitions = [x.id for x in act_sequence]
 
-        if np.mean(best_exploitabilities[steps]) > np.mean(sample_values[:, i]):
+        if np.mean(best_exploitabilities[steps]) == initial_placeholder_value or \
+                np.mean(best_exploitabilities[steps]) > np.mean(sample_values[:, i]):
             best_exploitabilities[steps] = sample_values[:, i]
             best_actions[steps] = coalitions
     return best_exploitabilities, best_actions
