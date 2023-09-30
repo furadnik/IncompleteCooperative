@@ -6,7 +6,6 @@ from incomplete_cooperative.coalitions import Coalition
 from incomplete_cooperative.gameplay import \
     get_stacked_exploitabilities_of_action_sequences
 from incomplete_cooperative.icg_gym import ICG_Gym
-from incomplete_cooperative.protocols import Value
 
 from .model import ModelInstance
 from .save import Output, save

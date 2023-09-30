@@ -114,7 +114,7 @@ def get_exploitabilities_of_action_sequence(
 def get_stacked_exploitabilities_of_action_sequences(
         game: MutableIncompleteGame, full_games: Sequence[Game],
         action_sequences: Iterable[ActionSequence]
-) -> Iterable[Value]:
+) -> Iterable[np.ndarray]:
     """Get the expected exploitabilities of a list of action sequences."""
     number_of_games = len(full_games)
     for action_sequence in action_sequences:

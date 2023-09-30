@@ -83,5 +83,5 @@ class TestBestStates(GetLearningResultMixin, TestCase):
                                            solver="best_states", func="foobar",
                                            game_generator="factory_fixed")
         best_out = self.get_saver_output(greedy_func, instance, args)
-        self.assertEqual(best_out.data.shape, (7, 3 * 6))
+        self.assertEqual(best_out.data.shape, (7, 6))
         self.assertAlmostEqual(np.all(np.abs(best_out.avg_data - best_out.data[:, 0])), 0)
