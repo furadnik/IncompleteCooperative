@@ -5,6 +5,7 @@ import numpy as np
 
 from incomplete_cooperative.run.best_states import (best_states_func,
                                                     fill_in_coalitions)
+from incomplete_cooperative.run.greedy import greedy_func
 from incomplete_cooperative.run.solve import solve_func
 
 from .test_run_learn import GetLearningResultMixin
@@ -64,3 +65,13 @@ class TestBestStates(GetLearningResultMixin, TestCase):
         best_out = self.get_saver_output(best_states_func, instance, args)
         self.assertEqual(best_out.data.shape, (7, 3 * 6))
         self.assertAlmostEqual(np.all(np.abs(best_out.avg_data - best_out.data[:, 0])), 0)
+
+    def test_greedy_decreasing(self):
+        args, instance = self.get_instance(number_of_players=4, solve_repetitions=1,
+                                           run_steps_limit=6, sampling_repetitions=6,
+                                           eval_repetitions=3,
+                                           solver="greedy", func="foobar",
+                                           game_generator="factory_fixed")
+        best_out = self.get_saver_output(greedy_func, instance, args)
+        for i in range(5):
+            self.assertGreaterEqual(best_out.avg_data[i], best_out.avg_data[i + 1])

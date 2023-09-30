@@ -30,28 +30,31 @@ def get_greedy_rewards(env: ICG_Gym, max_steps: int, repetitions: int) -> tuple[
         A `np.ndarray` with the best rewards in each step.
         A list of lists of chosen coalitions at each step for the best results.
     """
-    initial_reward = env.reward
-    best_exploitabilities = np.full((max_steps + 1, repetitions), -initial_reward)
+    initial_exploitability = env.reward
+    best_exploitabilities = np.full((max_steps + 1, repetitions), -initial_exploitability)
 
     incomplete_game = env.incomplete_game
     generated_games = [env.generator() for _ in range(repetitions)]
 
     possible_actions = set(env.explorable_coalitions)
     action_sequence: list[Coalition] = []
+    possible_next_action_sequences: list[list[Coalition]] = [[]]
     while len(action_sequence) < max_steps:
-        possible_next_action_sequences = [action_sequence + [action]
-                                          for action in possible_actions]
         expected_exploitabilities = np.fromiter(
             get_expected_exploitabilities_of_action_sequences(
                 incomplete_game, generated_games, possible_next_action_sequences),
             dtype=Value, count=len(possible_next_action_sequences))
 
         best_action_index = np.argmin(expected_exploitabilities)
-        best_action = possible_next_action_sequences[best_action_index][-1]
 
-        action_sequence.append(best_action)
-        possible_actions.remove(best_action)
+        if possible_next_action_sequences[best_action_index]:
+            best_action = possible_next_action_sequences[best_action_index][-1]
+            action_sequence.append(best_action)
+            possible_actions.remove(best_action)
+
         best_exploitabilities[len(action_sequence)] = expected_exploitabilities[best_action_index]
+        possible_next_action_sequences = [action_sequence + [action]
+                                          for action in possible_actions]
 
     return best_exploitabilities, [x.id for x in action_sequence]
 
