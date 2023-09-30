@@ -25,8 +25,9 @@ def add_to_plt(data: np.ndarray, name: str, color: Any, step: int, cumulative: b
                number_of_coalitions: int, minimal_game: list[Coalition], width: float, shift: float) -> Any:
     """Add data drawing to plot."""
     if not cumulative:
-        labels, distribution = get_coalition_distribution(number_of_coalitions, data[step] * data[step].shape[0],
+        labels, distribution = get_coalition_distribution(number_of_coalitions, data[step + 1],
                                                           minimal_game)
+        distribution = [x * data[step].shape[0] for x in distribution]
     else:
         labels, distribution = get_coalition_distribution(number_of_coalitions, data[step], minimal_game)
         for i in range(step):
@@ -81,7 +82,7 @@ def main(path: Path = Path(sys.argv[1]), title: str = sys.argv[2]) -> None:
         steps = min(len(Output.from_file(data, x).actions_list) for x in data_keys if filter_func(x))
         chosen_coalitions = [(x, Output.from_file(data, x).actions) for x in data_keys if filter_func(x)]
         for step in range(steps):
-            step_path = save_path / str(step + 1)
+            step_path = save_path / f"{step + 1}.pdf"
             # steps in title are counted from 1.
             draw_combined_graph(chosen_coalitions, step_path, f"{title} - step {step + 1}", step)
 
