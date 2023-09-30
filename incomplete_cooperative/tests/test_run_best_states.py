@@ -75,3 +75,13 @@ class TestBestStates(GetLearningResultMixin, TestCase):
         best_out = self.get_saver_output(greedy_func, instance, args)
         for i in range(5):
             self.assertGreaterEqual(best_out.avg_data[i], best_out.avg_data[i + 1])
+
+    def test_greedy_data_shape_multiple_eval_rep(self):
+        args, instance = self.get_instance(number_of_players=4, solve_repetitions=1,
+                                           run_steps_limit=6, sampling_repetitions=6,
+                                           eval_repetitions=1,
+                                           solver="best_states", func="foobar",
+                                           game_generator="factory_fixed")
+        best_out = self.get_saver_output(greedy_func, instance, args)
+        self.assertEqual(best_out.data.shape, (7, 6))
+        self.assertAlmostEqual(np.all(np.abs(best_out.avg_data - best_out.data[:, 0])), 0)

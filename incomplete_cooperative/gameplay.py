@@ -111,13 +111,13 @@ def get_exploitabilities_of_action_sequence(
             ((game, full_game, action_sequence, known_coalitions) for full_game in full_games)))
 
 
-def get_expected_exploitabilities_of_action_sequences(
+def get_stacked_exploitabilities_of_action_sequences(
         game: MutableIncompleteGame, full_games: Sequence[Game],
         action_sequences: Iterable[ActionSequence]
-) -> Iterable[Value]:
+) -> Iterable[np.ndarray]:
     """Get the expected exploitabilities of a list of action sequences."""
     number_of_games = len(full_games)
     for action_sequence in action_sequences:
-        yield np.mean(np.fromiter(
+        yield np.fromiter(
             get_exploitabilities_of_action_sequence(game, full_games, action_sequence),
-            Value, count=number_of_games))
+            Value, count=number_of_games)
