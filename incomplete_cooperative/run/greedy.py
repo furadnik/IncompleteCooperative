@@ -4,7 +4,7 @@ import numpy as np
 
 from incomplete_cooperative.coalitions import Coalition
 from incomplete_cooperative.gameplay import \
-    get_expected_exploitabilities_of_action_sequences
+    get_stacked_exploitabilities_of_action_sequences
 from incomplete_cooperative.icg_gym import ICG_Gym
 from incomplete_cooperative.protocols import Value
 
@@ -40,19 +40,18 @@ def get_greedy_rewards(env: ICG_Gym, max_steps: int, repetitions: int) -> tuple[
     action_sequence: list[Coalition] = []
     possible_next_action_sequences: list[list[Coalition]] = [[]]
     while len(action_sequence) < max_steps:
-        expected_exploitabilities = np.fromiter(
-            get_expected_exploitabilities_of_action_sequences(
-                incomplete_game, generated_games, possible_next_action_sequences),
-            dtype=Value, count=len(possible_next_action_sequences))
+        expected_exploitabilities = np.array(list(
+            get_stacked_exploitabilities_of_action_sequences(
+                incomplete_game, generated_games, possible_next_action_sequences)))
 
-        best_action_index = np.argmin(expected_exploitabilities)
+        best_action_index = np.argmin(np.mean(expected_exploitabilities, axis=1))
 
         if possible_next_action_sequences[best_action_index]:
             best_action = possible_next_action_sequences[best_action_index][-1]
             action_sequence.append(best_action)
             possible_actions.remove(best_action)
 
-        best_exploitabilities[len(action_sequence)] = expected_exploitabilities[best_action_index]
+        best_exploitabilities[len(action_sequence), :] = expected_exploitabilities[best_action_index]
         possible_next_action_sequences = [action_sequence + [action]
                                           for action in possible_actions]
 
