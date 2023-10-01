@@ -15,15 +15,22 @@ def best_states_func(instance: ModelInstance, parsed_args) -> None:
     if instance.run_steps_limit is None:  # pragma: no cover
         instance.run_steps_limit = 2**instance.number_of_players
     actions_all = np.full((instance.run_steps_limit + 1,
+                           parsed_args.sampling_repetitions,
                            instance.run_steps_limit), np.nan)
     exploitability = None
+    best_coalitions: list[list[list[int]]] = []
     for repetition in range(parsed_args.eval_repetitions):
-        exploitability_rep, best_coalitions = get_best_exploitability(instance.env, instance.run_steps_limit,
-                                                                      parsed_args.sampling_repetitions)
+        exploitability_rep, new_best_coalitions = get_best_exploitability(instance.env, instance.run_steps_limit,
+                                                                          parsed_args.sampling_repetitions)
         if exploitability is None:
             exploitability = exploitability_rep
         else:
             exploitability = np.hstack((exploitability, exploitability_rep))
+
+        if not best_coalitions:
+            best_coalitions = [[x] for x in new_best_coalitions]
+        else:
+            best_coalitions = [x + [y] for x, y in zip(best_coalitions, new_best_coalitions)]
     assert exploitability is not None  # nosec
 
     for episode in range(len(best_coalitions)):
@@ -32,13 +39,14 @@ def best_states_func(instance: ModelInstance, parsed_args) -> None:
          Output(exploitability, actions_all, parsed_args))
 
 
-def fill_in_coalitions(target_array: np.ndarray, coalitions: list[int]) -> None:
+def fill_in_coalitions(target_array: np.ndarray, coalitions: list[list[int]]) -> None:
     """Fill in the coalitions one by one to the target array.
 
     Note: `target_array` is an output parameter.
     """
     for i, coal in enumerate(coalitions):
-        target_array[i] = coal
+        for j, c in enumerate(coal):
+            target_array[i, j] = c
 
 
 def get_best_exploitability(env: ICG_Gym, max_steps: int, repetitions: int) -> tuple[np.ndarray, list[list[int]]]:
