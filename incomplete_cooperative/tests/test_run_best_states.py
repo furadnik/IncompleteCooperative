@@ -31,12 +31,12 @@ class TestBestStates(GetLearningResultMixin, TestCase):
 
     def test_fill_in_coalitions(self):
         coalitions = [
-            [1],
-            [0, 2],
-            [0, 1, 2],
+            [[1], [2], [3]],
+            [[0, 2], [1, 3], [2, 4]],
+            [[0, 1, 2], [1, 2, 3], [2, 3, 4]],
         ]
-        expected = np.array([[1, np.nan, np.nan], [0, 2, np.nan], [0, 1, 2]])
-        target_array = np.full((3, 3), np.nan)
+        expected = np.array([[[1, np.nan, np.nan], [2, np.nan, np.nan], [3, np.nan, np.nan]], [[0, 2, np.nan], [1, 3, np.nan], [2, 4, np.nan]], [[0, 1, 2], [1, 2, 3], [2, 3, 4]]])
+        target_array = np.full((3, 3, 3), np.nan)
         for i in range(len(coalitions)):
             fill_in_coalitions(target_array[i], coalitions[i])
         self.assertTrue(np.array_equal(target_array, expected, equal_nan=True),
