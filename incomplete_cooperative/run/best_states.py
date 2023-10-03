@@ -15,7 +15,7 @@ def best_states_func(instance: ModelInstance, parsed_args) -> None:
     if instance.run_steps_limit is None:  # pragma: no cover
         instance.run_steps_limit = 2**instance.number_of_players
     actions_all = np.full((instance.run_steps_limit + 1,
-                           parsed_args.sampling_repetitions,
+                           parsed_args.eval_repetitions,
                            instance.run_steps_limit), np.nan)
     exploitability = None
     best_coalitions: list[list[list[int]]] = []
