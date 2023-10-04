@@ -73,7 +73,6 @@ def draw_combined_graph(chosen_coalitions: list[tuple[str, np.ndarray]],
     width_of_bar = 1 / (number_of_bars + 1)
     starting_shift = -0.5 + width_of_bar
 
-    labels: list = []
     current_maximum = 0
     for i, (name, coalitions) in enumerate(chosen_coalitions):
         color, _ = next(colors)
