@@ -19,8 +19,8 @@ CMAP = colormaps["inferno"]
 NAME_MAP = {
     "random_eval": "Random",
     "eval": "PPO",
-    "solve_greedy": "Online Godmode Greedy",
-    "best_states": "Online Godmode Optimal",
+    "solve_greedy": "Oracle Greedy",
+    "best_states": "Oracle Optimal",
     "expected_greedy": "Offline Greedy",
     "expected_best_states": "Offline Optimal",
 }
