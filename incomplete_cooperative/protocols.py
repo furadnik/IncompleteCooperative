@@ -39,6 +39,9 @@ class Game(Protocol):
     def copy(self) -> Self:
         """Return a deep copy of the game."""
 
+    def __add__(self, other: Self) -> Self:
+        """Add games of the same type."""
+
 
 class MutableGame(Game, Protocol):
     """Game with mutable values."""

@@ -2,12 +2,12 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable, Iterable, Literal, cast
+from typing import Any, Callable, Iterable, Literal
 
 import numpy as np
 
 from .coalitions import Coalition
-from .protocols import BoundableIncompleteGame, Self, Value, ValueIn, Values
+from .protocols import BoundableIncompleteGame, Value, ValueIn, Values
 
 Coalitions = Iterable[Coalition]
 CoalitionPlayers = Iterable[int]
@@ -225,4 +225,17 @@ class IncompleteCooperativeGame:
         """Copy the game."""
         new = IncompleteCooperativeGame(self.number_of_players, self._bounds_computer)
         new._values = np.copy(self._values)
+        return new
+
+    def __add__(self, other: IncompleteCooperativeGame) -> IncompleteCooperativeGame:
+        """Add games."""
+        if not all([
+            np.all(self.are_values_known()),
+            np.all(other.are_values_known()),
+            self.number_of_players == other.number_of_players,
+            isinstance(other, IncompleteCooperativeGame)
+        ]):
+            raise ValueError(f"Calling game addition on incompatible games: {self}, {other}.")
+        new = self.copy()
+        new._values[:, 1:3] += other._values[:, 1:3]
         return new
