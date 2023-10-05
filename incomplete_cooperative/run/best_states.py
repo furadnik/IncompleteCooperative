@@ -1,8 +1,10 @@
 """Get best states from the coalitions."""
 import numpy as np
 
-from incomplete_cooperative.gameplay import \
-    sample_exploitabilities_of_action_sequences
+from incomplete_cooperative.coalitions import Coalition
+from incomplete_cooperative.gameplay import (
+    get_stacked_exploitabilities_of_action_sequences,
+    sample_exploitabilities_of_action_sequences)
 from incomplete_cooperative.icg_gym import ICG_Gym
 from incomplete_cooperative.protocols import Value
 
@@ -59,18 +61,32 @@ def get_best_exploitability(env: ICG_Gym, max_steps: int, repetitions: int, proc
         A list of lists of chosen coalitions at each step for the best results.
     """
     initial_placeholder_value = -1
-    best_exploitabilities = np.full((max_steps + 1, repetitions), initial_placeholder_value, dtype=Value)
+    sum_best_exploitabilities = np.full((max_steps + 1, 1), initial_placeholder_value, dtype=Value)
     best_actions: list[list[int]] = [[] for _ in range(max_steps + 1)]
+
+    games = [env.generator() for _ in range(repetitions)]
+    sum_game = games[0]
+    for g in games[1:]:
+        sum_game += g  # type: ignore[operator]
+
     sample_actions, sample_values = sample_exploitabilities_of_action_sequences(
-        env.incomplete_game, lambda x: env.generator(), samples=repetitions, max_size=max_steps, processes=processes)
+        env.incomplete_game, lambda x: sum_game, samples=1, max_size=max_steps, processes=processes)
     for i, act_sequence in enumerate(sample_actions):
         steps = len(act_sequence)
         coalitions = [x.id for x in act_sequence]
 
-        if np.mean(best_exploitabilities[steps]) == initial_placeholder_value or \
-                np.mean(best_exploitabilities[steps]) > np.mean(sample_values[:, i]):
-            best_exploitabilities[steps] = sample_values[:, i]
+        if np.mean(sum_best_exploitabilities[steps]) == initial_placeholder_value or \
+                np.mean(sum_best_exploitabilities[steps]) > np.mean(sample_values[:, i]):
+            sum_best_exploitabilities[steps] = sample_values[:, i]
             best_actions[steps] = coalitions
+
+    best_exploitabilities = np.fromiter(
+        get_stacked_exploitabilities_of_action_sequences(
+            env.incomplete_game, games,
+            ([Coalition(c) for c in x] for x in best_actions),  # turn best actions to coalitions again for a second
+            processes=processes),
+        count=len(best_actions), dtype=Value)
+
     return best_exploitabilities, best_actions
 
 
