@@ -34,19 +34,19 @@ def fixup_dist(labels: np.ndarray, distribution: np.ndarray, *, maximum: int) ->
 def add_to_plt(data: np.ndarray, name: str, color: Any, step: int, cumulative: bool,
                number_of_coalitions: int, minimal_game: list[Coalition], width: float, shift: float) -> Any:
     """Add data drawing to plot."""
+    number_of_players = max(len(list(x.players)) for x in minimal_game) + 2
+    print(number_of_players)
     if not cumulative:
         labels, distribution = fixup_dist(*np.unique(data[step + 1], return_counts=True),
-                                          maximum=len(minimal_game) - 1)
+                                          maximum=number_of_players)
     else:
         labels, distribution = fixup_dist(*np.unique(data[step], return_counts=True),
-                                          maximum=len(minimal_game) - 1)
+                                          maximum=number_of_players)
         for i in range(step):
             _, another_distribution = fixup_dist(*np.unique(data[i], return_counts=True),
-                                                 maximum=len(minimal_game) - 1)
+                                                 maximum=number_of_players)
             distribution += another_distribution
     print(minimal_game)
-    number_of_players = max(len(list(x.players)) for x in minimal_game) + 1
-    print(number_of_players)
     coalition_counts = np.array([math.comb(number_of_players, i) for i in range(number_of_players)])
     print(coalition_counts)
     print(distribution)
