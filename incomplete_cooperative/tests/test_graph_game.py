@@ -73,3 +73,16 @@ class TestGraphCG(GraphGameMixin, TestCase):
             self.assertEqual(game, other, game)
             normalize_game(other)
             self.assertNotEqual(game, other, game)
+
+    def test_add_ok(self):
+        for players in range(3, 10):
+            game = self.get_game(n_players=players)
+            other = self.get_game(n_players=players)
+            game_v = game.get_values()
+            other_v = other.get_values()
+            added = game + other
+            for value, other_value, orig, orig_o, added_value in zip(
+                    game.get_values(), other.get_values(), game_v, other_v, added.get_values()):
+                self.assertAlmostEqual(value, orig)
+                self.assertAlmostEqual(other_value, orig_o)
+                self.assertAlmostEqual(added_value, orig + other_value)

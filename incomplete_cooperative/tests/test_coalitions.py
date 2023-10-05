@@ -1,6 +1,6 @@
 from itertools import chain, combinations
 from unittest import TestCase
-from unittest.mock import Mock
+from unittest.mock import MagicMock
 
 from incomplete_cooperative.coalitions import (Coalition, all_coalitions,
                                                exclude_coalition,
@@ -12,7 +12,7 @@ class TestCoalitions(TestCase):
 
     def setUp(self) -> None:
         self.number_of_players = 6
-        self.game = Mock(number_of_players=self.number_of_players)
+        self.game = MagicMock(number_of_players=self.number_of_players)
 
     def test_coalition_from_players(self):
         self.assertEqual(Coalition.from_players([0, 1, 2]).id,

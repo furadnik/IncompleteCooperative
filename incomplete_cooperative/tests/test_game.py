@@ -193,3 +193,19 @@ class TestGame(TestCase):
         game.set_value(100, Coalition(1))
         self.assertFalse(self.game.is_value_known(Coalition(1)))
         self.assertTrue(game.is_value_known(Coalition(1)))
+
+    def test_add_ok(self):
+        dummy_fill(self.game)
+        game = self.game.copy()
+        other = self.game.copy()
+        added = game + other
+        for value, other_value, orig, added_value in zip(
+                game.get_values(), other.get_values(), self.game.get_values(), added.get_values()):
+            self.assertEqual(value, orig)
+            self.assertEqual(other_value, orig)
+            self.assertEqual(added_value, 2 * orig)
+
+    def test_add_wrong(self):
+        game = self.game.copy()
+        other = self.game.copy()
+        self.assertRaises(ValueError, lambda: game + other)

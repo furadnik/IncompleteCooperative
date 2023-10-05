@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 from itertools import combinations
-from typing import Any, Iterable, cast
+from typing import Any, Iterable
 
 import numpy as np
 
@@ -66,3 +66,7 @@ class GraphCooperativeGame:
     def copy(self) -> GraphCooperativeGame:
         """Copy the game."""
         return GraphCooperativeGame(self._graph_matrix.copy())
+
+    def __add__(self, other: GraphCooperativeGame) -> GraphCooperativeGame:
+        """Copy the game."""
+        return GraphCooperativeGame(self._graph_matrix + other._graph_matrix)  # type: ignore [arg-type]
