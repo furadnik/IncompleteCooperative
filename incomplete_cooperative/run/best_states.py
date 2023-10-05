@@ -80,12 +80,12 @@ def get_best_exploitability(env: ICG_Gym, max_steps: int, repetitions: int, proc
             sum_best_exploitabilities[steps] = sample_values[:, i]
             best_actions[steps] = coalitions
 
-    best_exploitabilities = np.fromiter(
-        get_stacked_exploitabilities_of_action_sequences(
-            env.incomplete_game, games,
-            ([Coalition(c) for c in x] for x in best_actions),  # turn best actions to coalitions again for a second
-            processes=processes),
-        count=len(best_actions), dtype=Value)
+    best_exploitabilities = np.array(list(get_stacked_exploitabilities_of_action_sequences(
+        env.incomplete_game, games,
+        ([Coalition(c) for c in x] for x in best_actions),  # turn best actions to coalitions again for a second
+        processes=processes)))
+
+    print(best_exploitabilities)
 
     return best_exploitabilities, best_actions
 
