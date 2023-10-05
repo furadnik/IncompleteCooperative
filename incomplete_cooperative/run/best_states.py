@@ -21,7 +21,8 @@ def best_states_func(instance: ModelInstance, parsed_args) -> None:
     best_coalitions: list[list[list[int]]] = []
     for repetition in range(parsed_args.eval_repetitions):
         exploitability_rep, new_best_coalitions = get_best_exploitability(instance.env, instance.run_steps_limit,
-                                                                          parsed_args.sampling_repetitions)
+                                                                          parsed_args.sampling_repetitions,
+                                                                          processes=instance.parallel_environments)
         if exploitability is None:
             exploitability = exploitability_rep
         else:
@@ -49,7 +50,8 @@ def fill_in_coalitions(target_array: np.ndarray, coalitions: list[list[int]]) ->
             target_array[i, j] = c
 
 
-def get_best_exploitability(env: ICG_Gym, max_steps: int, repetitions: int) -> tuple[np.ndarray, list[list[int]]]:
+def get_best_exploitability(env: ICG_Gym, max_steps: int, repetitions: int, processes: int = 1
+                            ) -> tuple[np.ndarray, list[list[int]]]:
     """Return best rewards.
 
     Returns: A tuple:
@@ -60,7 +62,7 @@ def get_best_exploitability(env: ICG_Gym, max_steps: int, repetitions: int) -> t
     best_exploitabilities = np.full((max_steps + 1, repetitions), initial_placeholder_value, dtype=Value)
     best_actions: list[list[int]] = [[] for _ in range(max_steps + 1)]
     sample_actions, sample_values = sample_exploitabilities_of_action_sequences(
-        env.incomplete_game, lambda x: env.generator(), samples=repetitions, max_size=max_steps)
+        env.incomplete_game, lambda x: env.generator(), samples=repetitions, max_size=max_steps, processes=processes)
     for i, act_sequence in enumerate(sample_actions):
         steps = len(act_sequence)
         coalitions = [x.id for x in act_sequence]

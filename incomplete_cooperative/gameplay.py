@@ -55,11 +55,12 @@ def _get_act_sequence_exploitability(game: MutableIncompleteGame, full_game: Gam
 
 
 def get_exploitabilities_of_action_sequences(
-        game: MutableIncompleteGame, full_game: Game, max_size: int | None = None
+        game: MutableIncompleteGame, full_game: Game, max_size: int | None = None,
+        processes: int = 1
 ) -> Iterable[tuple[ActionSequence, Value]]:
     """Get exploitabilities of action sequences."""
     known_coalitions = list(get_known_coalitions(game))
-    with Pool() as p:
+    with Pool(processes=processes) as p:
         return p.starmap(
             _get_act_sequence_exploitability,
             ((game, full_game, seq, known_coalitions) for seq in possible_action_sequences(game, max_size=max_size)))
@@ -101,11 +102,11 @@ def sample_exploitabilities_of_action_sequences(
 
 def get_exploitabilities_of_action_sequence(
         game: MutableIncompleteGame, full_games: Iterable[Game],
-        action_sequence: ActionSequence
+        action_sequence: ActionSequence, processes: int = 1
 ) -> Iterable[Value]:
     """Apply an action sequence to an iterable of games."""
     known_coalitions = list(get_known_coalitions(game))
-    with Pool() as p:
+    with Pool(processes=processes) as p:
         return map(lambda x: x[1], p.starmap(
             _get_act_sequence_exploitability,
             ((game, full_game, action_sequence, known_coalitions) for full_game in full_games)))
@@ -113,11 +114,11 @@ def get_exploitabilities_of_action_sequence(
 
 def get_stacked_exploitabilities_of_action_sequences(
         game: MutableIncompleteGame, full_games: Sequence[Game],
-        action_sequences: Iterable[ActionSequence]
+        action_sequences: Iterable[ActionSequence], processes: int = 1
 ) -> Iterable[np.ndarray]:
     """Get the expected exploitabilities of a list of action sequences."""
     number_of_games = len(full_games)
     for action_sequence in action_sequences:
         yield np.fromiter(
-            get_exploitabilities_of_action_sequence(game, full_games, action_sequence),
+            get_exploitabilities_of_action_sequence(game, full_games, action_sequence, processes),
             Value, count=number_of_games)
