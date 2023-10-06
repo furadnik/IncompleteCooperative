@@ -18,7 +18,8 @@ from incomplete_cooperative.coalitions import Coalition
 from incomplete_cooperative.run.save import (Output, approx_game,
                                              get_coalition_distribution)
 from scripts.find_data_jsons import find_data_jsons
-from scripts.plot_base import NAME_MAP, filter_func, get_colors
+from scripts.plot_base import (MULTIFIG_RECT, MULTIFIG_SIZES, NAME_MAP,
+                               filter_func, get_colors)
 
 ALREADY_CUMULATIVE = ["best_states", "expected_best_states"]
 N_COLS = 3
@@ -97,7 +98,7 @@ def main(path: Path = Path(sys.argv[1]), title: str = sys.argv[2]) -> None:
         chosen_coalitions = [(x, Output.from_file(data, x).actions) for x in data_keys if filter_func(x)]
         fig, axs = plt.subplots(math.ceil(steps / N_COLS), N_COLS, layout='constrained')
         axs = axs.flatten()
-        fig.set_size_inches(8.3, 10)
+        fig.set_size_inches(*MULTIFIG_SIZES)
 
         for step in range(steps):
             step_path = save_path / f"{step + 1}.pdf"
@@ -107,7 +108,7 @@ def main(path: Path = Path(sys.argv[1]), title: str = sys.argv[2]) -> None:
                                                   step // N_COLS + 1 == steps // N_COLS,
                                                   step % N_COLS == 0)
 
-        fig.set_tight_layout({"pad": 1.5, "rect": [0, 0.035, 1, 1]})
+        fig.set_tight_layout({"pad": 1.5, "rect": MULTIFIG_RECT})
         fig.legend(plotted, labels, loc='upper center', ncol=10, fontsize=8,
                    bbox_to_anchor=(0.5, 0.04))
         print(save_path.with_suffix(".pdf"))
