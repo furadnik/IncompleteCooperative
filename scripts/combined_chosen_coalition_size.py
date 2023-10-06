@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
+import matplotlib.axes as axes  # type: ignore
 import matplotlib.pyplot as plt  # type: ignore
 import numpy as np
 
@@ -19,6 +20,7 @@ from scripts.find_data_jsons import find_data_jsons
 from scripts.plot_base import NAME_MAP, filter_func, get_colors
 
 ALREADY_CUMULATIVE = ["best_states", "expected_best_states"]
+N_COLS = 3
 
 
 def fixup_dist(labels: np.ndarray, distribution: np.ndarray, *, maximum: int) -> tuple[np.ndarray, np.ndarray]:
@@ -31,7 +33,7 @@ def fixup_dist(labels: np.ndarray, distribution: np.ndarray, *, maximum: int) ->
     return np.array(range(maximum)), values
 
 
-def add_to_plt(data: np.ndarray, name: str, color: Any, step: int, cumulative: bool,
+def add_to_plt(ax: axes.Axes, data: np.ndarray, name: str, color: Any, step: int, cumulative: bool,
                number_of_coalitions: int, minimal_game: list[Coalition], width: float, shift: float) -> Any:
     """Add data drawing to plot."""
     number_of_players = max(len(list(x.players)) for x in minimal_game) + 2
@@ -57,16 +59,17 @@ def add_to_plt(data: np.ndarray, name: str, color: Any, step: int, cumulative: b
     distribution /= coalition_counts
     print(step, distribution, cumulative)
 
-    plt.bar(labels + shift, distribution, width, color=color, zorder=4, label=name)
-    return labels.tolist()
+    plotted = ax.bar(labels + shift, distribution, width, color=color, zorder=4, label=name)
+    return labels.tolist(), plotted
 
 
-def draw_combined_graph(chosen_coalitions: list[tuple[str, np.ndarray]],
-                        output_path: Path, title: str, step: int) -> None:
+def draw_combined_graph(ax: axes.Axes, chosen_coalitions: list[tuple[str, np.ndarray]],
+                        output_path: Path, title: str, step: int, x_label: bool = True,
+                        y_label: bool = True) -> tuple[list, list]:
     """Draw data into a combined graph."""
     colors = get_colors(len(chosen_coalitions))
-    plt.grid(zorder=-1, alpha=.3)
-    plt.ylim(bottom=0, top=1)
+    ax.grid(zorder=-1, alpha=.3)
+    ax.set_ylim(bottom=0, top=1)
 
     # compute bar with and placement
     number_of_bars = len(chosen_coalitions)
@@ -74,23 +77,29 @@ def draw_combined_graph(chosen_coalitions: list[tuple[str, np.ndarray]],
     starting_shift = -0.5 + width_of_bar
 
     current_maximum = 0
+    plotted: list = []
+    names: list = []
     for i, (name, coalitions) in enumerate(chosen_coalitions):
         color, _ = next(colors)
         number_of_coalitions, _, minimal_game = approx_game(coalitions)
         current_maximum = max(np.nanmax(coalitions), current_maximum)
-        add_to_plt(coalitions, NAME_MAP.get(name, name), color, step,
-                   name not in ALREADY_CUMULATIVE, number_of_coalitions, minimal_game,
-                   width_of_bar, starting_shift + i * width_of_bar)
-    plt.legend()
-    plt.xticks(range(int(current_maximum + 1)), range(int(current_maximum + 1)))
-    plt.xlim(left=2 - .6, right=current_maximum + .6)
-    plt.title(title, family="monospace")
-    # plt.autoscale()
-    plt.tight_layout(pad=2)
-    plt.xlabel("Coalition size")
-    plt.ylabel("Revealed percentage")
-    plt.savefig(output_path)
-    plt.close('all')
+        _, new_plotted = add_to_plt(ax, coalitions, NAME_MAP.get(name, name), color, step,
+                                    name not in ALREADY_CUMULATIVE, number_of_coalitions, minimal_game,
+                                    width_of_bar, starting_shift + i * width_of_bar)
+        plotted.append(new_plotted)
+        names.append(NAME_MAP.get(name, name))
+
+    ax.set_xticks(range(int(current_maximum + 1)), range(int(current_maximum + 1)))
+    ax.set_xlim(left=2 - .6, right=current_maximum + .6)
+    ax.tick_params(labelsize=6)
+    ax.title.set_text(title)
+    ax.title.set_fontfamily("monospace")
+    ax.title.set_fontsize(8)
+    if x_label:
+        ax.set_xlabel("Coalition size", fontsize=8)
+    if y_label:
+        ax.set_ylabel("Revealed percentage", fontsize=8)
+    return plotted, names
 
 
 def main(path: Path = Path(sys.argv[1]), title: str = sys.argv[2]) -> None:
@@ -112,10 +121,25 @@ def main(path: Path = Path(sys.argv[1]), title: str = sys.argv[2]) -> None:
         # a tuple (name, chosen_coalitions) of all runs
         steps = min(len(Output.from_file(data, x).actions_list) for x in data_keys if filter_func(x))
         chosen_coalitions = [(x, vcoal_to_size(Output.from_file(data, x).actions)) for x in data_keys if filter_func(x)]
+        # a tuple (name, chosen_coalitions) of all runs
+        fig, axs = plt.subplots(math.ceil(steps / N_COLS), N_COLS, layout='constrained')
+        axs = axs.flatten()
+        fig.set_size_inches(8.3, 10)
+
         for step in range(steps):
             step_path = save_path / f"{step + 1}.pdf"
             # steps in title are counted from 1.
-            draw_combined_graph(chosen_coalitions, step_path, f"{title} - step {step + 1}", step)
+            plotted, labels = draw_combined_graph(axs[step], chosen_coalitions, step_path,
+                                                  f"{title} - step {step + 1}", step,
+                                                  step // N_COLS + 1 == steps // N_COLS,
+                                                  step % N_COLS == 0)
+
+        fig.set_tight_layout({"pad": 1.2, "rect": [0, 0.035, 1, 1]})
+        fig.legend(plotted, labels, loc='upper center', ncol=10, fontsize=8,
+                   bbox_to_anchor=(0.5, 0.04))
+        print(save_path.with_suffix(".pdf"))
+        fig.savefig(save_path.with_suffix(".pdf"))
+        # fig.close()
 
 
 if __name__ == '__main__':
