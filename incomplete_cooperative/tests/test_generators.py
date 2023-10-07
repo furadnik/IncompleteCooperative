@@ -6,7 +6,7 @@ from incomplete_cooperative.coalitions import (Coalition, all_coalitions,
 from incomplete_cooperative.exploitability import compute_exploitability
 from incomplete_cooperative.generators import (
     GENERATORS, convex_generator, factory_cheerleader_next_generator,
-    factory_generator)
+    factory_generator, predictible_factory_generator)
 from incomplete_cooperative.normalize import normalize_game
 
 
@@ -144,3 +144,21 @@ class TestCheerleaderGenerator(TestCase):
         for players in range(3, 10):
             game = factory_cheerleader_next_generator(players)
             self.assertEqual(game.number_of_players, players)
+
+
+class TestPredictibleFactoryGenerator(TestCase):
+
+    def test_size_correct(self):
+        for players in range(3, 10):
+            game = predictible_factory_generator(players)
+            self.assertEqual(game.number_of_players, players)
+
+    def test_loop_around(self):
+        for players in range(3, 10):
+            games_1 = [predictible_factory_generator(players) for _ in range(players)]
+            games_2 = [predictible_factory_generator(players) for _ in range(players)]
+            for i in range(players):
+                for j in range(players):
+                    self.assertEqual(games_1[i], games_2[i])
+                    if i != j:
+                        self.assertNotEqual(games_1[i], games_1[j])
