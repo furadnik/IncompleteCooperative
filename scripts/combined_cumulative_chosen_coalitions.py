@@ -69,15 +69,19 @@ def draw_combined_graph(ax: axes.Axes, chosen_coalitions: list[tuple[str, np.nda
         names.append(NAME_MAP.get(name, name))
     ax.set_xticks(range(len(labels)), labels, rotation='vertical')
     ax.tick_params(labelsize=6)
-    ax.set_yticks([], [])
     ax.title.set_text(title)
     ax.title.set_fontfamily("monospace")
     ax.title.set_fontsize(8)
     # ax.autoscale()
     if x_label:
         ax.set_xlabel("Coalition", fontsize=8)
+
+    indices = [x * 0.2 for x in range(6)]
     if y_label:
-        ax.set_ylabel("Probability", fontsize=8)
+        ax.set_ylabel("Selection Probability", fontsize=8)
+        ax.set_yticks(indices)
+    else:
+        ax.set_yticks(indices, [""] * len(indices))
     # ax.savefig(output_path)
     # ax.close('all')
     return plotted, names
@@ -98,7 +102,7 @@ def main(path: Path = Path(sys.argv[1]), title: str = sys.argv[2]) -> None:
         chosen_coalitions = [(x, Output.from_file(data, x).actions) for x in data_keys if filter_func(x)]
         fig, axs = plt.subplots(math.ceil(steps / N_COLS), N_COLS, layout='constrained')
         axs = axs.flatten()
-        fig.set_size_inches(*MULTIFIG_SIZES)
+        fig.set_size_inches(MULTIFIG_SIZES)
 
         for step in range(steps):
             step_path = save_path / f"{step + 1}.pdf"
