@@ -12,7 +12,8 @@ mpl.rcParams.update({
     'legend.fontsize': 10,
     'xtick.labelsize': 12,
     'ytick.labelsize': 12,
-    'figure.figsize': [6.5, 5.5]
+    'figure.figsize': [6.5, 5.5],
+    'text.usetex': True
 })
 
 CMAP = colormaps["inferno"]
