@@ -95,9 +95,20 @@ def convex_generator(number_of_players: int) -> IncompleteCooperativeGame:
     return game
 
 
+_LAST_OWNER = 0
+
+
+def predictible_factory_generator(number_of_players: int) -> IncompleteCooperativeGame:
+    """Generate a factory, choose the owner predictibly."""
+    global _LAST_OWNER
+    _LAST_OWNER = (_LAST_OWNER + 1) % number_of_players
+    return factory_generator(number_of_players, owner=_LAST_OWNER)
+
+
 _gen = np.random.default_rng()
 GENERATORS: dict[str, Callable[[int], GraphCooperativeGame | IncompleteCooperativeGame]] = {
     "factory": factory_generator,
+    "predictible_factory": predictible_factory_generator,
     "factory_one": partial(factory_generator, value_fn=_fac_one_fn),
     "factory_square": partial(factory_generator, value_fn=_fac_sq_fn),
     "factory_exp": partial(factory_generator, value_fn=exp),
