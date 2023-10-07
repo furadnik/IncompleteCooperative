@@ -26,7 +26,7 @@ NAME_MAP = {
 }
 LINE_STYLES = ["solid", "dashed", "dashdot", "dotted"]
 
-MULTIFIG_SIZES = (8.3, 9.5)
+MULTIFIG_SIZES = (8.3, 9)
 MULTIFIG_RECT = [0, 0.035, 1, 1]
 
 
