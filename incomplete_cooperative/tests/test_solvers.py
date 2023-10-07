@@ -1,8 +1,10 @@
 from abc import ABC, abstractmethod
 from unittest import TestCase
 
+from incomplete_cooperative.coalitions import Coalition
 from incomplete_cooperative.protocols import Solver
-from incomplete_cooperative.solvers import SOLVERS, GreedySolver, RandomSolver
+from incomplete_cooperative.solvers import (SOLVERS, GreedySolver,
+                                            LargestSolver, RandomSolver)
 
 from .utils import GymMixin
 
@@ -40,3 +42,23 @@ class TestRandom(TestSolverMixin, TestCase):
 
     def get_solver(self) -> Solver:
         return RandomSolver()
+
+
+class TestLargest(TestSolverMixin, TestCase):
+
+    def get_solver(self) -> Solver:
+        return LargestSolver()
+
+    def test_largest_coalition(self):
+        solver = self.get_solver()
+        for i in range(3, 7):
+            with self.subTest(number_of_players=i):
+                gym = self.get_gym(number_of_players=i)
+                last_coalition_size = i
+                while not gym.done:
+                    action = solver.next_step(gym)
+                    coalition_size = len(
+                        Coalition(gym.step(action)[-1]['chosen_coalition'])  # turn id into Coalition
+                    )
+                    self.assertLessEqual(coalition_size, last_coalition_size)
+                    last_coalition_size = coalition_size
