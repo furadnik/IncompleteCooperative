@@ -26,6 +26,9 @@ NAME_MAP = {
 }
 LINE_STYLES = ["solid", "dashed", "dashdot", "dotted"]
 
+MULTIFIG_SIZES = (8.3, 9)
+MULTIFIG_RECT = [0, 0.035, 1, 1]
+
 
 def get_colors(number: int) -> Iterator[tuple[Colormap, str]]:
     """Get colors from CMAP.
