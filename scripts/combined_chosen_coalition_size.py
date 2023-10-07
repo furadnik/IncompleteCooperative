@@ -97,9 +97,14 @@ def draw_combined_graph(ax: axes.Axes, chosen_coalitions: list[tuple[str, np.nda
     ax.title.set_fontfamily("monospace")
     ax.title.set_fontsize(8)
     if x_label:
-        ax.set_xlabel("Coalition size", fontsize=8)
+        ax.set_xlabel("Coalition Size", fontsize=8)
+
+    indices = [x * 0.2 for x in range(6)]
     if y_label:
-        ax.set_ylabel("Revealed percentage", fontsize=8)
+        ax.set_ylabel("Revealed Percentage", fontsize=8)
+        ax.set_yticks(indices)
+    else:
+        ax.set_yticks(indices, [""] * len(indices))
     return plotted, names
 
 
@@ -125,7 +130,7 @@ def main(path: Path = Path(sys.argv[1]), title: str = sys.argv[2]) -> None:
         # a tuple (name, chosen_coalitions) of all runs
         fig, axs = plt.subplots(math.ceil(steps / N_COLS), N_COLS, layout='constrained')
         axs = axs.flatten()
-        fig.set_size_inches(*MULTIFIG_SIZES)
+        fig.set_size_inches(MULTIFIG_SIZES)
 
         for step in range(steps):
             step_path = save_path / f"{step + 1}.pdf"

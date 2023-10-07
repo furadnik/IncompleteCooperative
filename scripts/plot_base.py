@@ -23,6 +23,7 @@ NAME_MAP = {
     "best_states": "Oracle Optimal",
     "expected_greedy": "Offline Greedy",
     "expected_best_states": "Offline Optimal",
+    "largest_coalitions": "Largest Coalitions",
 }
 LINE_STYLES = ["solid", "dashed", "dashdot", "dotted"]
 
