@@ -35,8 +35,11 @@ class IncompleteGameMixin:
 class GymMixin(IncompleteGameMixin):
     """Mixin for testing Gym."""
 
-    def get_gym(self, *, known_coalitions=[1, 2, 4, 8, 16, 32, 63], **kwargs) -> ICG_Gym:
+    def get_gym(self, *, known_coalitions=None, **kwargs) -> ICG_Gym:
         """Get gym based on params."""
+        if known_coalitions is None:
+            num_players = kwargs.get("number_of_players", 6)
+            known_coalitions = [0, 2**num_players - 1] + [2**i for i in range(num_players)]
         incomplete_game = self.get_game(**kwargs)
         full_game = self.get_game(**kwargs)
         trivial_fill(full_game)
