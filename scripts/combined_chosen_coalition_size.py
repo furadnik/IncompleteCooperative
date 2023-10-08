@@ -17,8 +17,9 @@ import numpy as np
 from incomplete_cooperative.coalitions import Coalition
 from incomplete_cooperative.run.save import Output, approx_game
 from scripts.find_data_jsons import find_data_jsons
-from scripts.plot_base import (MULTIFIG_RECT, MULTIFIG_SIZES, NAME_MAP,
-                               filter_func, get_colors)
+from scripts.plot_base import (COLOR_VALUES, LABEL_SIZE, MULTIFIG_RECT,
+                               MULTIFIG_SIZES, NAME_MAP, TICK_SIZE, TITLE_SIZE,
+                               filter_func)
 
 ALREADY_CUMULATIVE = ["best_states", "expected_best_states"]
 N_COLS = 3
@@ -68,7 +69,6 @@ def draw_combined_graph(ax: axes.Axes, chosen_coalitions: list[tuple[str, np.nda
                         output_path: Path, title: str, step: int, x_label: bool = True,
                         y_label: bool = True) -> tuple[list, list]:
     """Draw data into a combined graph."""
-    colors = get_colors(len(chosen_coalitions))
     ax.grid(zorder=-1, alpha=.3)
     ax.set_ylim(bottom=0, top=1)
 
@@ -81,7 +81,7 @@ def draw_combined_graph(ax: axes.Axes, chosen_coalitions: list[tuple[str, np.nda
     plotted: list = []
     names: list = []
     for i, (name, coalitions) in enumerate(chosen_coalitions):
-        color, _ = next(colors)
+        color, _ = COLOR_VALUES[name]
         number_of_coalitions, _, minimal_game = approx_game(coalitions)
         current_maximum = max(np.nanmax(coalitions), current_maximum)
         _, new_plotted = add_to_plt(ax, coalitions, NAME_MAP.get(name, name), color, step,
@@ -90,18 +90,18 @@ def draw_combined_graph(ax: axes.Axes, chosen_coalitions: list[tuple[str, np.nda
         plotted.append(new_plotted)
         names.append(NAME_MAP.get(name, name))
 
-    ax.set_xticks(range(int(current_maximum + 1)), range(int(current_maximum + 1)))
+    ax.set_xticks(range(int(current_maximum + 1)))
     ax.set_xlim(left=2 - .6, right=current_maximum + .6)
-    ax.tick_params(labelsize=6)
+    ax.tick_params(labelsize=TICK_SIZE)
     ax.title.set_text(title)
     ax.title.set_fontfamily("monospace")
-    ax.title.set_fontsize(8)
+    ax.title.set_fontsize(TITLE_SIZE)
     if x_label:
-        ax.set_xlabel("Coalition Size", fontsize=8)
+        ax.set_xlabel("Coalition Size", fontsize=LABEL_SIZE)
 
     indices = [x * 0.2 for x in range(6)]
     if y_label:
-        ax.set_ylabel("Revealed Percentage", fontsize=8)
+        ax.set_ylabel("Revealed Percentage", fontsize=LABEL_SIZE)
         ax.set_yticks(indices)
     else:
         ax.set_yticks(indices, [""] * len(indices))
@@ -126,7 +126,9 @@ def main(path: Path = Path(sys.argv[1]), title: str = sys.argv[2]) -> None:
 
         # a tuple (name, chosen_coalitions) of all runs
         steps = min(len(Output.from_file(data, x).actions_list) for x in data_keys if filter_func(x))
-        chosen_coalitions = [(x, vcoal_to_size(Output.from_file(data, x).actions)) for x in data_keys if filter_func(x)]
+        chosen_coalitions = sorted(
+            ((x, vcoal_to_size(Output.from_file(data, x).actions)) for x in data_keys if filter_func(x)),
+            key=lambda x: NAME_MAP.get(x[0], x[0]))
         # a tuple (name, chosen_coalitions) of all runs
         fig, axs = plt.subplots(math.ceil(steps / N_COLS), N_COLS, layout='constrained')
         axs = axs.flatten()
@@ -141,7 +143,7 @@ def main(path: Path = Path(sys.argv[1]), title: str = sys.argv[2]) -> None:
                                                   step % N_COLS == 0)
 
         fig.set_tight_layout({"pad": 1, "rect": MULTIFIG_RECT})
-        fig.legend(plotted, labels, loc='upper center', ncol=10, fontsize=8,
+        fig.legend(plotted, labels, loc='upper center', ncol=10, fontsize=LABEL_SIZE,
                    bbox_to_anchor=(0.5, 0.04))
         print(save_path.with_suffix(".pdf"))
         fig.savefig(save_path.with_suffix(".pdf"))

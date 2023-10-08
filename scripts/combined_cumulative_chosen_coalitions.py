@@ -18,11 +18,14 @@ from incomplete_cooperative.coalitions import Coalition
 from incomplete_cooperative.run.save import (Output, approx_game,
                                              get_coalition_distribution)
 from scripts.find_data_jsons import find_data_jsons
-from scripts.plot_base import (MULTIFIG_RECT, MULTIFIG_SIZES, NAME_MAP,
-                               filter_func, get_colors)
+from scripts.plot_base import (COLOR_VALUES, LABEL_SIZE, MULTIFIG_RECT,
+                               MULTIFIG_SIZES, NAME_MAP, TITLE_SIZE,
+                               filter_func)
 
 ALREADY_CUMULATIVE = ["best_states", "expected_best_states"]
 N_COLS = 3
+
+TICK_SIZE = 5
 
 
 def add_to_plt(ax: axes.Axes, data: np.ndarray, name: str, color: Any, step: int, cumulative: bool,
@@ -46,7 +49,6 @@ def draw_combined_graph(ax: axes.Axes, chosen_coalitions: list[tuple[str, np.nda
                         output_path: Path, title: str, step: int, x_label: bool = True,
                         y_label: bool = True) -> tuple[list, list]:
     """Draw data into a combined graph."""
-    colors = get_colors(len(chosen_coalitions))
     print(ax)
     ax.grid(zorder=-1, alpha=.3)
     ax.set_ylim(bottom=0, top=1)
@@ -60,25 +62,25 @@ def draw_combined_graph(ax: axes.Axes, chosen_coalitions: list[tuple[str, np.nda
     plotted: list = []
     names: list = []
     for i, (name, coalitions) in enumerate(chosen_coalitions):
-        color, _ = next(colors)
+        color, _ = COLOR_VALUES[name]
         number_of_coalitions, _, minimal_game = approx_game(coalitions)
         labels, new_plotted = add_to_plt(ax, coalitions, NAME_MAP.get(name, name), color, step,
                                          name not in ALREADY_CUMULATIVE, number_of_coalitions, minimal_game,
                                          width_of_bar, starting_shift + i * width_of_bar) or labels
         plotted.append(new_plotted)
         names.append(NAME_MAP.get(name, name))
-    ax.set_xticks(range(len(labels)), labels, rotation='vertical')
-    ax.tick_params(labelsize=6)
+    ax.set_xticks(range(len(labels)), ["$\\{" + ','.join(map(str, x)) + "\\}$" for x in labels], rotation='vertical')
+    ax.tick_params(labelsize=TICK_SIZE)
     ax.title.set_text(title)
     ax.title.set_fontfamily("monospace")
-    ax.title.set_fontsize(8)
+    ax.title.set_fontsize(TITLE_SIZE)
     # ax.autoscale()
     if x_label:
-        ax.set_xlabel("Coalition", fontsize=8)
+        ax.set_xlabel("Coalition", fontsize=LABEL_SIZE)
 
     indices = [x * 0.2 for x in range(6)]
     if y_label:
-        ax.set_ylabel("Selection Probability", fontsize=8)
+        ax.set_ylabel("Selection Probability", fontsize=LABEL_SIZE)
         ax.set_yticks(indices)
     else:
         ax.set_yticks(indices, [""] * len(indices))
@@ -99,7 +101,8 @@ def main(path: Path = Path(sys.argv[1]), title: str = sys.argv[2]) -> None:
 
         # a tuple (name, chosen_coalitions) of all runs
         steps = min(len(Output.from_file(data, x).actions_list) for x in data_keys if filter_func(x))
-        chosen_coalitions = [(x, Output.from_file(data, x).actions) for x in data_keys if filter_func(x)]
+        chosen_coalitions = sorted(((x, Output.from_file(data, x).actions) for x in data_keys if filter_func(x)),
+                                   key=lambda x: NAME_MAP.get(x[0], x[0]))
         fig, axs = plt.subplots(math.ceil(steps / N_COLS), N_COLS, layout='constrained')
         axs = axs.flatten()
         fig.set_size_inches(MULTIFIG_SIZES)
@@ -112,8 +115,8 @@ def main(path: Path = Path(sys.argv[1]), title: str = sys.argv[2]) -> None:
                                                   step // N_COLS + 1 == steps // N_COLS,
                                                   step % N_COLS == 0)
 
-        fig.set_tight_layout({"pad": 1.5, "rect": MULTIFIG_RECT})
-        fig.legend(plotted, labels, loc='upper center', ncol=10, fontsize=8,
+        fig.set_tight_layout({"pad": .8, "rect": MULTIFIG_RECT})
+        fig.legend(plotted, labels, loc='upper center', ncol=10, fontsize=LABEL_SIZE,
                    bbox_to_anchor=(0.5, 0.04))
         print(save_path.with_suffix(".pdf"))
         fig.savefig(save_path.with_suffix(".pdf"))
@@ -122,21 +125,3 @@ def main(path: Path = Path(sys.argv[1]), title: str = sys.argv[2]) -> None:
 
 if __name__ == '__main__':
     main()
-
-# fig, axs = plt.subplots(1, 2, layout='constrained')
-#
-# x = np.arange(0.0, 2.0, 0.02)
-# y1 = np.sin(2 * np.pi * x)
-# y2 = np.exp(-x)
-# l1, = axs[0].plot(x, y1)
-# l2, = axs[0].plot(x, y2, marker='o')
-#
-# y3 = np.sin(4 * np.pi * x)
-# y4 = np.exp(-2 * x)
-# l3, = axs[1].plot(x, y3, color='tab:green')
-# l4, = axs[1].plot(x, y4, color='tab:red', marker='^')
-#
-# fig.legend((l1, l2), ('Line 1', 'Line 2'), loc='upper left')
-# fig.legend((l3, l4), ('Line 3', 'Line 4'), loc='outside right upper')
-#
-# plt.show()
