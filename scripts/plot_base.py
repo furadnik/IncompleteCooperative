@@ -31,15 +31,11 @@ LINE_STYLES = ["solid", "dashed", "dashdot", "dotted"]
 MULTIFIG_SIZES = (8.3, 9)
 MULTIFIG_RECT = [0, 0.035, 1, 1]
 
+COLOR_VALUES = {k: (CMAP(i / (len(NAME_MAP.keys()))), LINE_STYLES[i % len(LINE_STYLES)])
+                for i, k in enumerate(sorted(NAME_MAP.keys(), key=NAME_MAP.get))}  # type: ignore
 
-def get_colors(number: int) -> Iterator[tuple[Colormap, str]]:
-    """Get colors from CMAP.
-
-    Returns an iterator of tuples:
-        the color as a color map,
-        a line style associated with it.
-    """
-    return ((CMAP((x + 1) / (number + 2)), LINE_STYLES[x % len(LINE_STYLES)]) for x in range(number))
-
+TICK_SIZE = 9
+LABEL_SIZE = 10
+TITLE_SIZE = 11
 
 filter_func = (lambda x: x in sys.argv[3].split(",")) if len(sys.argv) == 4 else lambda x: True
