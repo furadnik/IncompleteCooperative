@@ -72,7 +72,6 @@ def draw_combined_graph(ax: axes.Axes, chosen_coalitions: list[tuple[str, np.nda
     ax.set_xticks(range(len(labels)), ["$\\{" + ','.join(map(str, x)) + "\\}$" for x in labels], rotation='vertical')
     ax.tick_params(labelsize=TICK_SIZE)
     ax.title.set_text(title)
-    ax.title.set_fontfamily("monospace")
     ax.title.set_fontsize(TITLE_SIZE)
     # ax.autoscale()
     if x_label:
@@ -111,7 +110,7 @@ def main(path: Path = Path(sys.argv[1]), title: str = sys.argv[2]) -> None:
             step_path = save_path / f"{step + 1}.pdf"
             # steps in title are counted from 1.
             plotted, labels = draw_combined_graph(axs[step], chosen_coalitions, step_path,
-                                                  f"{title} - step {step + 1}", step,
+                                                  f"{title} -- step {step + 1}", step,
                                                   step // N_COLS + 1 == steps // N_COLS,
                                                   step % N_COLS == 0)
 

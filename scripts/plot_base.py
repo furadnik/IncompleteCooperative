@@ -1,14 +1,13 @@
 """Base stuff regarding plotting."""
 import sys
-from typing import Iterator
 
 import matplotlib as mpl  # type: ignore
 from matplotlib import colormaps
-from matplotlib.colors import Colormap
 
 mpl.rcParams.update({
     'axes.labelsize': 16,
     'font.size': 16,
+    'text.latex.preamble': '\\usepackage{libertine}\n\\renewcommand{\\ttdefault}{cmtt}',
     'legend.fontsize': 10,
     'xtick.labelsize': 12,
     'ytick.labelsize': 12,
@@ -17,7 +16,7 @@ mpl.rcParams.update({
 })
 
 CMAP = colormaps["inferno"]
-NAME_MAP = {
+NAME_MAP = {k: "{\\sc " + v + "}" for k, v in {
     "random_eval": "Random",
     "eval": "PPO",
     "solve_greedy": "Oracle Greedy",
@@ -25,7 +24,7 @@ NAME_MAP = {
     "expected_greedy": "Offline Greedy",
     "expected_best_states": "Offline Optimal",
     "largest_coalitions": "Largest Coalitions",
-}
+}.items()}
 LINE_STYLES = ["solid", "dashed", "dashdot", "dotted"]
 
 MULTIFIG_SIZES = (8.3, 9)
