@@ -4,7 +4,7 @@ import numpy as np
 from incomplete_cooperative.gameplay import \
     sample_exploitabilities_of_action_sequences
 from incomplete_cooperative.icg_gym import ICG_Gym
-from incomplete_cooperative.protocols import Value
+from incomplete_cooperative.protocols import GapFunction, Value
 
 from .model import ModelInstance
 from .save import Output, save
@@ -22,6 +22,7 @@ def best_states_func(instance: ModelInstance, parsed_args) -> None:
     for repetition in range(parsed_args.eval_repetitions):
         exploitability_rep, new_best_coalitions = get_best_exploitability(instance.env, instance.run_steps_limit,
                                                                           parsed_args.sampling_repetitions,
+                                                                          instance.gap_function_callable,
                                                                           processes=instance.parallel_environments)
         if exploitability is None:
             exploitability = exploitability_rep
@@ -50,8 +51,8 @@ def fill_in_coalitions(target_array: np.ndarray, coalitions: list[list[int]]) ->
             target_array[i, j] = c
 
 
-def get_best_exploitability(env: ICG_Gym, max_steps: int, repetitions: int, processes: int = 1
-                            ) -> tuple[np.ndarray, list[list[int]]]:
+def get_best_exploitability(env: ICG_Gym, max_steps: int, repetitions: int, gap_func: GapFunction,
+                            processes: int = 1) -> tuple[np.ndarray, list[list[int]]]:
     """Return best rewards.
 
     Returns: A tuple:
@@ -62,7 +63,7 @@ def get_best_exploitability(env: ICG_Gym, max_steps: int, repetitions: int, proc
     best_exploitabilities = np.full((max_steps + 1, repetitions), initial_placeholder_value, dtype=Value)
     best_actions: list[list[int]] = [[] for _ in range(max_steps + 1)]
     sample_actions, sample_values = sample_exploitabilities_of_action_sequences(
-        env.incomplete_game, lambda x: env.generator(), samples=repetitions, max_size=max_steps, processes=processes)
+        env.incomplete_game, lambda x: env.generator(), gap_func, samples=repetitions, max_size=max_steps, processes=processes)
     for i, act_sequence in enumerate(sample_actions):
         steps = len(act_sequence)
         coalitions = [x.id for x in act_sequence]

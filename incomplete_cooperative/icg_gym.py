@@ -5,15 +5,14 @@ import gymnasium as gym  # type: ignore
 import numpy as np
 
 from .coalitions import Coalition, all_coalitions, grand_coalition
-from .exploitability import compute_exploitability
 from .normalize import NormalizableGame, normalize_game
-from .protocols import (IncompleteGame, Info, MutableIncompleteGame, State,
-                        StepResult, Value)
+from .protocols import (GapFunction, IncompleteGame, Info,
+                        MutableIncompleteGame, State, StepResult, Value)
 
 
-def compute_reward(game: IncompleteGame) -> Value:
+def compute_reward(game: IncompleteGame, gap_func: GapFunction) -> Value:
     """Compute the reward of the game."""
-    return -compute_exploitability(game)
+    return -gap_func(game)
 
 
 class ICG_Gym(gym.Env):
@@ -22,6 +21,7 @@ class ICG_Gym(gym.Env):
     def __init__(self, game: MutableIncompleteGame,
                  game_generator: Callable[[], NormalizableGame],
                  initially_known_coalitions: Iterable[Coalition],
+                 gap_func: GapFunction,
                  done_after_n_actions: int | None = None) -> None:
         """Initialize gym.
 
@@ -36,6 +36,7 @@ class ICG_Gym(gym.Env):
         self.full_game = self.generator()
         normalize_game(self.full_game)
 
+        self.gap_func = gap_func
         self.done_after_n_actions = done_after_n_actions
         self.steps_taken = 0
 
@@ -66,7 +67,7 @@ class ICG_Gym(gym.Env):
     @property
     def reward(self) -> Value:  # type: ignore
         """Return reward -- negative exploitability."""
-        return compute_reward(self.incomplete_game)
+        return compute_reward(self.incomplete_game, self.gap_func)
 
     @property
     def done(self) -> bool:

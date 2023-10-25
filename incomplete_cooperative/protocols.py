@@ -14,7 +14,6 @@ else:  # pragma: no cover
 
 if TYPE_CHECKING:  # pragma: no cover
     from .coalitions import Coalition
-    from .normalize import NormalizableGame
 
 Player = int
 Value = np.float64
@@ -188,3 +187,6 @@ class Solver(Protocol):
 
         This is meant to be close to the interface of `gym.Env`.
         """
+
+
+GapFunction = Callable[[IncompleteGame], Value]

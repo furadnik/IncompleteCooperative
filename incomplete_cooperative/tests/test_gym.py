@@ -1,8 +1,9 @@
 from unittest import TestCase
 
-from stable_baselines3.common.env_checker import check_env
+from stable_baselines3.common.env_checker import check_env  # type: ignore
 
 from incomplete_cooperative.coalitions import Coalition
+from incomplete_cooperative.exploitability import compute_exploitability
 from incomplete_cooperative.icg_gym import ICG_Gym
 from incomplete_cooperative.normalize import normalize_game
 
@@ -20,7 +21,7 @@ class TestICGGym(TestCase, GymMixin):
     def test_zero_always_known(self):
         self.assertNotIn(0, self.icg_gym.explorable_coalitions)
         known_coalitions = self.known_coalitions + [Coalition(0)]
-        gym = ICG_Gym(self.game, lambda: self.full_game, known_coalitions)
+        gym = ICG_Gym(self.game, lambda: self.full_game, known_coalitions, compute_exploitability)
         self.assertEqual(self.icg_gym.explorable_coalitions, gym.explorable_coalitions)
 
     def test_explorable_coalitions(self):
@@ -77,7 +78,7 @@ class TestICGGym(TestCase, GymMixin):
                                  self.full_game.get_value(coalition))
 
     def test_done_after_steps(self):
-        icg_gym = ICG_Gym(self.game, lambda: self.full_game, self.known_coalitions, 42)
+        icg_gym = ICG_Gym(self.game, lambda: self.full_game, self.known_coalitions, compute_exploitability, 42)
         self.assertFalse(icg_gym.done)
         for i in range(42):
             icg_gym.step(1)
