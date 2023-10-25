@@ -20,9 +20,11 @@ from torch.nn.modules.activation import ReLU, Tanh  # type: ignore
 
 from ..bounds import BOUNDS
 from ..coalitions import minimal_game_coalitions
+from ..exploitability import compute_exploitability
 from ..game import IncompleteCooperativeGame
 from ..generators import GENERATORS
 from ..icg_gym import ICG_Gym
+from ..protocols import GapFunction
 
 ENVIRONMENTS: dict[str, type[SubprocVecEnv] | type[DummyVecEnv]] = {
     "parallel": SubprocVecEnv,
@@ -32,6 +34,10 @@ ENVIRONMENTS: dict[str, type[SubprocVecEnv] | type[DummyVecEnv]] = {
 ACTIVATION_FNS = {
     "relu": ReLU,
     "tanh": Tanh
+}
+
+GAP_FUNCTIONS = {
+    "exploitability": compute_exploitability,
 }
 
 
@@ -48,6 +54,7 @@ class ModelInstance:
     number_of_players: int = 5
     game_class: str = "superadditive"
     game_generator: str = "factory"
+    gap_function: str = "exploitability"
     steps_per_update: int = 2048
     parallel_environments: int = 2
     run_steps_limit: int | None = None
@@ -76,7 +83,13 @@ class ModelInstance:
         return ICG_Gym(incomplete_game,
                        partial(game_generator, self.number_of_players),
                        minimal_game_coalitions(incomplete_game),
+                       self.gap_function_callable,
                        done_after_n_actions=self.run_steps_limit)
+
+    @property
+    def gap_function_callable(self) -> GapFunction:
+        """Gap function."""
+        return GAP_FUNCTIONS[self.gap_function]
 
     @classmethod
     def from_parsed_arguments(cls, args: Namespace) -> ModelInstance:

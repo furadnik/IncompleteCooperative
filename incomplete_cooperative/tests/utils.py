@@ -3,6 +3,7 @@ import numpy as np
 
 from incomplete_cooperative.bounds import compute_bounds_superadditive
 from incomplete_cooperative.coalitions import Coalition, all_coalitions
+from incomplete_cooperative.exploitability import compute_exploitability
 from incomplete_cooperative.game import IncompleteCooperativeGame
 from incomplete_cooperative.generators import factory_generator
 from incomplete_cooperative.graph_game import GraphCooperativeGame
@@ -45,7 +46,7 @@ class GymMixin(IncompleteGameMixin):
         trivial_fill(full_game)
         transformed_known_coalitions = list(map(Coalition, filter(lambda x: x < 2**incomplete_game.number_of_players,
                                                                   known_coalitions)))
-        return ICG_Gym(incomplete_game, lambda: full_game.copy(), transformed_known_coalitions)
+        return ICG_Gym(incomplete_game, lambda: full_game.copy(), transformed_known_coalitions, compute_exploitability)
 
 
 class GraphGameMixin:

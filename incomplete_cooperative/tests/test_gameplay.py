@@ -118,7 +118,7 @@ class TestActionSeqExploitabilities(IncompleteGameMixin, TestCase):
                 game = self.get_game_miss_coals(include, number_of_players=4)
                 game_full = self.get_game_miss_coals([], number_of_players=4)
                 for action_sequence, _ in get_exploitabilities_of_action_sequences(
-                        game, game_full):
+                        game, game_full, compute_exploitability):
                     self.assertEqual(set(action_sequence).union(include), set(include))
 
     def test_actions_exploitability_correct(self) -> None:
@@ -126,7 +126,8 @@ class TestActionSeqExploitabilities(IncompleteGameMixin, TestCase):
             self.get_game(number_of_players=4))]
         for action_sequence, exploitability in get_exploitabilities_of_action_sequences(
             game=self.get_game_miss_coals(missed_coalitions, number_of_players=4),
-            full_game=self.get_game_miss_coals(missed_coals=[], number_of_players=4)
+            full_game=self.get_game_miss_coals(missed_coals=[], number_of_players=4),
+            gap_func=compute_exploitability
         ):
             with self.subTest(action_sequence=action_sequence):
                 new_game = self.get_game_miss_coals(missed_coals=missed_coalitions, number_of_players=4)
@@ -149,7 +150,9 @@ class TestSampleExploitabilities(IncompleteGameMixin, TestCase):
                 number_of_players=players, missed_coals=initially_unknown)
             with self.subTest(samples=samples):
                 action_sequence, values = sample_exploitabilities_of_action_sequences(game,
-                                                                                      lambda x: game_full, samples)
+                                                                                      lambda x: game_full,
+                                                                                      compute_exploitability,
+                                                                                      samples)
                 self.assertEqual(values.shape[0], samples)
                 for i, action in enumerate(action_sequence):
                     with self.subTest(action=action):

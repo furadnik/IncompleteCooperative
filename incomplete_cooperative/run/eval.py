@@ -27,7 +27,8 @@ def eval_func(instance: ModelInstance, parsed_args) -> None:
 
     exploitability, actions_all = evaluate(
         eval_next_step, cast(Gym, env), parsed_args.eval_repetitions,
-        instance.run_steps_limit
+        instance.run_steps_limit,
+        instance.gap_function_callable
     )
 
     save(instance.model_dir, instance.unique_name,
