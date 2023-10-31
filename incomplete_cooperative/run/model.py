@@ -25,7 +25,7 @@ from ..game import IncompleteCooperativeGame
 from ..generators import GENERATORS
 from ..icg_gym import ICG_Gym
 from ..norms import l1_norm, l2_norm, linf_norm
-from ..protocols import GapFunction
+from ..protocols import GapFunction, IncompleteGame, Value
 
 ENVIRONMENTS: dict[str, type[SubprocVecEnv] | type[DummyVecEnv]] = {
     "parallel": SubprocVecEnv,
@@ -37,7 +37,7 @@ ACTIVATION_FNS = {
     "tanh": Tanh
 }
 
-GAP_FUNCTIONS = {
+GAP_FUNCTIONS: dict[str, Callable[[IncompleteGame], Value]] = {
     "exploitability": compute_exploitability,
     "l1_norm": l1_norm,
     "l2_norm": l2_norm,
