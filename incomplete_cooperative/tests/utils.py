@@ -24,13 +24,20 @@ class IncompleteGameMixin:
         """Get game based on params."""
         return IncompleteCooperativeGame(number_of_players, compute_bounds_superadditive)
 
-    def get_game_miss_coals(self, missed_coals=[Coalition(1)], filler=factory_generator,
+    def get_game_miss_coals(self, missed_coals=[Coalition(3)], filler=factory_generator,
                             number_of_players=6) -> IncompleteCooperativeGame:
         """Get game with pre-defined coalitions missing."""
         game = factory_generator(number_of_players, 0, compute_bounds_superadditive)
         for coal in missed_coals:
             game.unset_value(coal)
         return game
+
+    def get_game_minimal(self, number_of_players=6, **kwargs) -> IncompleteCooperativeGame:
+        """Get game with minimal info."""
+        print([c for c in all_coalitions(number_of_players) if len(c) not in [number_of_players, 1, 0]])
+        return self.get_game_miss_coals(
+            missed_coals=[c for c in all_coalitions(number_of_players) if len(c) not in [number_of_players, 1, 0]],
+            number_of_players=number_of_players, **kwargs)
 
 
 class GymMixin(IncompleteGameMixin):

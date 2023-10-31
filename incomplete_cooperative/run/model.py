@@ -24,7 +24,8 @@ from ..exploitability import compute_exploitability
 from ..game import IncompleteCooperativeGame
 from ..generators import GENERATORS
 from ..icg_gym import ICG_Gym
-from ..protocols import GapFunction
+from ..norms import l1_norm, l2_norm, linf_norm
+from ..protocols import GapFunction, IncompleteGame, Value
 
 ENVIRONMENTS: dict[str, type[SubprocVecEnv] | type[DummyVecEnv]] = {
     "parallel": SubprocVecEnv,
@@ -36,8 +37,11 @@ ACTIVATION_FNS = {
     "tanh": Tanh
 }
 
-GAP_FUNCTIONS = {
+GAP_FUNCTIONS: dict[str, Callable[[IncompleteGame], Value]] = {
     "exploitability": compute_exploitability,
+    "l1_norm": l1_norm,
+    "l2_norm": l2_norm,
+    "linf_norm": linf_norm
 }
 
 
@@ -152,3 +156,5 @@ def add_model_arguments(ap) -> None:
     ap.add_argument("--environment", type=str, required=False, default=defaults.environment)
     ap.add_argument("--policy-activation-fn", type=str, choices=ACTIVATION_FNS.keys(), required=False,
                     default=defaults.policy_activation_fn)
+    ap.add_argument("--gap-function", type=str, choices=GAP_FUNCTIONS.keys(), required=False,
+                    default=defaults.gap_function)
