@@ -1,7 +1,6 @@
 """Generators of games."""
 from functools import partial
 from math import exp
-from random import randrange
 from typing import Callable
 
 import numpy as np
@@ -24,14 +23,16 @@ def _fac_one_fn(val: int) -> int:  # pragma: nocover
     return 1
 
 
-def factory_generator(number_of_players: int, owner: int | None = None,
+def factory_generator(number_of_players: int,
+                      generator: np.random.Generator = np.random.default_rng(),
+                      owner: int | None = None,
                       bounds_computer: Callable = _none_bounds_computer,
                       value_fn: Callable = lambda x: x,
                       random_weights: bool = False
                       ) -> IncompleteCooperativeGame:
     """Generate a `factory` game."""
-    owner = randrange(0, number_of_players) if owner is None else owner  # nosec
-    weights = 10 * np.random.rand(number_of_players) if random_weights else np.ones(number_of_players)
+    owner = generator.integers(number_of_players) if owner is None else owner  # nosec
+    weights = generator.uniform(high=10, size=(number_of_players,)) if random_weights else np.ones(number_of_players)
     weights[owner] = 0
     game = IncompleteCooperativeGame(number_of_players, bounds_computer)
     for coalition in all_coalitions(game):
@@ -42,13 +43,14 @@ def factory_generator(number_of_players: int, owner: int | None = None,
     return game
 
 
-def factory_cheerleader_generator(number_of_players: int, owner: int | None = None,
-                                  cheerleader: int | None = None,
+def factory_cheerleader_generator(number_of_players: int,
+                                  generator: np.random.Generator = np.random.default_rng(),
+                                  owner: int | None = None, cheerleader: int | None = None,
                                   bounds_computer: Callable = _none_bounds_computer) -> IncompleteCooperativeGame:
     """Generate a `factory` game with a cheerleader."""
-    owner = randrange(0, number_of_players) if owner is None else owner  # nosec
+    owner = generator.integers(number_of_players) if owner is None else owner  # nosec
     while cheerleader is None or cheerleader == owner:  # pragma: no cover
-        cheerleader = randrange(0, number_of_players)  # nosec
+        cheerleader = generator.integers(number_of_players)  # nosec
 
     game = IncompleteCooperativeGame(number_of_players, bounds_computer)
     for coalition in all_coalitions(game):
@@ -60,24 +62,32 @@ def factory_cheerleader_generator(number_of_players: int, owner: int | None = No
     return game
 
 
-def factory_cheerleader_next_generator(number_of_players: int, bounds_computer: Callable = _none_bounds_computer
+def factory_cheerleader_next_generator(number_of_players: int,
+                                       generator: np.random.Generator = np.random.default_rng(),
+                                       bounds_computer: Callable = _none_bounds_computer
                                        ) -> IncompleteCooperativeGame:
     """Generate a `factory` game with a cheerleader, who is owner+1."""
-    owner = randrange(0, number_of_players)  # nosec
+    owner = generator.integers(number_of_players)  # nosec
     cheerleader = (owner + 1) % number_of_players
-    return factory_cheerleader_generator(number_of_players, owner, cheerleader, bounds_computer)
+    return factory_cheerleader_generator(number_of_players, generator, owner,
+                                         cheerleader, bounds_computer)
 
 
 def graph_generator(number_of_players: int,
-                    dist_fn: Callable[[tuple[int, int]], np.ndarray] = lambda x: np.random.rand(*x)
+                    generator: np.random.Generator = np.random.default_rng(),
+                    dist_fn: Callable[[np.random.Generator, tuple[int, int]], np.ndarray] = lambda g, x: g.random(x)
                     ) -> GraphCooperativeGame:
     """Generate a `factory` game."""
-    game_matrix = dist_fn((number_of_players, number_of_players)).astype(Value)
+    game_matrix = dist_fn(generator, (number_of_players, number_of_players)).astype(Value)
     return GraphCooperativeGame(game_matrix)
 
 
-def convex_generator(number_of_players: int) -> IncompleteCooperativeGame:
-    """Generate a `convex` game."""
+def convex_generator(number_of_players: int,
+                     generator: np.random.Generator = np.random.default_rng()) -> IncompleteCooperativeGame:
+    """Generate a `convex` game.
+
+    Doesn't implement the generator seeding.
+    """
     import pyfmtools as fmp  # type: ignore[import]
 
     # generate the coalition values using the pyfmtools library

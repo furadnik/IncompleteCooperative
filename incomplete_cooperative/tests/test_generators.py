@@ -1,4 +1,7 @@
+from typing import Callable, cast
 from unittest import TestCase
+
+from numpy.random import default_rng
 
 from incomplete_cooperative.bounds import compute_bounds_superadditive
 from incomplete_cooperative.coalitions import (Coalition, all_coalitions,
@@ -8,9 +11,38 @@ from incomplete_cooperative.generators import (
     GENERATORS, convex_generator, factory_cheerleader_next_generator,
     factory_generator, predictible_factory_generator)
 from incomplete_cooperative.normalize import normalize_game
+from incomplete_cooperative.protocols import Game
 
 
-class TestFactoryGenerator(TestCase):
+class GeneratorsTests:
+    generator: Callable[[int], Callable[[int], Game]]
+    is_random: bool = True
+    implements_generator: bool = True
+
+    def test_size_correct(self):
+        for players in range(3, 10):
+            game = self.generator()(players)
+            self.assertEqual(game.number_of_players, players)
+
+    def test_randomness(self):
+        if not self.is_random:
+            cast(TestCase, self).skipTest("Not a random generator")
+
+        for players in range(3, 10):
+            game_1 = self.generator()(players)
+            self.assertFalse(all(game_1 == self.generator()(players) for _ in range(100000)))
+
+    def test_randomness_generator(self):
+        if not self.implements_generator:
+            cast(TestCase, self).skipTest("Not a random generator")
+
+        for players in range(3, 10):
+            game_1 = self.generator()(players, default_rng(42))
+            self.assertTrue(all(game_1 == self.generator()(players, default_rng(42)) for _ in range(100)))
+
+
+class TestFactoryGenerator(GeneratorsTests, TestCase):
+    generator = lambda x: factory_generator  # noqa: E731
 
     def test_factory_pre_set_owner(self):
         players_range = range(3, 10)
@@ -105,21 +137,13 @@ class TestFactoryGenerator(TestCase):
                                  compute_exploitability(factory_zero_forget))
 
 
-class TestGraphGenerator(TestCase):
-
-    def test_size_correct(self):
-        for name, generator in filter(lambda x: "graph" in x[0], GENERATORS.items()):
-            for players in range(3, 10):
-                graph = generator(players)
-                self.assertEqual(graph.number_of_players, players)
+class TestGraphGenerator(GeneratorsTests, TestCase):
+    generator = lambda x: GENERATORS["graph"]  # noqa: E731
 
 
-class TestConvexGenerator(TestCase):
-
-    def test_size_correct(self):
-        for players in range(3, 10):
-            game = convex_generator(players)
-            self.assertEqual(game.number_of_players, players)
+class TestConvexGenerator(GeneratorsTests, TestCase):
+    generator = lambda x: convex_generator  # noqa: E731
+    implements_generator = False
 
     def test_is_normalized(self):
         for players in range(3, 10):
@@ -138,20 +162,12 @@ class TestConvexGenerator(TestCase):
                             self.assertLessEqual(lhs, rhs)
 
 
-class TestCheerleaderGenerator(TestCase):
-
-    def test_size_correct(self):
-        for players in range(3, 10):
-            game = factory_cheerleader_next_generator(players)
-            self.assertEqual(game.number_of_players, players)
+class TestCheerleaderGenerator(GeneratorsTests, TestCase):
+    generator = lambda x: factory_cheerleader_next_generator  # noqa: E731
 
 
-class TestPredictibleFactoryGenerator(TestCase):
-
-    def test_size_correct(self):
-        for players in range(3, 10):
-            game = predictible_factory_generator(players)
-            self.assertEqual(game.number_of_players, players)
+class TestPredictibleFactoryGenerator(GeneratorsTests, TestCase):
+    generator = lambda x: predictible_factory_generator  # noqa: E731
 
     def test_loop_around(self):
         for players in range(3, 10):
