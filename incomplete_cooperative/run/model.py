@@ -4,7 +4,6 @@ from __future__ import annotations
 from argparse import Namespace
 from dataclasses import dataclass, fields
 from datetime import datetime
-from functools import partial
 from pathlib import Path
 from typing import Any, Callable, cast
 
@@ -24,6 +23,7 @@ from ..exploitability import compute_exploitability
 from ..game import IncompleteCooperativeGame
 from ..generators import GENERATORS
 from ..icg_gym import ICG_Gym
+from ..normalize import NormalizableGame
 from ..norms import l1_norm, l2_norm, linf_norm
 from ..protocols import GapFunction, IncompleteGame, Value
 
@@ -69,6 +69,11 @@ class ModelInstance:
     policy_activation_fn: str = "relu"
     gamma: float = 1
     ent_coef: float = 0.1
+    seed: int = int(datetime.now().timestamp() * 1000)
+
+    def game_generator_fn(self) -> NormalizableGame:
+        """Get the game generator, with a pre-set random generator."""
+        return GENERATORS[self.game_generator](self.number_of_players, self.game_generator_rng)
 
     def __post_init__(self) -> None:
         """Exit model path."""
@@ -76,16 +81,16 @@ class ModelInstance:
             self.model_dir = Path(self.model_dir)
         if self.model_path is None:
             self.model_path = self.model_dir / "model"
+        self.game_generator_rng = np.random.default_rng(self.seed)
 
     @property
     def env(self) -> ICG_Gym:
         """Get env."""
         bounds_computer = BOUNDS[self.game_class]
-        game_generator = GENERATORS[self.game_generator]
-
         incomplete_game = IncompleteCooperativeGame(self.number_of_players, bounds_computer)
+
         return ICG_Gym(incomplete_game,
-                       partial(game_generator, self.number_of_players),
+                       self.game_generator_fn,
                        minimal_game_coalitions(incomplete_game),
                        self.gap_function_callable,
                        done_after_n_actions=self.run_steps_limit)
@@ -158,3 +163,4 @@ def add_model_arguments(ap) -> None:
                     default=defaults.policy_activation_fn)
     ap.add_argument("--gap-function", type=str, choices=GAP_FUNCTIONS.keys(), required=False,
                     default=defaults.gap_function)
+    ap.add_argument("--seed", type=int, required=False, default=defaults.seed)
