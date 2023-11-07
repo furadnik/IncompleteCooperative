@@ -3,6 +3,7 @@ from unittest import TestCase
 
 from incomplete_cooperative.coalitions import Coalition
 from incomplete_cooperative.protocols import Solver
+from incomplete_cooperative.run.model import ModelInstance
 from incomplete_cooperative.solvers import (SOLVERS, GreedySolver,
                                             LargestSolver, RandomSolver)
 
@@ -41,7 +42,7 @@ class TestGreedy(TestSolverMixin, TestCase):
 class TestRandom(TestSolverMixin, TestCase):
 
     def get_solver(self) -> Solver:
-        return RandomSolver()
+        return RandomSolver(ModelInstance())
 
 
 class TestLargest(TestSolverMixin, TestCase):
