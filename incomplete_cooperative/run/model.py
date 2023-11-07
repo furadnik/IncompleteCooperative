@@ -133,7 +133,7 @@ class ModelInstance:
         return MaskablePPO.load(self.model_path, envs) if self.model_path.with_suffix(".zip").exists() \
             else MaskablePPO("MlpPolicy", envs, n_steps=self.steps_per_update, ent_coef=self.ent_coef,
                              policy_kwargs={"activation_fn": self.policy_activation_fn_choice},
-                             verbose=10, gamma=self.gamma)
+                             verbose=10, gamma=self.gamma, seed=self.seed)
 
     def save(self, model: MaskablePPO) -> None:
         """Save model."""
