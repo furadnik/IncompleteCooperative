@@ -2,6 +2,7 @@
 import multiprocessing
 import sys
 from argparse import ArgumentParser
+from functools import partial
 
 from .run.best_states import add_best_states_parser
 from .run.eval import add_eval_parser
@@ -15,7 +16,8 @@ COMMANDS = {
     "eval": add_eval_parser,
     "solve": add_solve_parser,
     "best_states": add_best_states_parser,
-    "greedy": add_greedy_parser
+    "greedy": add_greedy_parser,
+    "ugreedy": partial(add_greedy_parser, randomize=True)
 }
 
 
