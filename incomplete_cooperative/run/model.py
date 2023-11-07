@@ -71,6 +71,11 @@ class ModelInstance:
     ent_coef: float = 0.1
     seed: int = int(datetime.now().timestamp() * 1000)
 
+    @property
+    def seed_32(self) -> int:
+        """Seed mod 32."""
+        return self.seed % 2**32
+
     def game_generator_fn(self) -> NormalizableGame:
         """Get the game generator, with a pre-set random generator."""
         return GENERATORS[self.game_generator](self.number_of_players, self.game_generator_rng)
@@ -133,7 +138,7 @@ class ModelInstance:
         return MaskablePPO.load(self.model_path, envs) if self.model_path.with_suffix(".zip").exists() \
             else MaskablePPO("MlpPolicy", envs, n_steps=self.steps_per_update, ent_coef=self.ent_coef,
                              policy_kwargs={"activation_fn": self.policy_activation_fn_choice},
-                             verbose=10, gamma=self.gamma)
+                             verbose=10, gamma=self.gamma, seed=self.seed_32)
 
     def save(self, model: MaskablePPO) -> None:
         """Save model."""
