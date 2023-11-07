@@ -1,7 +1,7 @@
 from typing import Callable, cast
 from unittest import TestCase
 
-from numpy.random import default_rng
+from numpy.random import Generator, default_rng
 
 from incomplete_cooperative.bounds import compute_bounds_superadditive
 from incomplete_cooperative.coalitions import (Coalition, all_coalitions,
@@ -15,7 +15,7 @@ from incomplete_cooperative.protocols import Game
 
 
 class GeneratorsTests:
-    generator: Callable[[int], Callable[[int], Game]]
+    generator: Callable[[int], Callable[[int, Generator], Game]]
     is_random: bool = True
     implements_generator: bool = True
 
@@ -25,7 +25,7 @@ class GeneratorsTests:
             self.assertEqual(game.number_of_players, players)
 
     def test_randomness(self):
-        if not self.is_random:
+        if not self.is_random:  # pragma: no cover
             cast(TestCase, self).skipTest("Not a random generator")
 
         for players in range(3, 10):
@@ -48,7 +48,7 @@ class TestFactoryGenerator(GeneratorsTests, TestCase):
         players_range = range(3, 10)
         for players in players_range:
             for owner in range(players):
-                factory = factory_generator(players, owner)
+                factory = factory_generator(players, owner=owner)
                 for coalition in all_coalitions(factory):
                     with self.subTest(coalition=coalition):
                         if owner not in coalition:
@@ -60,8 +60,8 @@ class TestFactoryGenerator(GeneratorsTests, TestCase):
         players_range = range(3, 10)
         for players in players_range:
             for owner in range(players):
-                factory_zero = factory_generator(players, 0)
-                factory_other = factory_generator(players, owner)
+                factory_zero = factory_generator(players, owner=0)
+                factory_other = factory_generator(players, owner=owner)
                 for coalition in all_coalitions(players):
                     if factory_zero.get_value(coalition) and factory_other.get_value(coalition):
                         self.assertEqual(factory_zero.get_value(coalition),
@@ -71,8 +71,8 @@ class TestFactoryGenerator(GeneratorsTests, TestCase):
         players_range = range(3, 10)
         for players in players_range:
             for owner in range(players):
-                factory_zero = factory_generator(players, 0)
-                factory_other = factory_generator(players, owner)
+                factory_zero = factory_generator(players, owner=0)
+                factory_other = factory_generator(players, owner=owner)
                 normalize_game(factory_zero)
                 normalize_game(factory_other)
                 for coalition in all_coalitions(players):
@@ -85,16 +85,17 @@ class TestFactoryGenerator(GeneratorsTests, TestCase):
         for players in players_range:
             known_coalitions = set((Coalition(2**x) for x in range(players))).union(
                 [Coalition(0), grand_coalition(players)])
-            factory_zero = factory_generator(players, 0, compute_bounds_superadditive)
-            factory_zero_forget = factory_generator(players, 0, compute_bounds_superadditive)
+            factory_zero = factory_generator(players, owner=0, bounds_computer=compute_bounds_superadditive)
+            factory_zero_forget = factory_generator(players, owner=0, bounds_computer=compute_bounds_superadditive)
             factory_zero_forget.set_known_values(
                 factory_zero.get_known_values(known_coalitions), known_coalitions)
             factory_zero_forget.reveal_value(
                 factory_zero.get_value(Coalition.from_players(set(range(1, players)))),
                 Coalition.from_players(set(range(1, players))))
             for owner in range(players):
-                factory_other = factory_generator(players, owner, compute_bounds_superadditive)
-                factory_other_forget = factory_generator(players, owner, compute_bounds_superadditive)
+                factory_other = factory_generator(players, owner=owner, bounds_computer=compute_bounds_superadditive)
+                factory_other_forget = factory_generator(players, owner=owner,
+                                                         bounds_computer=compute_bounds_superadditive)
                 factory_other_forget.set_known_values(
                     factory_other.get_values(known_coalitions), known_coalitions)
                 reveal_coalition = Coalition.from_players(filter(
@@ -111,9 +112,9 @@ class TestFactoryGenerator(GeneratorsTests, TestCase):
         for players in players_range:
             known_coalitions = set((Coalition(2**x) for x in range(players))).union(
                 [Coalition(0), grand_coalition(players)])
-            factory_zero = factory_generator(players, 0, compute_bounds_superadditive)
+            factory_zero = factory_generator(players, owner=0, bounds_computer=compute_bounds_superadditive)
             normalize_game(factory_zero)
-            factory_zero_forget = factory_generator(players, 0, compute_bounds_superadditive)
+            factory_zero_forget = factory_generator(players, owner=0, bounds_computer=compute_bounds_superadditive)
             normalize_game(factory_zero_forget)
             factory_zero_forget.set_known_values(
                 factory_zero.get_known_values(known_coalitions), known_coalitions)
@@ -121,9 +122,10 @@ class TestFactoryGenerator(GeneratorsTests, TestCase):
                 factory_zero.get_value(Coalition.from_players(set(range(1, players)))),
                 Coalition.from_players(set(range(1, players))))
             for owner in range(players):
-                factory_other = factory_generator(players, owner, compute_bounds_superadditive)
+                factory_other = factory_generator(players, owner=owner, bounds_computer=compute_bounds_superadditive)
                 normalize_game(factory_other)
-                factory_other_forget = factory_generator(players, owner, compute_bounds_superadditive)
+                factory_other_forget = factory_generator(players, owner=owner,
+                                                         bounds_computer=compute_bounds_superadditive)
                 normalize_game(factory_other_forget)
                 factory_other_forget.set_known_values(
                     factory_other.get_values(known_coalitions), known_coalitions)
@@ -168,6 +170,7 @@ class TestCheerleaderGenerator(GeneratorsTests, TestCase):
 
 class TestPredictibleFactoryGenerator(GeneratorsTests, TestCase):
     generator = lambda x: predictible_factory_generator  # noqa: E731
+    implements_generator = False
 
     def test_loop_around(self):
         for players in range(3, 10):

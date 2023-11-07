@@ -24,14 +24,14 @@ def _fac_one_fn(val: int) -> int:  # pragma: nocover
 
 
 def factory_generator(number_of_players: int,
-                      generator: np.random.Generator = np.random.default_rng(),
+                      generator: np.random.Generator = np.random.default_rng(), *,
                       owner: int | None = None,
                       bounds_computer: Callable = _none_bounds_computer,
                       value_fn: Callable = lambda x: x,
                       random_weights: bool = False
                       ) -> IncompleteCooperativeGame:
     """Generate a `factory` game."""
-    owner = generator.integers(number_of_players) if owner is None else owner  # nosec
+    owner = int(generator.integers(number_of_players) if owner is None else owner)  # nosec
     weights = generator.uniform(high=10, size=(number_of_players,)) if random_weights else np.ones(number_of_players)
     weights[owner] = 0
     game = IncompleteCooperativeGame(number_of_players, bounds_computer)
@@ -44,11 +44,11 @@ def factory_generator(number_of_players: int,
 
 
 def factory_cheerleader_generator(number_of_players: int,
-                                  generator: np.random.Generator = np.random.default_rng(),
+                                  generator: np.random.Generator = np.random.default_rng(), *,
                                   owner: int | None = None, cheerleader: int | None = None,
                                   bounds_computer: Callable = _none_bounds_computer) -> IncompleteCooperativeGame:
     """Generate a `factory` game with a cheerleader."""
-    owner = generator.integers(number_of_players) if owner is None else owner  # nosec
+    owner = int(generator.integers(number_of_players) if owner is None else owner)  # nosec
     while cheerleader is None or cheerleader == owner:  # pragma: no cover
         cheerleader = generator.integers(number_of_players)  # nosec
 
@@ -63,18 +63,18 @@ def factory_cheerleader_generator(number_of_players: int,
 
 
 def factory_cheerleader_next_generator(number_of_players: int,
-                                       generator: np.random.Generator = np.random.default_rng(),
+                                       generator: np.random.Generator = np.random.default_rng(), *,
                                        bounds_computer: Callable = _none_bounds_computer
                                        ) -> IncompleteCooperativeGame:
     """Generate a `factory` game with a cheerleader, who is owner+1."""
-    owner = generator.integers(number_of_players)  # nosec
+    owner = int(generator.integers(number_of_players))  # nosec
     cheerleader = (owner + 1) % number_of_players
-    return factory_cheerleader_generator(number_of_players, generator, owner,
-                                         cheerleader, bounds_computer)
+    return factory_cheerleader_generator(number_of_players, generator, owner=owner,
+                                         cheerleader=cheerleader, bounds_computer=bounds_computer)
 
 
 def graph_generator(number_of_players: int,
-                    generator: np.random.Generator = np.random.default_rng(),
+                    generator: np.random.Generator = np.random.default_rng(), *,
                     dist_fn: Callable[[np.random.Generator, tuple[int, int]], np.ndarray] = lambda g, x: g.random(x)
                     ) -> GraphCooperativeGame:
     """Generate a `factory` game."""
@@ -108,7 +108,8 @@ def convex_generator(number_of_players: int,
 _LAST_OWNER = 0
 
 
-def predictible_factory_generator(number_of_players: int) -> IncompleteCooperativeGame:
+def predictible_factory_generator(number_of_players: int, generator: np.random.Generator = np.random.default_rng()
+                                  ) -> IncompleteCooperativeGame:
     """Generate a factory, choose the owner predictibly."""
     global _LAST_OWNER
     _LAST_OWNER = (_LAST_OWNER + 1) % number_of_players
@@ -116,7 +117,7 @@ def predictible_factory_generator(number_of_players: int) -> IncompleteCooperati
 
 
 _gen = np.random.default_rng()
-GENERATORS: dict[str, Callable[[int], GraphCooperativeGame | IncompleteCooperativeGame]] = {
+GENERATORS: dict[str, Callable[[int, np.random.Generator], GraphCooperativeGame | IncompleteCooperativeGame]] = {
     "factory": factory_generator,
     "predictible_factory": predictible_factory_generator,
     "factory_one": partial(factory_generator, value_fn=_fac_one_fn),

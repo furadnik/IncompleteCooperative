@@ -27,7 +27,7 @@ class IncompleteGameMixin:
     def get_game_miss_coals(self, missed_coals=[Coalition(3)], filler=factory_generator,
                             number_of_players=6) -> IncompleteCooperativeGame:
         """Get game with pre-defined coalitions missing."""
-        game = factory_generator(number_of_players, 0, compute_bounds_superadditive)
+        game = factory_generator(number_of_players, owner=0, bounds_computer=compute_bounds_superadditive)
         for coal in missed_coals:
             game.unset_value(coal)
         return game
