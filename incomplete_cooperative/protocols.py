@@ -14,6 +14,7 @@ else:  # pragma: no cover
 
 if TYPE_CHECKING:  # pragma: no cover
     from .coalitions import Coalition
+    from .run.model import ModelInstance
 
 Player = int
 Value = np.float64
@@ -181,6 +182,9 @@ class Solver(Protocol):
 
     Unlike the model, a `Solver` has complete information about the underlying full game.
     """
+
+    def __init__(self, instance: 'ModelInstance' | None = None) -> None:
+        """Initialize the solver with a model instance."""
 
     def next_step(self, gym: Gym) -> int:
         """Get the next move.

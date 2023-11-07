@@ -8,7 +8,7 @@ from .save import Output, save
 
 def solve_func(instance: ModelInstance, parsed_args) -> None:
     """Solve the game."""
-    solver = SOLVERS[parsed_args.solver]()
+    solver = SOLVERS[parsed_args.solver](instance)
     env = instance.env
 
     exploitability, actions_all = evaluate(

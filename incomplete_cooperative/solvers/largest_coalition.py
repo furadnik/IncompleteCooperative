@@ -1,9 +1,13 @@
 """A greedy solver."""
 from ..protocols import Gym
+from ..run.model import ModelInstance
 
 
 class LargestSolver:
     """Solve by selecting the largest explorable coalition."""
+
+    def __init__(self, instance: ModelInstance | None = None) -> None:
+        """Do nothing with the instance."""
 
     def next_step(self, gym: Gym) -> int:
         """Get the locally best next move."""
