@@ -254,10 +254,10 @@ class TestGreedy(TestCase):
     def tearDown(self):
         self._tmp.cleanup()
 
-    def run_greedy_test(self, path):
+    def run_greedy_test(self, path, randomize):
         self.model.model_dir = path
         self.model.unique_name = "asdf"
-        greedy_func(self.model, self.get_parsed_args())  # TODO: implement later.
+        greedy_func(self.model, self.get_parsed_args(), randomize)  # TODO: implement later.
         self.assertEqual(len(list(path.iterdir())), 3)
         found = False
         self.assertEqual(set(SAVERS.keys()), set(x.name for x in path.iterdir()))
@@ -268,13 +268,14 @@ class TestGreedy(TestCase):
                     found = True
         self.assertTrue(found)
 
-    def test_function_proper(self):
-        self.assertEqual(self.get_parsed_args().func, greedy_func)
-
     def test_run_solve(self):
         path = Path(self._tmp.name)
-        self.run_greedy_test(path)
+        self.run_greedy_test(path, False)
 
     def test_run_solve_create_folder(self):
         path = Path(self._tmp.name) / "model"
-        self.run_greedy_test(path)
+        self.run_greedy_test(path, False)
+
+    def test_run_solve_randomize(self):
+        path = Path(self._tmp.name)
+        self.run_greedy_test(path, True)

@@ -1,4 +1,6 @@
 """Get best states from the coalitions."""
+from functools import partial
+from random import Random
 
 import numpy as np
 
@@ -11,22 +13,26 @@ from incomplete_cooperative.protocols import GapFunction
 from .model import ModelInstance
 from .save import Output, save
 
+EPSILON = 1e-6
 
-def greedy_func(instance: ModelInstance, parsed_args) -> None:
+
+def greedy_func(instance: ModelInstance, parsed_args, randomize: bool = False) -> None:
     """Get greedy best states."""
+    rng = Random(instance.seed) if randomize else None
     if instance.run_steps_limit is None:  # pragma: no cover
         instance.run_steps_limit = 2**instance.number_of_players
     exploitability, best_coalitions = get_greedy_rewards(instance.env, instance.run_steps_limit,
                                                          parsed_args.sampling_repetitions,
                                                          instance.gap_function_callable,
-                                                         instance.parallel_environments)
+                                                         instance.parallel_environments,
+                                                         rng)
     actions_all = np.reshape(np.array(best_coalitions), (len(best_coalitions), 1))
     save(instance.model_dir, instance.unique_name,
          Output(exploitability, actions_all, parsed_args))
 
 
 def get_greedy_rewards(env: ICG_Gym, max_steps: int, repetitions: int, gap_func: GapFunction,
-                       processes: int = 1) -> tuple[np.ndarray, list[int]]:
+                       processes: int = 1, random: Random | None = None) -> tuple[np.ndarray, list[int]]:
     """Return best rewards.
 
     Returns: A tuple:
@@ -48,7 +54,13 @@ def get_greedy_rewards(env: ICG_Gym, max_steps: int, repetitions: int, gap_func:
                 incomplete_game, generated_games, possible_next_action_sequences,
                 gap_func, processes=processes)))
 
-        best_action_index = np.argmin(np.mean(expected_exploitabilities, axis=1))
+        if random is not None:
+            best_action_value = np.min(np.mean(expected_exploitabilities, axis=1))
+            best_action_index = random.choice([  # nosec
+                action for action in range(expected_exploitabilities.shape[0])
+                if np.mean(expected_exploitabilities[action, :]) - best_action_value < EPSILON])
+        else:
+            best_action_index = int(np.argmin(np.mean(expected_exploitabilities, axis=1)))
 
         if possible_next_action_sequences[best_action_index]:
             best_action = possible_next_action_sequences[best_action_index][-1]
@@ -62,7 +74,7 @@ def get_greedy_rewards(env: ICG_Gym, max_steps: int, repetitions: int, gap_func:
     return best_exploitabilities, [x.id for x in action_sequence]
 
 
-def add_greedy_parser(parser) -> None:
+def add_greedy_parser(parser, randomize: bool = False) -> None:
     """Fill in the parser with arguments for solving the game."""
-    parser.set_defaults(func=greedy_func)
+    parser.set_defaults(func=partial(greedy_func, randomize=randomize))
     parser.add_argument("--sampling-repetitions", default=1, type=int)
