@@ -1,9 +1,13 @@
 """A greedy solver."""
 from ..protocols import Gym, Value
+from ..run.model import ModelInstance
 
 
 class GreedySolver:
     """Greedy solver implementation."""
+
+    def __init__(self, instance: ModelInstance | None = None) -> None:
+        """Do nothing with the instance."""
 
     def _next_action_value(self, gym: Gym, action: int) -> Value:
         """Return a value of the next step."""
