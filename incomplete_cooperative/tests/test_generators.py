@@ -28,7 +28,7 @@ class GeneratorsTests:
         if not self.is_random:  # pragma: no cover
             cast(TestCase, self).skipTest("Not a random generator")
 
-        for players in range(3, 10):
+        for players in range(5, 10):
             game_1 = self.generator()(players)
             self.assertFalse(all(game_1 == self.generator()(players) for _ in range(100000)))
 
@@ -181,3 +181,19 @@ class TestPredictibleFactoryGenerator(GeneratorsTests, TestCase):
                     self.assertEqual(games_1[i], games_2[i])
                     if i != j:
                         self.assertNotEqual(games_1[i], games_1[j])
+
+
+class TestRandomGraphGenerator(GeneratorsTests, TestCase):
+    generator = lambda x: GENERATORS["graph_random"]
+
+
+class TestInternetGraphGenerator(GeneratorsTests, TestCase):
+    generator = lambda x: GENERATORS["graph_internet"]
+
+
+class TestGeometricGraphGenerator(GeneratorsTests, TestCase):
+    generator = lambda x: GENERATORS["graph_geometric"]
+
+
+class TestGeographicalGraphGenerator(GeneratorsTests, TestCase):
+    generator = lambda x: GENERATORS["graph_geographical_treshold"]

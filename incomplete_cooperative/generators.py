@@ -1,14 +1,25 @@
 """Generators of games."""
 from functools import partial
 from math import exp
-from typing import Callable
+from typing import Callable, Protocol
 
 import numpy as np
+from networkx import Graph  # type: ignore[import]
+from networkx import (adjacency_matrix, connected_watts_strogatz_graph,
+                      geographical_threshold_graph, gnp_random_graph,
+                      random_geometric_graph, random_internet_as_graph)
 
 from .coalitions import all_coalitions
 from .game import IncompleteCooperativeGame
 from .graph_game import GraphCooperativeGame
 from .protocols import Value
+
+
+class GraphGen(Protocol):
+    """Protocol for graph generators."""
+
+    def __call__(self, _n: int, seed: int | np.random.Generator | None = None) -> Graph:
+        """Call generates the graph."""
 
 
 def _none_bounds_computer(self) -> None:  # pragma: nocover
@@ -116,6 +127,24 @@ def predictible_factory_generator(number_of_players: int, generator: np.random.G
     return factory_generator(number_of_players, owner=_LAST_OWNER)
 
 
+def graph_to_game(graph: Graph, number_of_players: int | None = None) -> GraphCooperativeGame:
+    """Turn a `Graph` to a graph game.
+
+    Restrict the number of players, if supplied.
+    """
+    graph_array = adjacency_matrix(graph).toarray()
+    if number_of_players is not None:
+        graph_array = graph_array[:number_of_players, :number_of_players]
+    return GraphCooperativeGame(graph_array)
+
+
+def graph_gen_to_game(number_of_players: int, generator: np.random.Generator = np.random.default_rng(),
+                      graph_gen: GraphGen = partial(gnp_random_graph, p=0.5)) -> GraphCooperativeGame:
+    """Generate a graph cooperative game from a game generator, taking a seed and a number of nodes."""
+    return graph_to_game(graph_gen(number_of_players, seed=generator),
+                         number_of_players=number_of_players)  # nosec
+
+
 _gen = np.random.default_rng()
 GENERATORS: dict[str, Callable[[int, np.random.Generator], GraphCooperativeGame | IncompleteCooperativeGame]] = {
     "factory": factory_generator,
@@ -143,4 +172,11 @@ GENERATORS: dict[str, Callable[[int, np.random.Generator], GraphCooperativeGame 
     **{f"graph_poiss_{lam}": partial(graph_generator, dist_fn=partial(_gen.poisson, lam))
        for lam in [0.1, 0.01, 0.5, 1, 5, 10, 50]},
     "convex": convex_generator,
+    **{_key: partial(graph_gen_to_game, graph_gen=gen) for _key, gen in {
+        "graph_random": partial(gnp_random_graph, p=0.5),
+        "graph_ws_connected": partial(connected_watts_strogatz_graph, k=3, p=0.5),
+        "graph_internet": random_internet_as_graph,
+        "graph_geometric": partial(random_geometric_graph, radius=1),
+        "graph_geographical_treshold": partial(geographical_threshold_graph, theta=0.1),
+    }.items()}
 }
