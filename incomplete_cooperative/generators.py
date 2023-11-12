@@ -132,7 +132,7 @@ def graph_to_game(graph: Graph, number_of_players: int | None = None) -> GraphCo
 
     Restrict the number of players, if supplied.
     """
-    graph_array = adjacency_matrix(graph).toarray()
+    graph_array = adjacency_matrix(graph).toarray().astype(Value)
     if number_of_players is not None:
         graph_array = graph_array[:number_of_players, :number_of_players]
     return GraphCooperativeGame(graph_array)
