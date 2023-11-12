@@ -10,14 +10,25 @@ from incomplete_cooperative.exploitability import compute_exploitability
 from incomplete_cooperative.generators import (
     GENERATORS, convex_generator, factory_cheerleader_next_generator,
     factory_generator, predictible_factory_generator)
+from incomplete_cooperative.graph_game import GraphCooperativeGame
 from incomplete_cooperative.normalize import normalize_game
-from incomplete_cooperative.protocols import Game
+from incomplete_cooperative.protocols import Game, Value
 
 
 class GeneratorsTests:
     generator: Callable[[int], Callable[[int, Generator], Game]]
     is_random: bool = True
     implements_generator: bool = True
+
+    def test_value_types(self):
+        for players in range(3, 10):
+            self.assertEqual(self.generator()(players).get_values().dtype, Value)
+
+    def test_graph_game_matrix_type(self):
+        if not isinstance(self.generator()(5), GraphCooperativeGame):
+            self.skipTest("Not a graph game.")
+        for players in range(3, 10):
+            self.assertEqual(self.generator()(players)._graph_matrix.dtype, Value)
 
     def test_size_correct(self):
         for players in range(3, 10):
