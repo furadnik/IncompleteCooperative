@@ -20,8 +20,10 @@ NAME_MAP = {k: "{\\sc " + v + "}" for k, v in {
     "random_eval": "Random",
     "eval": "PPO",
     "solve_greedy": "Oracle Greedy",
+    "solve_ugreedy": "Oracle Uniform Greedy",
     "best_states": "Oracle Optimal",
     "expected_greedy": "Offline Greedy",
+    "expected_ugreedy": "Offline Uniform Greedy",
     "expected_best_states": "Offline Optimal",
     "largest_coalitions": "Largest Coalitions",
 }.items()}
