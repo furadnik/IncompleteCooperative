@@ -81,7 +81,7 @@ def draw_combined_graph(ax: axes.Axes, chosen_coalitions: list[tuple[str, np.nda
     plotted: list = []
     names: list = []
     for i, (name, coalitions) in enumerate(chosen_coalitions):
-        color, _ = COLOR_VALUES[name]
+        color, _ = COLOR_VALUES.get(name, list(COLOR_VALUES.values())[0])
         number_of_coalitions, _, minimal_game = approx_game(coalitions)
         current_maximum = max(np.nanmax(coalitions), current_maximum)
         _, new_plotted = add_to_plt(ax, coalitions, NAME_MAP.get(name, name), color, step,
