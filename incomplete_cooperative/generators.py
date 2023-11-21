@@ -145,6 +145,15 @@ def graph_gen_to_game(number_of_players: int, generator: np.random.Generator = n
                          number_of_players=number_of_players)  # nosec
 
 
+def cycle(number_of_players: int, generator: np.random.Generator = np.random.default_rng()) -> GraphCooperativeGame:
+    """Generate a graph game where the players are all on a random cycle."""
+    permutation = generator.permutation(number_of_players)
+    graph_array = np.zeros((number_of_players, number_of_players), dtype=Value)
+    graph_array[permutation, np.roll(permutation, 1)] = 1
+    graph_array[permutation, np.roll(permutation, -1)] = 1
+    return GraphCooperativeGame(graph_array)
+
+
 _gen = np.random.default_rng()
 GENERATORS: dict[str, Callable[[int, np.random.Generator], GraphCooperativeGame | IncompleteCooperativeGame]] = {
     "factory": factory_generator,
@@ -178,5 +187,6 @@ GENERATORS: dict[str, Callable[[int, np.random.Generator], GraphCooperativeGame 
         "graph_internet": random_internet_as_graph,
         "graph_geometric": partial(random_geometric_graph, radius=1),
         "graph_geographical_treshold": partial(geographical_threshold_graph, theta=0.1),
-    }.items()}
+    }.items()},
+    "graph_cycle": cycle,
 }
