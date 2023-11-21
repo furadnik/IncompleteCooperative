@@ -208,3 +208,7 @@ class TestGeometricGraphGenerator(GeneratorsTests, TestCase):
 
 class TestGeographicalGraphGenerator(GeneratorsTests, TestCase):
     generator = lambda x: GENERATORS["graph_geographical_treshold"]
+
+
+class TestCycleGraphGenerator(GeneratorsTests, TestCase):
+    generator = lambda x: GENERATORS["graph_cycle"]
