@@ -18,9 +18,9 @@ from incomplete_cooperative.coalitions import Coalition
 from incomplete_cooperative.run.save import (Output, approx_game,
                                              get_coalition_distribution)
 from scripts.find_data_jsons import find_data_jsons
-from scripts.plot_base import (COLOR_VALUES, LABEL_SIZE, MULTIFIG_RECT,
-                               MULTIFIG_SIZES, NAME_MAP, TITLE_SIZE,
-                               filter_func)
+from scripts.plot_base import (COALITION, COLOR_VALUES, LABEL_SIZE,
+                               MULTIFIG_RECT, MULTIFIG_SIZES, NAME_MAP,
+                               TITLE_SIZE, filter_func)
 
 ALREADY_CUMULATIVE = ["best_states", "expected_best_states"]
 N_COLS = 3
@@ -75,7 +75,7 @@ def draw_combined_graph(ax: axes.Axes, chosen_coalitions: list[tuple[str, np.nda
     ax.title.set_fontsize(TITLE_SIZE)
     # ax.autoscale()
     if x_label:
-        ax.set_xlabel("Coalition", fontsize=LABEL_SIZE)
+        ax.set_xlabel(f"{COALITION}", fontsize=LABEL_SIZE)
 
     indices = [x * 0.2 for x in range(6)]
     if y_label:
