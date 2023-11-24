@@ -4,6 +4,10 @@ import sys
 import matplotlib as mpl  # type: ignore
 from matplotlib import colormaps
 
+COALITION = "Subset"
+PLAYER = "Element"
+EXPLOITABILITY = "Divergence"
+
 mpl.rcParams.update({
     'axes.labelsize': 16,
     'font.size': 16,
@@ -25,7 +29,7 @@ NAME_MAP = {k: "{\\sc " + v + "}" for k, v in {
     "expected_greedy": "Offline Greedy",
     "expected_ugreedy": "Offline Uniform Greedy",
     "expected_best_states": "Offline Optimal",
-    "largest_coalitions": "Largest Coalitions",
+    "largest_coalitions": f"Largest {COALITION}s",
 }.items()}
 LINE_STYLES = ["solid", "dashed", "dashdot", "dotted"]
 
