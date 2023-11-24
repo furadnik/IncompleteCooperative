@@ -11,7 +11,8 @@ EXPLOITABILITY = "Divergence"
 mpl.rcParams.update({
     'axes.labelsize': 16,
     'font.size': 16,
-    'text.latex.preamble': '\\usepackage{libertine}\n\\renewcommand{\\ttdefault}{cmtt}',
+    # 'text.latex.preamble': '\\usepackage{libertine}\n\\renewcommand{\\ttdefault}{cmtt}',
+    'font.family': "times",
     'legend.fontsize': 10,
     'xtick.labelsize': 12,
     'ytick.labelsize': 12,
