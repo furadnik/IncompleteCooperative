@@ -44,4 +44,4 @@ TICK_SIZE = 9
 LABEL_SIZE = 10
 TITLE_SIZE = 11
 
-filter_func = (lambda x: x in sys.argv[3].split(",")) if len(sys.argv) == 4 else lambda x: True
+filter_func = (lambda x: x in sys.argv[3].split(",")) if len(sys.argv) >= 4 else lambda x: True
