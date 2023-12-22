@@ -10,7 +10,7 @@ class RandomSolver:
 
     def __init__(self, instance: ModelInstance) -> None:
         """Save generator."""
-        self._generator = Random(3 * instance.seed) if instance is not None else Random()
+        self._generator = Random(3 * instance.seed) if instance is not None else Random()  # nosec
 
     def next_step(self, gym: Gym) -> int:
         """Get the locally best next move."""
