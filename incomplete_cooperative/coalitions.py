@@ -119,3 +119,11 @@ def exclude_coalition(exclude: Coalition, coalitions: Iterable[Coalition]) -> It
 def get_known_coalitions(game: IncompleteGame) -> Iterable[Coalition]:
     """Get the coalitions that are known."""
     return (x for x in all_coalitions(game) if game.is_value_known(x))
+
+
+def get_k_zero(players: Game | int) -> Iterable[Coalition]:
+    """Get the coalitions that are always to be present in an incomplete game."""
+    yield Coalition(0)
+    yield grand_coalition(players)
+    players = players if isinstance(players, int) else players.number_of_players
+    yield from (Coalition(2**index) for index in range(players))
