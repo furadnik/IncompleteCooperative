@@ -48,11 +48,12 @@ class TestMetaGame(TestCase):
         game._bounds_computer = compute_bounds_superadditive
         meta_game = self.get_meta_game(game.copy())
         meta_coalitions = [
-            random.choice(list(all_coalitions(meta_game)))
+            random.choice(list(all_coalitions(meta_game)))  # nosec
             for i in range(3)
         ]
         self.assertTrue(np.all(
             np.array([meta_game.get_value(c) for c in meta_coalitions]) == meta_game.get_values(meta_coalitions)))
 
     def test_check_supermodularity(self):
-        self.assertTrue(check_supermodularity(self.get_meta_game()))
+        self.assertIsNone(check_supermodularity(convex_generator(10)))
+        self.assertIsNotNone(check_supermodularity(self.get_meta_game()))
