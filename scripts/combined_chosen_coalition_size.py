@@ -101,7 +101,7 @@ def draw_combined_graph(ax: axes.Axes, chosen_coalitions: list[tuple[str, np.nda
 
     indices = [x * 0.2 for x in range(6)]
     if y_label:
-        ax.set_ylabel("Revealed Percentage", fontsize=LABEL_SIZE)
+        ax.set_ylabel("Revealed Proportion", fontsize=LABEL_SIZE)
         ax.set_yticks(indices)
     else:
         ax.set_yticks(indices, [""] * len(indices))
