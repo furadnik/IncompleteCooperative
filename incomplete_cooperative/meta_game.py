@@ -1,10 +1,16 @@
 """A metagame is a game whose values are the divergences of another game."""
-from typing import Iterable, Self
+import sys
+from typing import Iterable
 
 import numpy as np
 
 from .coalitions import Coalition, all_coalitions, get_k_zero
 from .protocols import Game, GapFunction, MutableIncompleteGame, Value, Values
+
+if sys.version_info >= (3, 11):  # pragma: no cover
+    from typing import Self
+else:  # pragma: no cover
+    from typing_extensions import Self
 
 
 class MetaGame:
