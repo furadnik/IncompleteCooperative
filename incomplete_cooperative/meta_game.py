@@ -3,9 +3,8 @@ from typing import Iterable, Self
 
 import numpy as np
 
-from .coalitions import all_coalitions, get_k_zero
-from .protocols import (Coalition, Game, GapFunction, MutableIncompleteGame,
-                        Value, Values)
+from .coalitions import Coalition, all_coalitions, get_k_zero
+from .protocols import Game, GapFunction, MutableIncompleteGame, Value, Values
 
 
 class MetaGame:
@@ -18,7 +17,8 @@ class MetaGame:
         k_zero = set(self.k_zero)
         self.players = [coalition for coalition in all_coalitions(game) if coalition not in k_zero]
         self.game = game
-        self._incomplete = incomplete
+        # we don't want to be tied to some other use of this incomplete_game, since we'll be changing it as we please
+        self._incomplete = incomplete.copy()
         self.divergence = divergence
 
     @property
@@ -39,10 +39,10 @@ class MetaGame:
         self._incomplete.compute_bounds()
         return self.divergence(self._incomplete)
 
-    def copy(self) -> Self:
+    def copy(self) -> Self:  # pragma: no cover
         """Return a deep copy of the game."""
         raise NotImplementedError("Doesn't support copy.")
 
-    def __add__(self, other: Self) -> Self:
+    def __add__(self, other: Self) -> Self:  # pragma: no cover
         """Add games of the same type."""
         raise NotImplementedError("Doesn't support addition.")
