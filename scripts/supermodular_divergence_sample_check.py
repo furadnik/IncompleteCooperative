@@ -6,13 +6,15 @@ from incomplete_cooperative.game import IncompleteCooperativeGame
 from incomplete_cooperative.generators import convex_generator
 from incomplete_cooperative.meta_game import MetaGame
 from incomplete_cooperative.norms import l1_norm
-from incomplete_cooperative.supermodularity_check import check_supermodularity
+from incomplete_cooperative.supermodularity_check import (
+    check_failed_diagnostics, check_supermodularity)
 
 divergence = l1_norm
 
 
-def main(number_of_players: int) -> None:
+def main() -> None:
     """Repeatedly check the divergence for supermodularity."""
+    number_of_players = int(sys.argv[1])
     i = 0
     supermodular = 0
     while True:
@@ -23,11 +25,13 @@ def main(number_of_players: int) -> None:
         res = check_supermodularity(meta_game)
         if res is None:
             supermodular += 1
+            print("ok")
         else:
             print(*res)
+            check_failed_diagnostics(meta_game, *res)
         if i % 10 == 0:
             print("Samples:", i, "Supermodular:", supermodular, "Percentage:", 100 * supermodular / i)
 
 
 if __name__ == '__main__':
-    main(int(sys.argv[0]))
+    main()
