@@ -1,9 +1,18 @@
 """A set of utility functions working with coalitions."""
 from __future__ import annotations
 
-from typing import Iterable
+from itertools import chain, combinations
+from typing import Iterable, TypeVar
 
 from .protocols import Game, IncompleteGame, Player
+
+T = TypeVar("T")
+
+
+def powerset(input_iter: Iterable[T]) -> Iterable[list[T]]:
+    """Return the powerset of the input."""
+    input_iter = list(input_iter)
+    return map(list, chain.from_iterable(combinations(input_iter, i) for i in range(len(input_iter) + 1)))
 
 
 class Coalition:
@@ -119,6 +128,11 @@ def exclude_coalition(exclude: Coalition, coalitions: Iterable[Coalition]) -> It
 def get_known_coalitions(game: IncompleteGame) -> Iterable[Coalition]:
     """Get the coalitions that are known."""
     return (x for x in all_coalitions(game) if game.is_value_known(x))
+
+
+def sub_coalitions(coalition: Coalition) -> Iterable[Coalition]:
+    """Return all sub_coalitions of coalition."""
+    return map(Coalition.from_players, powerset(coalition.players))
 
 
 def get_k_zero(players: Game | int) -> Iterable[Coalition]:

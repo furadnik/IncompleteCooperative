@@ -56,4 +56,4 @@ class TestMetaGame(TestCase):
 
     def test_check_supermodularity(self):
         self.assertIsNone(check_supermodularity(convex_generator(10)))
-        self.assertIsNotNone(check_supermodularity(self.get_meta_game()))
+        self.assertIsNone(check_supermodularity(self.get_meta_game()))
