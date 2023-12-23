@@ -13,6 +13,7 @@ import numpy as np
 from incomplete_cooperative.coalitions import (Coalition,
                                                minimal_game_coalitions)
 from incomplete_cooperative.protocols import Player, Value
+from incomplete_cooperative.run.model import ModelInstance
 
 
 @dataclass
@@ -75,6 +76,11 @@ class Output:
         data["actions"] = np.array(data["actions"])
 
         return cls(**data)
+
+    @property
+    def instance(self) -> ModelInstance:  # pragma: no cover
+        """Get another instance from the parsed args."""
+        return ModelInstance.from_parsed_arguments(self.parsed_args)
 
 
 def get_outputs_from_file(path: Path) -> dict[str, Output]:
