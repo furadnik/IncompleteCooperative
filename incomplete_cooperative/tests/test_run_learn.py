@@ -60,6 +60,17 @@ class LearningTester(GetLearningResultMixin):
         self.assertLess(learned_output.data_avg_final,
                         random_output.data_avg_final, msg=learned_output)
 
+    def test_better_than_random_multi_core(self):
+        kwargs = {
+            **self.kwargs,
+            "parallel_environments": 3
+        }
+        print(kwargs)
+        random_output = self.get_random_results(**kwargs)
+        learned_output = self.get_learning_results(**kwargs)
+        self.assertLess(learned_output.data_avg_final,
+                        random_output.data_avg_final, msg=learned_output)
+
     def test_random_is_random(self):
         random_results = self.get_random_results(**self.kwargs)
         actions_list = random_results.actions.flatten().tolist()
