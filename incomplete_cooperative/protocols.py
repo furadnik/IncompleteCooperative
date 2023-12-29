@@ -176,6 +176,14 @@ class Gym(Protocol):
     def explorable_coalitions(self) -> list[Coalition]:
         """A list of coalitions that aren't initially known."""
 
+    @property
+    def reward(self) -> float:
+        """Get the reward from the incomplete game."""
+
+    @property
+    def state(self) -> np.ndarray[Any, np.dtype[Value]]:
+        """Store the state of the gym."""
+
 
 class Solver(Protocol):
     """A solver of incomplete games.
@@ -194,3 +202,4 @@ class Solver(Protocol):
 
 
 GapFunction = Callable[[IncompleteGame], Value]
+NextStep = Callable[[Gym], int]
