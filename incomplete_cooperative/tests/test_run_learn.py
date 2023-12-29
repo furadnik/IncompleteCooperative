@@ -55,8 +55,8 @@ class LearningTester(GetLearningResultMixin):
 
     def test_better_than_random(self):
         print(self.kwargs)
-        learned_output = self.get_learning_results(**self.kwargs)
         random_output = self.get_random_results(**self.kwargs)
+        learned_output = self.get_learning_results(**self.kwargs)
         self.assertLess(learned_output.data_avg_final,
                         random_output.data_avg_final, msg=learned_output)
 

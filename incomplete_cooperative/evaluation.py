@@ -1,6 +1,8 @@
 """Solving script."""
 from copy import deepcopy
+from itertools import starmap
 from multiprocessing import Pool
+from typing import Callable
 
 import numpy as np
 
@@ -19,13 +21,22 @@ def evaluate(get_next_step: NextStep, env: Gym,
         env.reset()
         return deepcopy(env)
 
-    with Pool(processes=processes) as p:
+    def run_evaluation(starmap_fn: Callable) -> None:
+        """Run the evaluation function."""
         for repetition, (step_exploitability, step_actions) in enumerate(
-            p.starmap(evaluate_episode,
-                      ((get_next_step, new_env(), gap_func, run_steps_limit) for _ in range(repetitions)))
+            starmap_fn(evaluate_episode,
+                       ((get_next_step, new_env(), gap_func, run_steps_limit) for _ in range(repetitions)))
         ):
             exploitability[:, repetition] = step_exploitability
             actions[:, repetition] = step_actions
+    try:
+        if processes == 1:  # if one process, do not use pool.
+            raise AttributeError()
+
+        with Pool(processes=processes) as p:
+            run_evaluation(p.starmap)
+    except AttributeError:  # this occurs on pickle error (when evaluating a model)
+        run_evaluation(starmap)
 
     return exploitability, actions
 
