@@ -14,6 +14,8 @@ from .game import IncompleteCooperativeGame
 from .graph_game import GraphCooperativeGame
 from .protocols import Value
 
+_gen = np.random.default_rng()
+
 
 class GraphGen(Protocol):
     """Protocol for graph generators."""
@@ -86,10 +88,13 @@ def factory_cheerleader_next_generator(number_of_players: int,
 
 def graph_generator(number_of_players: int,
                     generator: np.random.Generator = np.random.default_rng(), *,
-                    dist_fn: Callable[[np.random.Generator, tuple[int, int]], np.ndarray] = lambda g, x: g.random(x)
+                    dist_fn: Callable[[tuple[int, int]], np.ndarray] = lambda x: _gen.random(x)
                     ) -> GraphCooperativeGame:
-    """Generate a `factory` game."""
-    game_matrix = dist_fn(generator, (number_of_players, number_of_players)).astype(Value)
+    """Generate a graph game.
+
+    Note: For now, this ignores the `generator`, assumes a generator is present in the `dist_fn`.
+    """
+    game_matrix = dist_fn((number_of_players, number_of_players)).astype(Value)
     return GraphCooperativeGame(game_matrix)
 
 
@@ -154,7 +159,6 @@ def cycle(number_of_players: int, generator: np.random.Generator = np.random.def
     return GraphCooperativeGame(graph_array)
 
 
-_gen = np.random.default_rng()
 GENERATORS: dict[str, Callable[[int, np.random.Generator], GraphCooperativeGame | IncompleteCooperativeGame]] = {
     "factory": factory_generator,
     "predictible_factory": predictible_factory_generator,
