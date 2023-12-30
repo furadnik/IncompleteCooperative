@@ -152,6 +152,7 @@ class TestFactoryGenerator(GeneratorsTests, TestCase):
 
 class TestGraphGenerator(GeneratorsTests, TestCase):
     generator = lambda x: GENERATORS["graph"]  # noqa: E731
+    implements_generator = False
 
 
 class TestConvexGenerator(GeneratorsTests, TestCase):
