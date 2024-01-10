@@ -16,7 +16,7 @@ mpl.rcParams.update({
     'legend.fontsize': 10,
     'xtick.labelsize': 12,
     'ytick.labelsize': 12,
-    'figure.figsize': [6.5, 5.5],
+    'figure.figsize': [7.2, 4.5],
     'text.usetex': True
 })
 
@@ -34,8 +34,10 @@ NAME_MAP = {k: "{\\sc " + v + "}" for k, v in {
 }.items()}
 LINE_STYLES = ["solid", "dashed", "dashdot", "dotted"]
 
-MULTIFIG_SIZES = (8.3, 9)
+MULTIFIG_SIZES = (8.3, 8.3)
 MULTIFIG_RECT = [0, 0.035, 1, 1]
+PLOT_RATIO = 1.2 / 2
+
 
 COLOR_VALUES = {k: (CMAP(i / (len(NAME_MAP.keys()))), LINE_STYLES[i % len(LINE_STYLES)])
                 for i, k in enumerate(sorted(NAME_MAP.keys(), key=NAME_MAP.get))}  # type: ignore

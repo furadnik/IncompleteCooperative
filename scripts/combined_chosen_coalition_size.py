@@ -142,7 +142,7 @@ def main(path: Path = Path(sys.argv[1]), title: str = sys.argv[2]) -> None:
                                                   step // N_COLS + 1 == steps // N_COLS,
                                                   step % N_COLS == 0)
 
-        fig.set_tight_layout({"pad": 1, "rect": MULTIFIG_RECT})
+        fig.set_tight_layout({"pad": .45, "rect": MULTIFIG_RECT})
         fig.legend(plotted, labels, loc='upper center', ncol=10, fontsize=LABEL_SIZE,
                    bbox_to_anchor=(0.5, 0.04))
         print(save_path.with_suffix(".pdf"))
