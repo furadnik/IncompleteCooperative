@@ -1,4 +1,5 @@
 """Base stuff regarding plotting."""
+import os
 import sys
 
 import matplotlib as mpl  # type: ignore
@@ -6,7 +7,8 @@ from matplotlib import colormaps
 
 COALITION = "Subset"
 PLAYER = "Element"
-EXPLOITABILITY = "Divergence"
+
+EXPLOITABILITY = os.environ.get("ICG_EXPLOITABILITY", "$l_1$ Divergence")
 
 mpl.rcParams.update({
     'axes.labelsize': 16,
