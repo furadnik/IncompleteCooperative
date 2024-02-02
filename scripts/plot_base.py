@@ -5,9 +5,8 @@ import sys
 import matplotlib as mpl  # type: ignore
 from matplotlib import colormaps
 
-COALITION = "Subset"
-PLAYER = "Element"
-
+COALITION = os.environ.get("ICG_COALITION", "Subset")
+PLAYER = os.environ.get("ICG_PLAYER", "Element")
 EXPLOITABILITY = os.environ.get("ICG_EXPLOITABILITY", "$l_1$ Divergence")
 
 mpl.rcParams.update({
