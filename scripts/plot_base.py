@@ -8,12 +8,15 @@ from matplotlib import colormaps
 COALITION = os.environ.get("ICG_COALITION", "Subset")
 PLAYER = os.environ.get("ICG_PLAYER", "Element")
 EXPLOITABILITY = os.environ.get("ICG_EXPLOITABILITY", "$l_1$ Divergence")
+FORMAT = os.environ.get("ICG_FORMAT", "aaai")
+
+text = {'text.latex.preamble': '\\usepackage{libertine}\n\\renewcommand{\\ttdefault}{cmtt}',
+        } if FORMAT == "aamas" else {'font.family': "times"}
 
 mpl.rcParams.update({
     'axes.labelsize': 16,
     'font.size': 16,
-    # 'text.latex.preamble': '\\usepackage{libertine}\n\\renewcommand{\\ttdefault}{cmtt}',
-    'font.family': "times",
+    **text,
     'legend.fontsize': 10,
     'xtick.labelsize': 12,
     'ytick.labelsize': 12,
