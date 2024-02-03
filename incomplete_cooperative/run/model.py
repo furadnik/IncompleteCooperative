@@ -180,6 +180,7 @@ def add_model_arguments(ap) -> None:
     ap.add_argument("--gamma", type=float, required=False, default=defaults.gamma)
     ap.add_argument("--unique-name", type=str, required=False, default=defaults.unique_name)
     ap.add_argument("--environment", type=str, required=False, default=defaults.environment)
+    ap.add_argument("--feature-extractor", type=str, required=False, default=None)
     ap.add_argument("--policy-activation-fn", type=str, choices=ACTIVATION_FNS.keys(), required=False,
                     default=defaults.policy_activation_fn)
     ap.add_argument("--gap-function", type=str, choices=GAP_FUNCTIONS.keys(), required=False,
