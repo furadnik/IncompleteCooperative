@@ -17,7 +17,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from .run.model import ModelInstance
 
 Player = int
-Value = np.float64
+Value = np.float32
 ValueIn = Value | float | int
 Values = np.ndarray[Any, np.dtype[Value]]
 
