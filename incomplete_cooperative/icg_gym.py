@@ -43,8 +43,8 @@ class ICG_Gym(gym.Env):
         self.initially_known_coalitions = list(set(initially_known_coalitions).union(
             {Coalition(0), grand_coalition(game)}))
         # explorable coalitions are those, whose values we initially do not know.
-        self.explorable_coalitions = list(set(filter(lambda x: x not in self.initially_known_coalitions,
-                                                     all_coalitions(self.full_game))))
+        self.explorable_coalitions = list(filter(lambda x: x not in self.initially_known_coalitions,
+                                                 all_coalitions(self.full_game)))
 
         # setup the gym.
         self.reset()
