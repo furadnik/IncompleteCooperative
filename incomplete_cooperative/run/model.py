@@ -12,6 +12,8 @@ from gymnasium import Env  # type: ignore
 from sb3_contrib import MaskablePPO  # type: ignore
 from sb3_contrib.common.wrappers import ActionMasker  # type: ignore
 from stable_baselines3.common.env_util import make_vec_env  # type: ignore
+from stable_baselines3.common.torch_layers import \
+    BaseFeaturesExtractor  # type: ignore
 from stable_baselines3.common.vec_env import DummyVecEnv  # type: ignore
 from stable_baselines3.common.vec_env import SubprocVecEnv  # type: ignore
 from stable_baselines3.common.vec_env import VecEnv
@@ -25,6 +27,7 @@ from ..generators import GENERATORS
 from ..icg_gym import ICG_Gym
 from ..normalize import NormalizableGame
 from ..norms import l1_norm, l2_norm, linf_norm
+from ..per_action_policy_net import CustomPerActionPolicyNet
 from ..protocols import GapFunction, IncompleteGame, Value
 
 ENVIRONMENTS: dict[str, type[SubprocVecEnv] | type[DummyVecEnv]] = {
@@ -42,6 +45,10 @@ GAP_FUNCTIONS: dict[str, Callable[[IncompleteGame], Value]] = {
     "l1_norm": l1_norm,
     "l2_norm": l2_norm,
     "linf_norm": linf_norm
+}
+
+FEATURE_EXTRACTORS: dict[str, type[BaseFeaturesExtractor]] = {
+    "per_action": CustomPerActionPolicyNet
 }
 
 
@@ -67,6 +74,7 @@ class ModelInstance:
     unique_name: str = str(datetime.now().isoformat())
     environment: str = "sequential"
     policy_activation_fn: str = "relu"
+    feature_extractor: str | None = None
     gamma: float = 1
     ent_coef: float = 0.1
     seed: int = int(datetime.now().timestamp() * 1000)
@@ -93,7 +101,6 @@ class ModelInstance:
         """Get env."""
         bounds_computer = BOUNDS[self.game_class]
         incomplete_game = IncompleteCooperativeGame(self.number_of_players, bounds_computer)
-
         return ICG_Gym(incomplete_game,
                        self.game_generator_fn,
                        minimal_game_coalitions(incomplete_game),
@@ -135,9 +142,18 @@ class ModelInstance:
     def model(self) -> MaskablePPO:
         """Get model."""
         envs = self.env_generator()
+        policy_kwargs = {
+            "activation_fn": self.policy_activation_fn_choice,
+        }
+        if self.feature_extractor is not None:
+            policy_kwargs["features_extractor_class"] = FEATURE_EXTRACTORS[self.feature_extractor]
+            policy_kwargs["features_extractor_kwargs"] = {
+                "number_of_players": self.number_of_players
+            }
+
         return MaskablePPO.load(self.model_path, envs) if self.model_path.with_suffix(".zip").exists() \
             else MaskablePPO("MlpPolicy", envs, n_steps=self.steps_per_update, ent_coef=self.ent_coef,
-                             policy_kwargs={"activation_fn": self.policy_activation_fn_choice},
+                             policy_kwargs=policy_kwargs,
                              verbose=10, gamma=self.gamma, seed=self.seed_32)
 
     def save(self, model: MaskablePPO) -> None:
