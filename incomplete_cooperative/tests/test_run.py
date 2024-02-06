@@ -10,8 +10,6 @@ from unittest.mock import patch
 from stable_baselines3.common.vec_env import DummyVecEnv  # type: ignore
 from stable_baselines3.common.vec_env import SubprocVecEnv
 
-from incomplete_cooperative.per_action_policy_net import \
-    CustomPerActionPolicyNet
 from incomplete_cooperative.run.best_states import (add_best_states_parser,
                                                     best_states_func)
 from incomplete_cooperative.run.eval import add_eval_parser, eval_func
@@ -68,11 +66,6 @@ class TestModelInstance(TestCase):
     def test_env_generator_proper_parallel_envs(self):
         self.assertEqual(self.model.env_generator().num_envs,
                          self.model.parallel_environments)
-
-    def test_model_feature_extractor(self):
-        model = ModelInstance(feature_extractor="per_action").model
-        self.assertIsInstance(model.policy.features_extractor, CustomPerActionPolicyNet)
-        self.assertNotIsInstance(self.model.model.policy.features_extractor, CustomPerActionPolicyNet)
 
     def test_save_and_load(self):
         orig_model = self.model.model
