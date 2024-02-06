@@ -4,7 +4,7 @@ from typing import Iterable
 
 import numpy as np
 
-from .coalitions import Coalition, all_coalitions, get_k_zero
+from .coalitions import Coalition, all_coalitions, minimal_game_coalitions
 from .protocols import Game, GapFunction, MutableIncompleteGame, Value, Values
 
 if sys.version_info >= (3, 11):  # pragma: no cover
@@ -19,7 +19,7 @@ class MetaGame:
     def __init__(self, game: Game, incomplete: MutableIncompleteGame,
                  divergence: GapFunction) -> None:
         """Store initial values of the metagame."""
-        self.k_zero = list(get_k_zero(game))
+        self.k_zero = list(minimal_game_coalitions(game))
         k_zero = set(self.k_zero)
         self.players = [coalition for coalition in all_coalitions(game) if coalition not in k_zero]
         self.game = game
