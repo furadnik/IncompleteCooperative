@@ -5,7 +5,7 @@ import numpy as np
 
 from incomplete_cooperative.bounds import compute_bounds_superadditive
 from incomplete_cooperative.coalitions import (Coalition, all_coalitions,
-                                               get_k_zero)
+                                               minimal_game_coalitions)
 from incomplete_cooperative.exploitability import compute_exploitability
 from incomplete_cooperative.generators import convex_generator
 from incomplete_cooperative.meta_game import MetaGame
@@ -36,7 +36,7 @@ class TestMetaGame(TestCase):
                 Coalition.from_players([1, 3]),
                 Coalition.from_players([1, 2, 3]),
                 Coalition.from_players([1]),
-            ] + list(get_k_zero(game))
+            ] + list(minimal_game_coalitions(game))
             game.set_known_values(game.get_values(coalitions), coalitions)
             game.compute_bounds()
             self.assertEqual(compute_exploitability(game), meta_game.get_value(

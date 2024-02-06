@@ -133,11 +133,3 @@ def get_known_coalitions(game: IncompleteGame) -> Iterable[Coalition]:
 def sub_coalitions(coalition: Coalition) -> Iterable[Coalition]:
     """Return all sub_coalitions of coalition."""
     return map(Coalition.from_players, powerset(coalition.players))
-
-
-def get_k_zero(players: Game | int) -> Iterable[Coalition]:
-    """Get the coalitions that are always to be present in an incomplete game."""
-    yield Coalition(0)
-    yield grand_coalition(players)
-    players = players if isinstance(players, int) else players.number_of_players
-    yield from (Coalition(2**index) for index in range(players))
