@@ -132,7 +132,7 @@ def main(path: Path = Path(sys.argv[1]), title: str = sys.argv[2]) -> None:
         # a tuple (name, chosen_coalitions) of all runs
         fig, axs = plt.subplots(math.ceil(steps / N_COLS), N_COLS, layout='constrained')
         axs = axs.flatten()
-        fig.set_size_inches(MULTIFIG_SIZES)
+        fig.set_size_inches((8.3, 9.1))
 
         for step in range(steps):
             step_path = save_path / f"{step + 1}.pdf"
