@@ -16,6 +16,8 @@ from .protocols import Value
 
 _gen = np.random.default_rng()
 
+GeneratorFn = Callable[[int, np.random.Generator], GraphCooperativeGame | IncompleteCooperativeGame]
+
 
 class GraphGen(Protocol):
     """Protocol for graph generators."""
@@ -159,7 +161,43 @@ def cycle(number_of_players: int, generator: np.random.Generator = np.random.def
     return GraphCooperativeGame(graph_array)
 
 
-GENERATORS: dict[str, Callable[[int, np.random.Generator], GraphCooperativeGame | IncompleteCooperativeGame]] = {
+def additive(number_of_players: int, generator: np.random.Generator = np.random.default_rng(),
+             weights_dist_fn: Callable[[np.random.Generator], float] = np.random.Generator.random
+             ) -> IncompleteCooperativeGame:
+    """Generate a random additive game, based on the distribution function."""
+    game_state = np.zeros(2**number_of_players)
+    for i in range(number_of_players):
+        singleton = weights_dist_fn(generator)
+        game_state[np.arange(2**number_of_players) & 2**i != 0] += singleton
+    ig = IncompleteCooperativeGame(number_of_players)
+    ig.set_values(game_state)
+    return ig
+
+
+def xos(number_of_players: int, generator: np.random.Generator = np.random.default_rng(), number_of_additive: int = 6,
+        additive_gen: GeneratorFn = additive, normalize: bool = True,
+        normalize_additive: bool = False) -> IncompleteCooperativeGame:
+    """Generate a random OSX game out of `number_of_additive` additive games.
+
+    It uses `additive_gen` to generate the additive games.
+    `normalize` normalizes the grand coalition of the resulting game to 1.
+    `normalize_additive` normalizes all the generated additive games BEFORE doing the XOR
+    (reaching "less random" distribution of the games, presumably).
+    """
+    additive_values = [additive_gen(number_of_players, generator).get_values()
+                       for _ in range(number_of_additive)]
+    if normalize_additive:
+        for value in additive_values:
+            value /= value[-1]
+    osx_values = np.max(np.array(additive_values), axis=0)
+    ig = IncompleteCooperativeGame(number_of_players)
+    if normalize:
+        osx_values = osx_values / osx_values[-1]
+    ig.set_values(osx_values)
+    return ig
+
+
+GENERATORS: dict[str, GeneratorFn] = {
     "factory": factory_generator,
     "predictible_factory": predictible_factory_generator,
     "factory_one": partial(factory_generator, value_fn=_fac_one_fn),

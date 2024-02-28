@@ -8,8 +8,8 @@ from incomplete_cooperative.coalitions import (Coalition, all_coalitions,
                                                grand_coalition)
 from incomplete_cooperative.exploitability import compute_exploitability
 from incomplete_cooperative.generators import (
-    GENERATORS, convex_generator, factory_cheerleader_next_generator,
-    factory_generator, predictible_factory_generator)
+    GENERATORS, additive, convex_generator, factory_cheerleader_next_generator,
+    factory_generator, predictible_factory_generator, xos)
 from incomplete_cooperative.graph_game import GraphCooperativeGame
 from incomplete_cooperative.normalize import normalize_game
 from incomplete_cooperative.protocols import Game, Value
@@ -213,3 +213,52 @@ class TestGeographicalGraphGenerator(GeneratorsTests, TestCase):
 
 class TestCycleGraphGenerator(GeneratorsTests, TestCase):
     generator = lambda x: GENERATORS["graph_cycle"]
+
+
+class TestAdditiveGenerator(GeneratorsTests, TestCase):
+    generator = lambda x: additive
+
+    def test_deterministic_singletons(self):
+        singleton_values = [1, 2, 3, 4]
+        expected_game_values = [
+            0, 1, 2, 3, 3, 4, 5, 6, 4, 5, 6, 7, 7, 8, 9, 10
+        ]
+        generator = lambda x: singleton_values.pop(0)
+        self.assertEqual(list(self.generator()(4, weights_dist_fn=generator).get_values()), expected_game_values)
+
+
+class TestXOSGenerator(GeneratorsTests, TestCase):
+    generator = lambda x: xos
+
+    def test_single_is_identity(self):
+        for i in range(2, 10):
+            with self.subTest(number_of_players=i):
+                additive_games = [additive(i) for _ in range(10)]
+                first_game = additive_games[0]
+                gen = lambda x, y: additive_games.pop(0)
+                self.assertEqual(list(self.generator()(i, number_of_additive=1, additive_gen=gen, normalize=False)
+                                      .get_values()),
+                                 list(first_game.get_values()))
+
+    def test_is_normalized(self):
+        for i in range(2, 10):
+            with self.subTest(number_of_players=i):
+                self.assertEqual(
+                    self.generator()(i, normalize=True)
+                    .get_value(grand_coalition(i)),
+                    1)
+
+    def test_normalize_additive(self):
+        for i in range(2, 10):
+            with self.subTest(number_of_players=i):
+                additive_game = additive(i)
+                gen = lambda x, y: additive_game
+                self.assertEqual(
+                    list(self.generator()(
+                        i, number_of_additive=1, normalize_additive=True,
+                        additive_gen=gen, normalize=False)
+                        .get_values()),
+                    list(self.generator()(
+                        i, number_of_additive=1, normalize_additive=False,
+                        additive_gen=gen, normalize=True)
+                        .get_values()))
