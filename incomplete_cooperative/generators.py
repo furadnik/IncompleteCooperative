@@ -231,4 +231,5 @@ GENERATORS: dict[str, GeneratorFn] = {
         "graph_geographical_treshold": partial(geographical_threshold_graph, theta=0.1),
     }.items()},
     "graph_cycle": cycle,
+    "xos": xos,
 }
