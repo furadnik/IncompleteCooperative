@@ -232,4 +232,5 @@ GENERATORS: dict[str, GeneratorFn] = {
     }.items()},
     "graph_cycle": cycle,
     "xos": xos,
+    "xos_norm_additive": partial(xos, normalize_additive=True)
 }
