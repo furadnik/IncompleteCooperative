@@ -116,9 +116,10 @@ class GameRegretMinimizer:
         """
         metacoalition = past_actions if isinstance(past_actions, int) else self.get_metacoalition_id(past_actions)
         rank = self.meta_id_to_rank[metacoalition]
-        if sum(self.regret[rank]) == 0:
+        positive_regret = self.regret[rank] * (self.regret[rank] > 0)
+        if sum(positive_regret) == 0:
             return np.ones(self.number_of_coalitions) / self.number_of_coalitions  # TODO: not all viable!
-        return self.regret[rank] * (self.regret[rank] > 0) / sum(self.regret[rank] * self.regret[rank] > 0)
+        return positive_regret / sum(positive_regret)  # TODO: průměrná distribuce
 
     def apply_regret(self, bottom_losses: np.ndarray, used_actions: list[list[Coalition]]) -> None:
         """Scan every possible action sequence, and update the regret of all the regret minimizers.
@@ -143,6 +144,4 @@ class GameRegretMinimizer:
             losses[i, next_coalition_pids] = experienced_losses[next_metacoalition_ranks]
             experienced_losses[i] = (losses[i] * self.get_actions_distribution(int(metacoalition))).sum()
 
-        self.regret += losses[np.arange(self.number_of_regret_minimizers)] - experienced_losses[np.arange(self.number_of_regret_minimizers), np.newaxis]
-        print(experienced_losses)
-        print(losses)
+        self.regret += losses - experienced_losses[np.arange(self.number_of_regret_minimizers), None]  # TODO: abstract this
