@@ -193,7 +193,7 @@ def xos(number_of_players: int, generator: np.random.Generator = np.random.defau
     ig = IncompleteCooperativeGame(number_of_players)
     if normalize:
         osx_values = osx_values / osx_values[-1]
-    ig.set_values(osx_values)
+    ig.set_values(-osx_values)  # turning the subadditive xos functions negative makes them superadditive
     return ig
 
 
