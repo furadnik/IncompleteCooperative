@@ -238,7 +238,7 @@ class TestXOSGenerator(GeneratorsTests, TestCase):
                 gen = lambda x, y: additive_games.pop(0)
                 self.assertEqual(list(self.generator()(i, number_of_additive=1, additive_gen=gen, normalize=False)
                                       .get_values()),
-                                 list(first_game.get_values()))
+                                 [-x for x in first_game.get_values()])
 
     def test_is_normalized(self):
         for i in range(2, 10):
@@ -246,7 +246,7 @@ class TestXOSGenerator(GeneratorsTests, TestCase):
                 self.assertEqual(
                     self.generator()(i, normalize=True)
                     .get_value(grand_coalition(i)),
-                    1)
+                    -1)
 
     def test_normalize_additive(self):
         for i in range(2, 10):
