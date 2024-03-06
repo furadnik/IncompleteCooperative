@@ -63,26 +63,26 @@ class TestGameRegretMinimizer(TestCase):
     def test_apply_regret(self):
         minimizer = GameRegretMinimizer(3, 2)
         print(minimizer.coalitions_to_player_ids, minimizer.meta_id_to_rank)
-        minimizer.apply_regret(np.array([1, 0, 0]), [
+        minimizer.regret_min_iteration(np.array([1, 0, 0]), [
             [Coalition(3), Coalition(5)],
             [Coalition(5), Coalition(6)],
             [Coalition(3), Coalition(6)],
         ])
-        self.assertTrue(np.allclose(minimizer.regret[0], [1 / 9, 1 / 9, -2 / 9]),
-                        msg=minimizer.regret)
+        self.assertTrue(np.allclose(minimizer.cumulative_regret[0], [1 / 9, 1 / 9, -2 / 9]),
+                        msg=minimizer.cumulative_regret)
 
     def test_apply_regret_twice(self):
         minimizer = GameRegretMinimizer(3, 2)
         print(minimizer.coalitions_to_player_ids, minimizer.meta_id_to_rank)
-        minimizer.apply_regret(np.array([1, 0, 0]), [
+        minimizer.regret_min_iteration(np.array([1, 0, 0]), [
             [Coalition(3), Coalition(5)],
             [Coalition(5), Coalition(6)],
             [Coalition(3), Coalition(6)],
         ])
-        minimizer.apply_regret(np.array([0, 1, 0]), [
+        minimizer.regret_min_iteration(np.array([0, 1, 0]), [
             [Coalition(3), Coalition(5)],
             [Coalition(5), Coalition(6)],
             [Coalition(3), Coalition(6)],
         ])
-        self.assertTrue(np.allclose(minimizer.regret[0], [1 / 9, 1 / 9, 1 / 9]),
-                        msg=minimizer.regret)
+        self.assertTrue(np.allclose(minimizer.cumulative_regret[0], [1 / 9, 1 / 9, 1 / 9]),
+                        msg=minimizer.cumulative_regret)
