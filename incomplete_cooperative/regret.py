@@ -100,7 +100,7 @@ class GameRegretMinimizer:
         self.number_of_regret_minimizers = coalitions_up_to(self.number_of_coalitions, limit_of_revealed - 1)
 
         self.coalitions_to_player_ids = get_coalition_player_id_map(number_of_players)
-        self.regret = np.zeros((self.number_of_regret_minimizers, self.number_of_coalitions), dtype=RMValue)
+        self.cumulative_regret = np.zeros((self.number_of_regret_minimizers, self.number_of_coalitions), dtype=RMValue)
 
     def get_metacoalition_id(self, metacoalition: Iterable[Coalition]) -> int:
         """Properly get an id of a metacoalition."""
@@ -116,32 +116,32 @@ class GameRegretMinimizer:
         """
         metacoalition = past_actions if isinstance(past_actions, int) else self.get_metacoalition_id(past_actions)
         rank = self.meta_id_to_rank[metacoalition]
-        positive_regret = self.regret[rank] * (self.regret[rank] > 0)
+        positive_regret = self.cumulative_regret[rank] * (self.cumulative_regret[rank] > 0)
         if sum(positive_regret) == 0:
             return np.ones(self.number_of_coalitions) / self.number_of_coalitions  # TODO: not all viable!
         return positive_regret / sum(positive_regret)  # TODO: průměrná distribuce
 
-    def apply_regret(self, bottom_losses: np.ndarray, used_actions: list[list[Coalition]]) -> None:
+    def regret_min_iteration(self, terminal_losses: np.ndarray, used_actions: list[list[Coalition]]) -> None:
         """Scan every possible action sequence, and update the regret of all the regret minimizers.
 
         Arguments:
-            bottom_losses: the loss of the bottom layer of the game tree.
+            terminal_losses: the loss of the bottom layer of the game tree.
                     this should be an array of size (number_of_coalitions,).
             used_actions: the list of list of actions used to generate the bottom_losses.
         """
         used_metacoalition_ranks = [self.meta_id_to_rank[self.get_metacoalition_id(x)]
                                     for x in used_actions]
-        losses = np.zeros((self.number_of_regret_minimizers, self.number_of_coalitions),
-                          dtype=RMValue)
+        q_values = np.zeros((self.number_of_regret_minimizers, self.number_of_coalitions),
+                            dtype=RMValue)
         experienced_losses = np.zeros(self.viable_metacoalitions, dtype=RMValue)
-        experienced_losses[used_metacoalition_ranks] = bottom_losses
+        experienced_losses[used_metacoalition_ranks] = terminal_losses
         for i in range(self.number_of_regret_minimizers - 1, -1, -1):
             metacoalition = self.meta_rank_to_id[i]
             coalition_pids = list(Coalition(metacoalition).players)
             next_coalition_pids = [x for x in range(self.number_of_coalitions) if x not in coalition_pids]
             next_metacoalitions = [Coalition.from_players(coalition_pids + [x]).id for x in next_coalition_pids]
             next_metacoalition_ranks = self.meta_id_to_rank[next_metacoalitions]
-            losses[i, next_coalition_pids] = experienced_losses[next_metacoalition_ranks]
-            experienced_losses[i] = (losses[i] * self.get_actions_distribution(int(metacoalition))).sum()
+            q_values[i, next_coalition_pids] = experienced_losses[next_metacoalition_ranks]
+            experienced_losses[i] = (q_values[i] * self.get_actions_distribution(int(metacoalition))).sum()
 
-        self.regret += losses - experienced_losses[np.arange(self.number_of_regret_minimizers), None]  # TODO: abstract this
+        self.cumulative_regret += q_values - experienced_losses[np.arange(self.number_of_regret_minimizers), None]  # TODO: abstract this
