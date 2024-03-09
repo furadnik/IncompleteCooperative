@@ -116,6 +116,7 @@ class GameRegretMinimizer:
         """
         metacoalition = past_actions if isinstance(past_actions, int) else self.get_metacoalition_id(past_actions)
         rank = self.meta_id_to_rank[metacoalition]
+        # TODO: predictive: přičte predikci ...
         positive_regret = self.cumulative_regret[rank] * (self.cumulative_regret[rank] > 0)
         if sum(positive_regret) == 0:
             return np.ones(self.number_of_coalitions) / self.number_of_coalitions  # TODO: not all viable!
@@ -145,3 +146,4 @@ class GameRegretMinimizer:
             experienced_losses[i] = (q_values[i] * self.get_actions_distribution(int(metacoalition))).sum()
 
         self.cumulative_regret += q_values - experienced_losses[np.arange(self.number_of_regret_minimizers), None]  # TODO: abstract this
+        # TODO: plus: kladná čášt
