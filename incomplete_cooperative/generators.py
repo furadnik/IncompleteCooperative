@@ -232,5 +232,11 @@ GENERATORS: dict[str, GeneratorFn] = {
     }.items()},
     "graph_cycle": cycle,
     "xos": xos,
-    "xos_norm_additive": partial(xos, normalize_additive=True)
+    "xos2": partial(xos, number_of_players=2),
+    "xos3": partial(xos, number_of_players=3),
+    "xos12": partial(xos, number_of_players=12),
+    "xos_norm_additive": partial(xos, normalize_additive=True),
+    "xos2_norm_additive": partial(xos, normalize_additive=True, number_of_players=2),
+    "xos3_norm_additive": partial(xos, normalize_additive=True, number_of_players=3),
+    "xos12_norm_additive": partial(xos, normalize_additive=True, number_of_players=12),
 }
