@@ -262,3 +262,7 @@ class TestXOSGenerator(GeneratorsTests, TestCase):
                         i, number_of_additive=1, normalize_additive=False,
                         additive_gen=gen, normalize=True)
                         .get_values()))
+
+
+class TestXOSOtherGenerator(GeneratorsTests, TestCase):
+    generator = lambda x: GENERATORS["xos12"]
