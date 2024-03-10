@@ -1,10 +1,13 @@
+from functools import partial
 from typing import Callable, cast
 from unittest import TestCase
 
+import numpy as np
 from numpy.random import Generator, default_rng
 
 from incomplete_cooperative.bounds import compute_bounds_superadditive
 from incomplete_cooperative.coalitions import (Coalition, all_coalitions,
+                                               disjoint_coalitions,
                                                grand_coalition)
 from incomplete_cooperative.exploitability import compute_exploitability
 from incomplete_cooperative.generators import (
@@ -14,11 +17,23 @@ from incomplete_cooperative.graph_game import GraphCooperativeGame
 from incomplete_cooperative.normalize import normalize_game
 from incomplete_cooperative.protocols import Game, Value
 
+EPSILON = 1e-10
+
 
 class GeneratorsTests:
     generator: Callable[[int], Callable[[int, Generator], Game]]
     is_random: bool = True
     implements_generator: bool = True
+
+    def test_superadditive(self):
+        for players in range(3, 8):
+            game = self.generator()(players)
+            for S in all_coalitions(players):
+                for T in filter(partial(disjoint_coalitions, S), all_coalitions(players)):
+                    with self.subTest(S=S, T=T):
+                        self.assertGreaterEqual(
+                            game.get_value(S | T) + EPSILON,
+                            game.get_value(S) + game.get_value(T))
 
     def test_value_types(self):
         for players in range(3, 10):
@@ -266,3 +281,11 @@ class TestXOSGenerator(GeneratorsTests, TestCase):
 
 class TestXOSOtherGenerator(GeneratorsTests, TestCase):
     generator = lambda x: GENERATORS["xos12"]
+
+
+class TestXSGenerator(GeneratorsTests, TestCase):
+    generator = lambda x: GENERATORS["xs"]
+
+
+class TestOXSGenerator(GeneratorsTests, TestCase):
+    generator = lambda x: GENERATORS["oxs"]
