@@ -9,7 +9,7 @@ from networkx import (adjacency_matrix, connected_watts_strogatz_graph,
                       geographical_threshold_graph, gnp_random_graph,
                       random_geometric_graph, random_internet_as_graph)
 
-from .coalitions import all_coalitions
+from .coalitions import all_coalitions, disjoint_coalitions
 from .game import IncompleteCooperativeGame
 from .graph_game import GraphCooperativeGame
 from .protocols import Value
@@ -197,6 +197,41 @@ def xos(number_of_players: int, generator: np.random.Generator = np.random.defau
     return ig
 
 
+def xs(number_of_players: int, generator: np.random.Generator = np.random.default_rng()) -> IncompleteCooperativeGame:
+    """Generate a random XS function."""
+    singletons = np.array([generator.random() for _ in range(number_of_players)])
+    coalitions = all_coalitions(number_of_players)
+    players_in_coalitions = [list(coalition.players) for coalition in coalitions]
+    values = np.array([np.max(singletons[players], initial=0) for players in players_in_coalitions])
+
+    ig = IncompleteCooperativeGame(number_of_players)
+    ig.set_values(-values)  # turning the subadditive xos functions negative makes them superadditive
+    return ig
+
+
+def _apply_or(values1: np.ndarray, values2: np.ndarray, number_of_players: int) -> np.ndarray:
+    """Apply an OR of two functions."""
+    xor_values = np.zeros(2**number_of_players)
+    for S in all_coalitions(number_of_players):
+        for T in filter(partial(disjoint_coalitions, S), all_coalitions(number_of_players)):
+            xor_values[(S | T).id] = min(values1[S.id] + values2[T.id], xor_values[(S | T).id])
+    return xor_values
+
+
+def oxs(number_of_players: int, generator: np.random.Generator = np.random.default_rng(), number_of_xs: int = 6,
+        normalize: bool = True) -> IncompleteCooperativeGame:
+    """Generate a random OXS function with `number_of_xs` XS functions."""
+    xs_values = [xs(number_of_players, generator).get_values() for _ in range(number_of_xs)]
+    oxs_values = xs_values.pop()
+    for other_xs in xs_values:
+        oxs_values = _apply_or(oxs_values, other_xs, number_of_players)
+    if normalize:
+        oxs_values = -oxs_values / oxs_values[-1]
+    ig = IncompleteCooperativeGame(number_of_players)
+    ig.set_values(oxs_values)
+    return ig
+
+
 GENERATORS: dict[str, GeneratorFn] = {
     "factory": factory_generator,
     "predictible_factory": predictible_factory_generator,
@@ -239,4 +274,6 @@ GENERATORS: dict[str, GeneratorFn] = {
     "xos2_norm_additive": partial(xos, normalize_additive=True, number_of_additive=2),
     "xos3_norm_additive": partial(xos, normalize_additive=True, number_of_additive=3),
     "xos12_norm_additive": partial(xos, normalize_additive=True, number_of_additive=12),
+    "xs": xs,
+    "oxs": oxs,
 }

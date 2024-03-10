@@ -133,3 +133,8 @@ def get_known_coalitions(game: IncompleteGame) -> Iterable[Coalition]:
 def sub_coalitions(coalition: Coalition) -> Iterable[Coalition]:
     """Return all sub_coalitions of coalition."""
     return map(Coalition.from_players, powerset(coalition.players))
+
+
+def disjoint_coalitions(coalition1: Coalition, coalition2: Coalition) -> bool:
+    """Get whether or not two coalitions are disjoint."""
+    return (coalition1 & coalition2) == Coalition(0)
