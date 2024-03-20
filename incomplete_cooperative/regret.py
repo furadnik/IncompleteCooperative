@@ -38,7 +38,7 @@ def coalitions_up_to(number_of_players: int, size_limit: int) -> int:
 def get_coalition_player_id_map(number_of_players: int) -> np.ndarray:
     """Map a coalition to its 'player_id'."""
     viable_coalitions = [x.id for x in all_coalitions(number_of_players)
-                         if len(x) not in [0, 1, 2**number_of_players - 1]]
+                         if len(x) not in [0, 1, number_of_players]]
     ret = np.zeros(2**number_of_players, dtype=int) - 1
     ret[viable_coalitions] = range(len(viable_coalitions))
     return ret
@@ -132,13 +132,14 @@ class GameRegretMinimizer:
 
     def get_average_strategy(self, past_actions: Iterable[Coalition]) -> np.ndarray:
         """Get average strategy, in terms of actual coalitions in the original game."""
-        metacoalition = self.get_metacoalition_id(past_actions)
+        metacoalition = int(self.get_metacoalition_id(past_actions))
         rank = self.meta_id_to_rank[metacoalition]
         # in `regret minimization` we only add the "previous" regret matching strategy, not the current one,
         # so we need to add it here
         average_strategy = self.cumulative_strategy[rank] + self.regret_matching_strategy(metacoalition)
         average_strategy = average_strategy / average_strategy.sum()
         # translate from player_ids to coalition ids
+        print(self.coalitions_to_player_ids)
         return average_strategy[self.coalitions_to_player_ids] * (self.coalitions_to_player_ids > -0.5)
 
     def regret_min_iteration(self, terminal_losses: np.ndarray, used_actions: list[list[Coalition]]) -> None:
