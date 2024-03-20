@@ -47,6 +47,11 @@ class TestCoalitions(TestCase):
                 coalition2 = Coalition.from_players(y)
                 self.assertEqual(coalition == coalition2, s == y)
 
+    def test_coal_minus(self):
+        coal = Coalition.from_players([1, 2])
+        self.assertEqual(coal - 3, coal)
+        self.assertEqual(coal - 2, Coalition.from_players([1]))
+
     def test_coalition_and(self):
         coal1 = Coalition.from_players([1, 2])
         coal2 = Coalition.from_players([2, 3])
