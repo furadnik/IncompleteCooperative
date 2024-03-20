@@ -68,8 +68,11 @@ class TestGameRegretMinimizer(TestCase):
             [Coalition(5), Coalition(6)],
             [Coalition(3), Coalition(6)],
         ])
-        self.assertTrue(np.allclose(minimizer.cumulative_regret[0], [1 / 9, 1 / 9, -2 / 9]),
+        self.assertTrue(np.allclose(minimizer.cumulative_regret[0], [1 / 6, 1 / 6, -2 / 6]),
                         msg=minimizer.cumulative_regret)
+        self.assertTrue(np.allclose(minimizer.get_average_strategy([]),
+                                    [0, 0, 0, 5 / 12, 0, 5 / 12, 1 / 6, 0]),
+                        msg=minimizer.get_average_strategy([]))
 
     def test_apply_regret_twice(self):
         minimizer = GameRegretMinimizer(3, 2)
@@ -84,5 +87,41 @@ class TestGameRegretMinimizer(TestCase):
             [Coalition(5), Coalition(6)],
             [Coalition(3), Coalition(6)],
         ])
-        self.assertTrue(np.allclose(minimizer.cumulative_regret[0], [1 / 9, 1 / 9, 1 / 9]),
+        self.assertTrue(np.allclose(minimizer.cumulative_regret[0], [1 / 6, 1 / 6, 1 / 6]),
                         msg=minimizer.cumulative_regret)
+        self.assertTrue(np.allclose(minimizer.get_average_strategy([]),
+                                    [0, 0, 0, 7 / 18, 0, 7 / 18, 2 / 9, 0]),
+                        msg=minimizer.get_average_strategy([]))
+
+    def test_apply_regret_plus(self):
+        minimizer = GameRegretMinimizer(3, 2, plus=True)
+        print(minimizer.coalitions_to_player_ids, minimizer.meta_id_to_rank)
+        minimizer.regret_min_iteration(np.array([1, 0, 0]), [
+            [Coalition(3), Coalition(5)],
+            [Coalition(5), Coalition(6)],
+            [Coalition(3), Coalition(6)],
+        ])
+        self.assertTrue(np.allclose(minimizer.cumulative_regret[0], [1 / 6, 1 / 6, 0]),
+                        msg=minimizer.cumulative_regret)
+        self.assertTrue(np.allclose(minimizer.get_average_strategy([]),
+                                    [0, 0, 0, 5 / 12, 0, 5 / 12, 1 / 6, 0]),
+                        msg=minimizer.get_average_strategy([]))
+
+    def test_apply_regret_plus_twice(self):
+        minimizer = GameRegretMinimizer(3, 2, plus=True)
+        print(minimizer.coalitions_to_player_ids, minimizer.meta_id_to_rank)
+        minimizer.regret_min_iteration(np.array([1, 0, 0]), [
+            [Coalition(3), Coalition(5)],
+            [Coalition(5), Coalition(6)],
+            [Coalition(3), Coalition(6)],
+        ])
+        minimizer.regret_min_iteration(np.array([0, 1, 0]), [
+            [Coalition(3), Coalition(5)],
+            [Coalition(5), Coalition(6)],
+            [Coalition(3), Coalition(6)],
+        ])
+        self.assertTrue(np.allclose(minimizer.cumulative_regret[0], [1 / 6, 1 / 6, 1 / 2]),
+                        msg=minimizer.cumulative_regret)
+        self.assertTrue(np.allclose(minimizer.get_average_strategy([]),
+                                    [0, 0, 0, 23 / 60, 0, 23 / 60, 7 / 30, 0]),
+                        msg=minimizer.get_average_strategy([]))
