@@ -88,8 +88,21 @@ class Coalition:
         """Subtract coalition."""
         if isinstance(other, Coalition):
             return Coalition(self.id & ~other.id)
+        if isinstance(other, int):
+            return Coalition(self.id & ~(2**other))
         else:  # pragma: nocover
             raise ValueError(f"Cannot subtract Coalition and {other}")
+
+    def __add__(self, other) -> Coalition:
+        """Add a player."""
+        if isinstance(other, int):
+            return Coalition(self.id | 2**other)
+        else:  # pragma: nocover
+            raise ValueError(f"Cannot add Coalition and {other}")
+
+    def inverted(self, number_of_players: int) -> Coalition:
+        """Get the inverted coalition."""
+        return grand_coalition(number_of_players) - self
 
 
 def player_to_coalition(player: Player) -> Coalition:
