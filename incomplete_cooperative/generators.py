@@ -197,9 +197,15 @@ def xos(number_of_players: int, generator: np.random.Generator = np.random.defau
     return ig
 
 
-def xs(number_of_players: int, generator: np.random.Generator = np.random.default_rng()) -> IncompleteCooperativeGame:
+def xs(number_of_players: int, generator: np.random.Generator = np.random.default_rng(),
+       num_unit_demand: int = 0) -> IncompleteCooperativeGame:
     """Generate a random XS function."""
-    singletons = np.array([generator.random() for _ in range(number_of_players)])
+    if num_unit_demand:
+        singletons = np.zeros(number_of_players)
+        for _ in range(num_unit_demand):
+            singletons[generator.integers(number_of_players)] = generator.random()
+    else:
+        singletons = np.array([generator.random() for _ in range(number_of_players)])
     coalitions = all_coalitions(number_of_players)
     players_in_coalitions = [list(coalition.players) for coalition in coalitions]
     values = np.array([np.max(singletons[players], initial=0) for players in players_in_coalitions])
@@ -276,4 +282,7 @@ GENERATORS: dict[str, GeneratorFn] = {
     "xos12_norm_additive": partial(xos, normalize_additive=True, number_of_additive=12),
     "xs": xs,
     "oxs": oxs,
+    "xs2": partial(xs, num_unit_demand=2),
+    "xs3": partial(xs, num_unit_demand=3),
+    "xs6": partial(xs, num_unit_demand=6),
 }
