@@ -203,7 +203,8 @@ def xs(number_of_players: int, generator: np.random.Generator = np.random.defaul
     if num_unit_demand:
         singletons = np.zeros(number_of_players)
         for _ in range(num_unit_demand):
-            singletons[generator.integers(number_of_players)] = generator.random()
+            player = generator.integers(number_of_players)
+            singletons[player] = max(singletons[player], generator.random())
     else:
         singletons = np.array([generator.random() for _ in range(number_of_players)])
     coalitions = all_coalitions(number_of_players)
