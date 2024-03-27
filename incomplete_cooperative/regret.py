@@ -139,7 +139,8 @@ class GameRegretMinimizer:
         average_strategy = self.cumulative_strategy[rank] + self.regret_matching_strategy(metacoalition)
         average_strategy = average_strategy / average_strategy.sum()
         # translate from player_ids to coalition ids
-        print(self.coalitions_to_player_ids)
+        # index by the original player ids, or -1. Then, remove all the positions where it was -1,
+        # leaving the original values, just reordered, and zeros where missing
         return average_strategy[self.coalitions_to_player_ids] * (self.coalitions_to_player_ids > -0.5)
 
     def regret_min_iteration(self, terminal_losses: np.ndarray, used_actions: list[list[Coalition]]) -> None:
