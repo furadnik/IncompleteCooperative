@@ -289,3 +289,7 @@ class TestXSGenerator(GeneratorsTests, TestCase):
 
 class TestOXSGenerator(GeneratorsTests, TestCase):
     generator = lambda x: GENERATORS["oxs"]
+
+
+class TestXS6Generator(GeneratorsTests, TestCase):
+    generator = lambda x: GENERATORS["xs6"]
