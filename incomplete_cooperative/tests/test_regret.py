@@ -71,7 +71,7 @@ class TestGameRegretMinimizer(TestCase):
         self.assertTrue(np.allclose(minimizer.cumulative_regret[0], [1 / 6, 1 / 6, -2 / 6]),
                         msg=minimizer.cumulative_regret)
         self.assertTrue(np.allclose(minimizer.get_average_strategy([]),
-                                    [0, 0, 0, 5 / 12, 0, 5 / 12, 1 / 6, 0]),
+                                    [0, 0, 0, 1 / 3, 0, 1 / 3, 1 / 3, 0]),
                         msg=minimizer.get_average_strategy([]))
 
     def test_apply_regret_twice(self):
@@ -90,7 +90,7 @@ class TestGameRegretMinimizer(TestCase):
         self.assertTrue(np.allclose(minimizer.cumulative_regret[0], [1 / 6, 1 / 6, 1 / 6]),
                         msg=minimizer.cumulative_regret)
         self.assertTrue(np.allclose(minimizer.get_average_strategy([]),
-                                    [0, 0, 0, 7 / 18, 0, 7 / 18, 2 / 9, 0]),
+                                    [0, 0, 0, 5 / 12, 0, 5 / 12, 1 / 6, 0]),
                         msg=minimizer.get_average_strategy([]))
 
     def test_apply_regret_plus(self):
@@ -104,7 +104,7 @@ class TestGameRegretMinimizer(TestCase):
         self.assertTrue(np.allclose(minimizer.cumulative_regret[0], [1 / 6, 1 / 6, 0]),
                         msg=minimizer.cumulative_regret)
         self.assertTrue(np.allclose(minimizer.get_average_strategy([]),
-                                    [0, 0, 0, 5 / 12, 0, 5 / 12, 1 / 6, 0]),
+                                    [0, 0, 0, 1 / 3, 0, 1 / 3, 1 / 3, 0]),
                         msg=minimizer.get_average_strategy([]))
 
     def test_apply_regret_plus_twice(self):
@@ -123,5 +123,12 @@ class TestGameRegretMinimizer(TestCase):
         self.assertTrue(np.allclose(minimizer.cumulative_regret[0], [1 / 6, 1 / 6, 1 / 2]),
                         msg=minimizer.cumulative_regret)
         self.assertTrue(np.allclose(minimizer.get_average_strategy([]),
-                                    [0, 0, 0, 23 / 60, 0, 23 / 60, 7 / 30, 0]),
+                                    [0, 0, 0, 4 / 9, 0, 4 / 9, 1 / 9, 0]),
                         msg=minimizer.get_average_strategy([]))
+
+    def test_initial_strat_uniform(self):
+        minimizer = GameRegretMinimizer(3, 2, plus=True)
+        self.assertTrue(np.allclose(minimizer.get_average_strategy([]), [0, 0, 0, 1 / 3, 0, 1 / 3, 1 / 3, 0]),
+                        msg=minimizer.cumulative_regret)
+        self.assertTrue(np.allclose(minimizer.get_average_strategy([Coalition(3)]), [0, 0, 0, 0, 0, 1 / 2, 1 / 2, 0]),
+                        msg=minimizer.cumulative_regret)

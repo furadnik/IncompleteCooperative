@@ -134,10 +134,15 @@ class GameRegretMinimizer:
         """Get average strategy, in terms of actual coalitions in the original game."""
         metacoalition = int(self.get_metacoalition_id(past_actions))
         rank = self.meta_id_to_rank[metacoalition]
-        # in `regret minimization` we only add the "previous" regret matching strategy, not the current one,
-        # so we need to add it here
-        average_strategy = self.cumulative_strategy[rank] + self.regret_matching_strategy(metacoalition)
-        average_strategy = average_strategy / average_strategy.sum()
+
+        if np.all(self.cumulative_strategy[rank] == 0):
+            used_coalitions = list(Coalition(metacoalition).players)
+            cumulative_strategy = np.ones(self.number_of_coalitions)
+            cumulative_strategy[used_coalitions] = 0
+        else:
+            cumulative_strategy = self.cumulative_strategy[rank]
+
+        average_strategy = cumulative_strategy / cumulative_strategy.sum()
         # translate from player_ids to coalition ids
         # index by the original player ids, or -1. Then, remove all the positions where it was -1,
         # leaving the original values, just reordered, and zeros where missing
