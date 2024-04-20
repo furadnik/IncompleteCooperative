@@ -2,7 +2,7 @@
 import json
 from itertools import chain, combinations
 from pathlib import Path
-from typing import Iterable, Self
+from typing import Iterable
 
 import numpy as np  # type: ignore
 import scipy  # type: ignore
@@ -130,7 +130,7 @@ class GameRegretMinimizer:
         np.save(path / "strategy.npy", self.cumulative_strategy)
 
     @classmethod
-    def load(cls, path: Path) -> Self:
+    def load(cls, path: Path) -> "GameRegretMinimizer":
         """Load the game regret minimizer from a directory containing params, regret and strategy."""
         with (path / "params.json").open("r") as f:
             params = json.load(f)
