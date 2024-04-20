@@ -197,6 +197,24 @@ class GameRegretMinimizer:
                             dtype=RMValue)
         experienced_losses = np.zeros(self.viable_metacoalitions, dtype=RMValue)
         experienced_losses[used_metacoalition_ranks] = terminal_losses
+
+        # go down the tree, compute the probability of reaching each node under the current strategy
+        node_reach_probability = np.zeros(self.viable_metacoalitions, dtype=RMValue)
+        node_reach_probability[0] = 1
+        for i in range(self.number_of_regret_minimizers):
+            metacoalition = self.meta_rank_to_id[i]
+            metacoalition_coal = Coalition(metacoalition)
+            next_coalition_pids = list(metacoalition_coal.inverted(self.number_of_coalitions).players)
+            next_metacoalitions = [(metacoalition_coal + x).id for x in next_coalition_pids]
+            next_metacoalition_ranks = self.meta_id_to_rank[next_metacoalitions]
+            if np.any(self.cumulative_strategy[i, next_coalition_pids]):
+                normalized_cumulative_strat = self.cumulative_strategy[i, next_coalition_pids] / \
+                    np.sum(self.cumulative_strategy[i, next_coalition_pids])
+            else:
+                normalized_cumulative_strat = np.ones(len(next_coalition_pids)) / len(next_coalition_pids)
+            node_reach_probability[next_metacoalition_ranks] += node_reach_probability[i] * normalized_cumulative_strat
+
+        # go up the tree, computing the regret and new cumulative strategy
         for i in range(self.number_of_regret_minimizers - 1, -1, -1):
             metacoalition = self.meta_rank_to_id[i]
             metacoalition_coal = Coalition(metacoalition)
@@ -207,7 +225,7 @@ class GameRegretMinimizer:
             regret_matching_strategy = self.regret_matching_strategy(int(metacoalition))
             experienced_losses[i] = (q_values[i] * regret_matching_strategy).sum()
             weight = self.iteration if self.plus else 1
-            self.cumulative_strategy[i] += weight * regret_matching_strategy
+            self.cumulative_strategy[i] += weight * regret_matching_strategy * node_reach_probability[i]
 
         self.cumulative_regret += q_values - experienced_losses[np.arange(self.number_of_regret_minimizers), None]
         if self.plus:
