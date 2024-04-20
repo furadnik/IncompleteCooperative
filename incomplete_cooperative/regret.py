@@ -1,6 +1,8 @@
 """This module implements regret minimization for the Principal's Problem."""
+import json
 from itertools import chain, combinations
-from typing import Iterable
+from pathlib import Path
+from typing import Iterable, Self
 
 import numpy as np  # type: ignore
 import scipy  # type: ignore
@@ -106,6 +108,37 @@ class GameRegretMinimizer:
         self.cumulative_strategy = np.zeros((self.number_of_regret_minimizers, self.number_of_coalitions),
                                             dtype=RMValue)
         self.iteration = 0
+
+    def save(self, path: Path) -> None:
+        """Save the regret minimizer.
+
+        RM is saved as three files in:
+            * path/regret.npy: the cumulative regret,
+            * path/strategy.npy: the cumulative_strategy,
+            * path/params.json: the other, simple parameters of the models.
+        """
+        params = {
+            "iteration": self.iteration,
+            "number_of_players": self.number_of_players,
+            "limit_of_revealed": self.limit_of_revealed,
+            "plus": self.plus
+        }
+        path.mkdir(parents=True, exist_ok=True)
+        with (path / "params.json").open("w") as f:
+            json.dump(params, f)
+        np.save(path / "regret.npy", self.cumulative_regret)
+        np.save(path / "strategy.npy", self.cumulative_strategy)
+
+    @classmethod
+    def load(cls, path: Path) -> Self:
+        """Load the game regret minimizer from a directory containing params, regret and strategy."""
+        with (path / "params.json").open("r") as f:
+            params = json.load(f)
+        ret = cls(params["number_of_players"], params["limit_of_revealed"], params["plus"])
+        ret.iteration = params["iteration"]
+        ret.cumulative_regret = np.load(path / "regret.npy")
+        ret.cumulative_strategy = np.load(path / "strategy.npy")
+        return ret
 
     def get_metacoalition_id(self, metacoalition: Iterable[Coalition]) -> int:
         """Properly get an id of a metacoalition."""

@@ -1,3 +1,5 @@
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest import TestCase
 
 import numpy as np
@@ -132,3 +134,27 @@ class TestGameRegretMinimizer(TestCase):
                         msg=minimizer.cumulative_regret)
         self.assertTrue(np.allclose(minimizer.get_average_strategy([Coalition(3)]), [0, 0, 0, 0, 0, 1 / 2, 1 / 2, 0]),
                         msg=minimizer.cumulative_regret)
+
+    def test_load_store(self):
+        minimizer = GameRegretMinimizer(3, 2, plus=True)
+        print(minimizer.coalitions_to_player_ids, minimizer.meta_id_to_rank)
+        minimizer.regret_min_iteration(np.array([1, 0, 0]), [
+            [Coalition(3), Coalition(5)],
+            [Coalition(5), Coalition(6)],
+            [Coalition(3), Coalition(6)],
+        ])
+        minimizer.regret_min_iteration(np.array([0, 1, 0]), [
+            [Coalition(3), Coalition(5)],
+            [Coalition(5), Coalition(6)],
+            [Coalition(3), Coalition(6)],
+        ])
+        with TemporaryDirectory() as temp_dir:
+            minimizer.save(Path(temp_dir))
+            minimizer2 = GameRegretMinimizer.load(Path(temp_dir))
+            self.assertTrue(np.allclose(minimizer2.cumulative_regret, minimizer.cumulative_regret),
+                            msg=minimizer2.cumulative_regret)
+            self.assertTrue(np.allclose(minimizer2.get_average_strategy([]), minimizer.get_average_strategy([])),
+                            msg=minimizer2.get_average_strategy([]))
+            self.assertTrue(np.allclose(minimizer2.get_average_strategy([Coalition(3)]),
+                                        minimizer.get_average_strategy([Coalition(3)])),
+                            msg=minimizer2.get_average_strategy([Coalition(3)]))
