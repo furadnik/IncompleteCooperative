@@ -151,10 +151,21 @@ class TestGameRegretMinimizer(TestCase):
         with TemporaryDirectory() as temp_dir:
             minimizer.save(Path(temp_dir))
             minimizer2 = GameRegretMinimizer.load(Path(temp_dir))
-            self.assertTrue(np.allclose(minimizer2.cumulative_regret, minimizer.cumulative_regret),
-                            msg=minimizer2.cumulative_regret)
-            self.assertTrue(np.allclose(minimizer2.get_average_strategy([]), minimizer.get_average_strategy([])),
-                            msg=minimizer2.get_average_strategy([]))
-            self.assertTrue(np.allclose(minimizer2.get_average_strategy([Coalition(3)]),
-                                        minimizer.get_average_strategy([Coalition(3)])),
-                            msg=minimizer2.get_average_strategy([Coalition(3)]))
+            for i in range(5):
+                self.assertTrue(np.allclose(minimizer2.cumulative_regret, minimizer.cumulative_regret),
+                                msg=minimizer2.cumulative_regret)
+                self.assertTrue(np.allclose(minimizer2.get_average_strategy([]), minimizer.get_average_strategy([])),
+                                msg=minimizer2.get_average_strategy([]))
+                self.assertTrue(np.allclose(minimizer2.get_average_strategy([Coalition(3)]),
+                                            minimizer.get_average_strategy([Coalition(3)])),
+                                msg=minimizer2.get_average_strategy([Coalition(3)]))
+                minimizer.regret_min_iteration(np.array([0, 1, 0]), [
+                    [Coalition(3), Coalition(5)],
+                    [Coalition(5), Coalition(6)],
+                    [Coalition(3), Coalition(6)],
+                ])
+                minimizer2.regret_min_iteration(np.array([0, 1, 0]), [
+                    [Coalition(3), Coalition(5)],
+                    [Coalition(5), Coalition(6)],
+                    [Coalition(3), Coalition(6)],
+                ])
