@@ -18,14 +18,13 @@ from incomplete_cooperative.coalitions import Coalition
 from incomplete_cooperative.run.save import (Output, approx_game,
                                              get_coalition_distribution)
 from scripts.find_data_jsons import find_data_jsons
-from scripts.plot_base import (COALITION, COLOR_VALUES, LABEL_SIZE,
-                               MULTIFIG_RECT, MULTIFIG_SIZES, NAME_MAP,
-                               TITLE_SIZE, filter_func)
+from scripts.plot_base import (ALREADY_CUMULATIVE, COALITION, COLOR_VALUES,
+                               COMBINED_COAL_MAX_STEPS, LABEL_SIZE,
+                               LEGEND_N_COLS, MULTIFIG_PAD, MULTIFIG_RECT,
+                               MULTIFIG_SIZE, N_COLS, NAME_MAP, TITLE_SIZE,
+                               filter_func)
 
-ALREADY_CUMULATIVE = ["best_states", "expected_best_states"]
-N_COLS = 3
-
-TICK_SIZE = 5
+TICK_SIZE = 3
 
 
 def add_to_plt(ax: axes.Axes, data: np.ndarray, name: str, color: Any, step: int, cumulative: bool,
@@ -69,7 +68,9 @@ def draw_combined_graph(ax: axes.Axes, chosen_coalitions: list[tuple[str, np.nda
                                          width_of_bar, starting_shift + i * width_of_bar) or labels
         plotted.append(new_plotted)
         names.append(NAME_MAP.get(name, name))
-    ax.set_xticks(range(len(labels)), ["$\\{" + ','.join(map(str, x)) + "\\}$" for x in labels], rotation='vertical')
+    ax.set_xticks(range(len(labels)),
+                  ["$\\{" + ','.join(str(y + 1) for y in x) + "\\}$" for x in labels],
+                  rotation='vertical')
     ax.tick_params(labelsize=TICK_SIZE)
     ax.title.set_text(title)
     ax.title.set_fontsize(TITLE_SIZE)
@@ -99,24 +100,25 @@ def main(path: Path = Path(sys.argv[1]), title: str = sys.argv[2]) -> None:
             data_keys = json.load(f).keys()
 
         # a tuple (name, chosen_coalitions) of all runs
-        steps = min(len(Output.from_file(data, x).actions_list) for x in data_keys if filter_func(x))
+        steps = min(min(len(Output.from_file(data, x).actions_list) for x in data_keys if filter_func(x)),
+                    COMBINED_COAL_MAX_STEPS)
         chosen_coalitions = sorted(((x, Output.from_file(data, x).actions) for x in data_keys if filter_func(x)),
                                    key=lambda x: NAME_MAP.get(x[0], x[0]))
         fig, axs = plt.subplots(math.ceil(steps / N_COLS), N_COLS, layout='constrained')
         axs = axs.flatten()
-        fig.set_size_inches(MULTIFIG_SIZES)
+        fig.set_size_inches(MULTIFIG_SIZE)
 
         for step in range(steps):
             step_path = save_path / f"{step + 1}.pdf"
             # steps in title are counted from 1.
             plotted, labels = draw_combined_graph(axs[step], chosen_coalitions, step_path,
-                                                  f"{title} -- step {step + 1}", step,
+                                                  f"{title}, $ \\tau = {step + 1} $", step,
                                                   step // N_COLS + 1 == steps // N_COLS,
                                                   step % N_COLS == 0)
 
         fig.set_tight_layout({"pad": .8, "rect": MULTIFIG_RECT})
-        fig.legend(plotted, labels, loc='upper center', ncol=10, fontsize=LABEL_SIZE,
-                   bbox_to_anchor=(0.5, 0.04))
+        fig.legend(plotted, labels, loc='upper center', ncol=LEGEND_N_COLS, fontsize=LABEL_SIZE,
+                   bbox_to_anchor=(0.5, 0.08))
         print(save_path.with_suffix(".pdf"))
         fig.savefig(save_path.with_suffix(".pdf"))
         # fig.close()

@@ -10,8 +10,13 @@ PLAYER = os.environ.get("ICG_PLAYER", "Element")
 EXPLOITABILITY = os.environ.get("ICG_EXPLOITABILITY", "$l_1$ Divergence")
 FORMAT = os.environ.get("ICG_FORMAT", "aaai")
 
-text = {'text.latex.preamble': '\\usepackage{libertine}\n\\renewcommand{\\ttdefault}{cmtt}',
-        } if FORMAT == "aamas" else {'font.family': "times"}
+if FORMAT == "aamas":
+    text = {'text.latex.preamble': '\\usepackage{libertine}\n\\renewcommand{\\ttdefault}{cmtt}', }
+elif FORMAT == "aaai":
+    text = {'font.family': "times"}
+else:
+    text = {'font.family': "serif"}
+
 
 mpl.rcParams.update({
     'axes.labelsize': 16,
@@ -38,8 +43,9 @@ NAME_MAP = {k: "{\\sc " + v + "}" for k, v in {
 }.items()}
 LINE_STYLES = ["solid", "dashed", "dashdot", "dotted"]
 
-MULTIFIG_SIZES = (8.3, 8.3)
-MULTIFIG_RECT = [0, 0.035, 1, 1]
+MULTIFIG_SIZE = (8.3, 9.1) if FORMAT != "bakalarka" else (6, 9)
+MULTIFIG_PAD = .45 if FORMAT != "bakalarka" else .81
+MULTIFIG_RECT = [0, 0.035, 1, 1] if FORMAT != "bakalarka" else [0, 0.08, 1, 1]
 PLOT_RATIO = 1.2 / 2
 
 
@@ -51,3 +57,11 @@ LABEL_SIZE = 10
 TITLE_SIZE = 11
 
 filter_func = (lambda x: x in sys.argv[3].split(",")) if len(sys.argv) >= 4 else lambda x: True
+
+ALREADY_CUMULATIVE = ["best_states", "expected_best_states"]
+N_COLS = 3
+COMBINED_COAL_MAX_STEPS = int(os.environ.get("COMBINED_COAL_MAX_STEPS", 12))
+if FORMAT == "bakalarka":
+    LEGEND_N_COLS = 3
+else:
+    LEGEND_N_COLS = 10
