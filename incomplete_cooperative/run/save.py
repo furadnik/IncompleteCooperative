@@ -179,7 +179,7 @@ def save_draw_coalitions(path: Path, unique_name: str, output: Output) -> None:
         ax.set_ylim(bottom=0, top=1)
         ax.grid(zorder=-1)
         ax.set_xticks(range(len(labels)),
-                      labels,
+                      [str(x) for x in labels],
                       rotation='vertical')
         ax.bar(range(len(labels)), distribution, align='center', zorder=3)
         plt.autoscale()
