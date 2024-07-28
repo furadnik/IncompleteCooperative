@@ -90,13 +90,13 @@ def factory_cheerleader_next_generator(number_of_players: int,
 
 def graph_generator(number_of_players: int,
                     generator: np.random.Generator = np.random.default_rng(), *,
-                    dist_fn: Callable[[tuple[int, int]], np.ndarray] = lambda x: _gen.random(x)
+                    dist_fn: Callable[[tuple[int, int]], np.ndarray | float] = lambda x: _gen.random(x)
                     ) -> GraphCooperativeGame:
     """Generate a graph game.
 
     Note: For now, this ignores the `generator`, assumes a generator is present in the `dist_fn`.
     """
-    game_matrix = dist_fn((number_of_players, number_of_players)).astype(Value)
+    game_matrix = dist_fn((number_of_players, number_of_players)).astype(Value)  # type: ignore
     return GraphCooperativeGame(game_matrix)
 
 
