@@ -70,7 +70,7 @@ class IncompleteGame(Game, Protocol):
     def get_lower_bounds(self, coalitions: Iterable[Coalition] | None = None) -> Values:
         """Get upper bounds for coalitions."""
 
-    def get_interval(self, coalition: Coalition) -> np.ndarray[Literal[2], np.dtype[Value]]:
+    def get_interval(self, coalition: Coalition) -> np.ndarray[tuple[Literal[2]], np.dtype[Value]]:
         """Get the interval, ie. both the upper and lower bounds."""
 
     def get_intervals(self, coalitions: Iterable[Coalition] | None = None
