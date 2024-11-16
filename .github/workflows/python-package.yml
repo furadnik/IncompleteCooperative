@@ -9,37 +9,121 @@ on:
   pull_request:
     branches-ignore: []
 
+    - name: Test code coverage
+      run: |
 jobs:
   build:
-
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
-
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}.
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
+    - name: Install dependencies.
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install .[dev]
+  check_db:
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}.
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies.
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install .[dev]
+    - name: Setup database.
+      run: |
+        python manage.py makemigrations
+        python manage.py migrate
+        python manage.py check
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}.
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies.
       run: |
         python -m pip install --upgrade pip
         python -m pip install .[dev]
     - name: Test with unittest
       run: |
         python -m coverage run -m unittest
-    - name: Test typehints
+    - name: Test coverage
+      run: |
+        python -m coverage report --show-missing --fail-under=100
+  test_typing:
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}.
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies.
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install .[dev]
+    - name: Test type hints with MYPY.
       run: |
         python -m mypy incomplete_cooperative
+  test_docsets:
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}.
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies.
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install .[dev]
+  test_security:
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}.
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies.
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install .[dev]
     - name: Test docstrings
       run: |
         python -m pydocstyle incomplete_cooperative
     - name: Test security with bandit
       run: |
         python -m bandit -r incomplete_cooperative
-    - name: Test code coverage
-      run: |
-        python -m coverage report --show-missing --fail-under=100
