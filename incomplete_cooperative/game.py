@@ -152,18 +152,12 @@ class IncompleteCooperativeGame:
 
     def reveal_value(self, value: ValueIn, coalition: Coalition) -> None:
         """Reveal a previously unknown value of coalition."""
-        if self.is_value_known(coalition):
-            # raise ValueError("Value was already known.")  # TODO: improve this.
-            LOGGER.error("Value was already known.")
-            return
+        assert not self.is_value_known(coalition)
         self.set_value(value, coalition)
 
     def unreveal_value(self, coalition: Coalition) -> None:
         """Reveal a previously unknown value of coalition."""
-        if not self.is_value_known(coalition):
-            # raise ValueError("Value was already known.")  # TODO: improve this.
-            LOGGER.error("Value was not already known.")
-            return
+        assert self.is_value_known(coalition)
         self.unset_value(coalition)
 
     def _get_coalition_map(self, coalitions: Iterable[Coalition] | None,
@@ -229,13 +223,12 @@ class IncompleteCooperativeGame:
 
     def __add__(self, other: IncompleteCooperativeGame) -> IncompleteCooperativeGame:
         """Add games."""
-        if not all([
+        assert all([
             np.all(self.are_values_known()),
             np.all(other.are_values_known()),
             self.number_of_players == other.number_of_players,
             isinstance(other, IncompleteCooperativeGame)
-        ]):
-            raise ValueError(f"Calling game addition on incompatible games: {self}, {other}.")
+        ]), f"Calling game addition on incompatible games: {self}, {other}."
         new = self.copy()
         new._values[:, 1:3] += other._values[:, 1:3]
         return new
