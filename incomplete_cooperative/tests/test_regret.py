@@ -64,7 +64,6 @@ class TestGameRegretMinimizer(TestCase):
 
     def test_apply_regret(self):
         minimizer = GameRegretMinimizer(3, 2)
-        print(minimizer.coalitions_to_player_ids, minimizer.meta_id_to_rank)
         minimizer.regret_min_iteration(np.array([1, 0, 0]), [
             [Coalition(3), Coalition(5)],
             [Coalition(5), Coalition(6)],
@@ -78,7 +77,6 @@ class TestGameRegretMinimizer(TestCase):
 
     def test_apply_regret_twice(self):
         minimizer = GameRegretMinimizer(3, 2)
-        print(minimizer.coalitions_to_player_ids, minimizer.meta_id_to_rank)
         minimizer.regret_min_iteration(np.array([1, 0, 0]), [
             [Coalition(3), Coalition(5)],
             [Coalition(5), Coalition(6)],
@@ -97,7 +95,6 @@ class TestGameRegretMinimizer(TestCase):
 
     def test_apply_regret_plus(self):
         minimizer = GameRegretMinimizer(3, 2, plus=True)
-        print(minimizer.coalitions_to_player_ids, minimizer.meta_id_to_rank)
         minimizer.regret_min_iteration(np.array([1, 0, 0]), [
             [Coalition(3), Coalition(5)],
             [Coalition(5), Coalition(6)],
@@ -111,7 +108,6 @@ class TestGameRegretMinimizer(TestCase):
 
     def test_apply_regret_plus_twice(self):
         minimizer = GameRegretMinimizer(3, 2, plus=True)
-        print(minimizer.coalitions_to_player_ids, minimizer.meta_id_to_rank)
         minimizer.regret_min_iteration(np.array([1, 0, 0]), [
             [Coalition(3), Coalition(5)],
             [Coalition(5), Coalition(6)],
@@ -137,7 +133,6 @@ class TestGameRegretMinimizer(TestCase):
 
     def test_load_store(self):
         minimizer = GameRegretMinimizer(3, 2, plus=True)
-        print(minimizer.coalitions_to_player_ids, minimizer.meta_id_to_rank)
         minimizer.regret_min_iteration(np.array([1, 0, 0]), [
             [Coalition(3), Coalition(5)],
             [Coalition(5), Coalition(6)],

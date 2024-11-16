@@ -54,7 +54,6 @@ class LearningTester(GetLearningResultMixin):
     kwargs: dict
 
     def test_better_than_random(self):
-        print(self.kwargs)
         learned_output = self.get_learning_results(**self.kwargs)
         random_output = self.get_random_results(**self.kwargs)
         self.assertLess(learned_output.data_avg_final,
@@ -90,7 +89,6 @@ class TestSimpleGame(LearningTester, TestCase):
         for i in range(env.valid_action_mask().shape[0]):
             _, reward, _, _, out_dict = env.step(i)
             action = out_dict["chosen_coalition"]
-            print(-reward, Coalition(action))
             env.reset()
             if reward == best_reward:
                 best_actions.append(action)
