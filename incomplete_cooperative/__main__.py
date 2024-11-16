@@ -51,7 +51,6 @@ def main(ap: ArgumentParser = get_argument_parser(),
     # if parsed_args.seed is not None:  # TODO: does not apply to the agent yet
     #     random.seed(parsed_args.seed)
 
-    print(parsed_args)
     instance = ModelInstance.from_parsed_arguments(parsed_args)
     parsed_args.func(instance, parsed_args)
 

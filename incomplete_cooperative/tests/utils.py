@@ -34,7 +34,6 @@ class IncompleteGameMixin:
 
     def get_game_minimal(self, number_of_players=6, **kwargs) -> IncompleteCooperativeGame:
         """Get game with minimal info."""
-        print([c for c in all_coalitions(number_of_players) if len(c) not in [number_of_players, 1, 0]])
         return self.get_game_miss_coals(
             missed_coals=[c for c in all_coalitions(number_of_players) if len(c) not in [number_of_players, 1, 0]],
             number_of_players=number_of_players, **kwargs)

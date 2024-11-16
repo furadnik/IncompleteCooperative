@@ -1,4 +1,5 @@
 """A module containing helpers for manipulating the `Game`s."""
+import logging
 import time
 from itertools import chain, combinations
 from multiprocessing import Pool
@@ -12,6 +13,8 @@ from .protocols import (Game, GameGenerator, GapFunction, IncompleteGame,
 
 Action = Coalition  # we are choosing a coalition
 ActionSequence = list[Action]
+
+LOGGER = logging.getLogger(__name__)
 
 
 def possible_next_actions(game: IncompleteGame) -> Iterable[Action]:
@@ -71,7 +74,7 @@ def sample_exploitabilities_of_action_sequences(
         **kwargs: Any
 ) -> tuple[list[ActionSequence], np.ndarray[Any, np.dtype[Value]]]:
     """Sample exploitabilities of action sequences."""
-    print(int(time.time()), f"Sampling exploitabilities for {game}")
+    LOGGER.info(f"{int(time.time())} Sampling exploitabilities for {game}")
 
     initially_known_coalitions = list(get_known_coalitions(game))
 
@@ -90,14 +93,14 @@ def sample_exploitabilities_of_action_sequences(
 
     for i in range(1, samples):
         start = int(time.time())
-        print(start, f"Sampling exploitabilities for {game}, sample {i+1}")
+        LOGGER.info(f"{start}, Sampling exploitabilities for {game}, sample {i + 1}")
         full_game = full_game_generator(game.number_of_players)
         game.set_known_values(full_game.get_values(initially_known_coalitions),
                               initially_known_coalitions)
         values[i] = np.fromiter((x[1] for x in get_exploitabilities_of_action_sequences(game, full_game, gap_func,
                                                                                         **kwargs)),
                                 Value, initial_values.shape[0])
-        print(f"Took {int(time.time()) - start} seconds ({(int(time.time()) - start)/60} minutes).")
+        LOGGER.info(f"Took {int(time.time()) - start} seconds ({(int(time.time()) - start) / 60} minutes).")
     return actions, values
 
 
