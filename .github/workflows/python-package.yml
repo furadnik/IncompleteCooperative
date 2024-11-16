@@ -10,25 +10,8 @@ on:
     branches-ignore: []
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
-    steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}.
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies.
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install .[dev]
   test:
     runs-on: ubuntu-latest
-    needs: build
     strategy:
       fail-fast: false
       matrix:
@@ -39,70 +22,6 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install dependencies.
+    - name: Test.
       run: |
-        python -m pip install --upgrade pip
-        python -m pip install .[dev]
-    - name: Test with unittest
-      run: |
-        python -m unittest
-  test_typing:
-    runs-on: ubuntu-latest
-    needs: build
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
-    steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}.
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies.
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install .[dev]
-    - name: Test type hints with MYPY.
-      run: |
-        python -m mypy incomplete_cooperative
-  test_docsets:
-    runs-on: ubuntu-latest
-    needs: build
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
-    steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}.
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies.
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install .[dev]
-  test_security:
-    runs-on: ubuntu-latest
-    needs: build
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
-    steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}.
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies.
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install .[dev]
-    - name: Test docstrings
-      run: |
-        python -m pydocstyle incomplete_cooperative
-    - name: Test security with bandit
-      run: |
-        python -m bandit -r incomplete_cooperative
+        make -Bj test_all
