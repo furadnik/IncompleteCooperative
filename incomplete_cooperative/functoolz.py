@@ -8,5 +8,5 @@ T = TypeVar("T")
 def powerset(iter: list[T]) -> Iterable[tuple[T, ...]]:
     """Generate the powerset of an iterable."""
     return chain.from_iterable(
-        combinations(iter, r) for r in range(len(iter))
+        combinations(iter, r) for r in range(len(iter) + 1)
     )
