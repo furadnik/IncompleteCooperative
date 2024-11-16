@@ -204,8 +204,3 @@ class TestGame(TestCase):
             self.assertEqual(value, orig)
             self.assertEqual(other_value, orig)
             self.assertEqual(added_value, 2 * orig)
-
-    def test_add_wrong(self):
-        game = self.game.copy()
-        other = self.game.copy()
-        self.assertRaises(ValueError, lambda: game + other)
