@@ -3,20 +3,20 @@ from typing import Iterator
 
 import numpy as np
 
-from .coalitions import Coalition, all_coalitions
+from .coalitions import Coalition, all_coalitions, grand_coalition
+from .functoolz import powerset
 from .protocols import BoundableIncompleteGame
 
 
 def _sub_coalitions(coalition: Coalition, game: BoundableIncompleteGame) -> Iterator[Coalition]:
     """Generate sub-coalitions for a coalition."""
-    return filter(lambda x: x & coalition != coalition and x | coalition == coalition and len(x),
-                  all_coalitions(game))
+    return (coalition.from_players(players) for players in powerset(list(coalition.players)))
 
 
 def _super_coalitions(coalition: Coalition, game: BoundableIncompleteGame) -> Iterator[Coalition]:
     """Generate super-coalitions of a coalition."""
-    return filter(lambda x: x & coalition == coalition and coalition != x,
-                  all_coalitions(game))
+    opposite = grand_coalition(game) - coalition
+    return (coalition | sub for sub in _sub_coalitions(opposite, game))
 
 
 def compute_bounds_superadditive(game: BoundableIncompleteGame) -> None:
