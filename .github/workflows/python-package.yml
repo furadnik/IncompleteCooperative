@@ -9,8 +9,6 @@ on:
   pull_request:
     branches-ignore: []
 
-    - name: Test code coverage
-      run: |
 jobs:
   build:
     runs-on: ubuntu-latest
