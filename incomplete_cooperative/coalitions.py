@@ -1,18 +1,12 @@
 """A set of utility functions working with coalitions."""
 from __future__ import annotations
 
-from itertools import chain, combinations
-from typing import Iterable, TypeVar
+from typing import Iterable, Iterator, TypeVar
 
+from .functoolz import powerset
 from .protocols import Game, IncompleteGame, Player
 
 T = TypeVar("T")
-
-
-def powerset(input_iter: Iterable[T]) -> Iterable[list[T]]:
-    """Return the powerset of the input."""
-    input_iter = list(input_iter)
-    return map(list, chain.from_iterable(combinations(input_iter, i) for i in range(len(input_iter) + 1)))
 
 
 class Coalition:
@@ -142,9 +136,15 @@ def get_known_coalitions(game: IncompleteGame) -> Iterable[Coalition]:
     return (x for x in all_coalitions(game) if game.is_value_known(x))
 
 
-def sub_coalitions(coalition: Coalition) -> Iterable[Coalition]:
+def get_sub_coalitions(coalition: Coalition) -> Iterable[Coalition]:
     """Return all sub_coalitions of coalition."""
-    return map(Coalition.from_players, powerset(coalition.players))
+    return map(Coalition.from_players, powerset(list(coalition.players)))
+
+
+def get_super_coalitions(coalition: Coalition, total_players: int) -> Iterator[Coalition]:
+    """Generate super-coalitions of a coalition."""
+    opposite = grand_coalition(total_players) - coalition
+    return (coalition | sub for sub in get_sub_coalitions(opposite))
 
 
 def disjoint_coalitions(coalition1: Coalition, coalition2: Coalition) -> bool:

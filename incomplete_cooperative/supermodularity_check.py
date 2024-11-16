@@ -1,6 +1,6 @@
 """Check if a game is supermodular."""
-from .coalitions import (Coalition, all_coalitions, grand_coalition,
-                         sub_coalitions)
+from .coalitions import (Coalition, all_coalitions, get_sub_coalitions,
+                         grand_coalition)
 from .protocols import Game, Player
 
 
@@ -12,7 +12,7 @@ def check_supermodularity(game: Game, tolerance: float = 1e-10) -> tuple[Coaliti
     for T in all_coalitions(game):
         for i in filter(lambda i: i not in T, grand_coalition(game).players):
             rhs = game.get_value(T | Coalition.from_players({i})) - game.get_value(T)
-            for S in filter(lambda s: s != T, sub_coalitions(T)):
+            for S in filter(lambda s: s != T, get_sub_coalitions(T)):
                 lhs = game.get_value(S | Coalition.from_players({i})) - game.get_value(S)
                 if lhs > rhs + tolerance:  # pragma: no cover
                     return T, S, i
