@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from stable_baselines3.common.env_checker import check_env  # type: ignore
+from gymnasium.utils.env_checker import check_env  # type: ignore
 
 from incomplete_cooperative.coalitions import Coalition
 from incomplete_cooperative.exploitability import compute_exploitability
@@ -81,7 +81,7 @@ class TestICGGym(TestCase, GymMixin):
         icg_gym = ICG_Gym(self.game, lambda: self.full_game, self.known_coalitions, compute_exploitability, 42)
         self.assertFalse(icg_gym.done)
         for i in range(42):
-            icg_gym.step(1)
+            icg_gym.step(i)
 
         self.assertTrue(icg_gym.done)
 
@@ -89,7 +89,7 @@ class TestICGGym(TestCase, GymMixin):
         self.assertFalse(icg_gym.done)
 
     def test_gym_env(self):
-        check_env(self.icg_gym)
+        check_env(self.icg_gym, skip_render_check=True)
 
     def test_step_unstep(self):
         test_functions = [
