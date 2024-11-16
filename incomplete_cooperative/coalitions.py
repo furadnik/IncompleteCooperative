@@ -133,9 +133,8 @@ def minimal_game_coalitions(players: Game | int) -> Iterable[Coalition]:
 
 
 def exclude_coalition(exclude: Coalition, coalitions: Iterable[Coalition]) -> Iterable[Coalition]:
-    """Get coalitions that do not icnlude anyone from the `exclude` coalition."""
-    return filter(lambda coalition: not len(coalition & exclude),
-                  coalitions)
+    """Get coalitions that do not include anyone from the `exclude` coalition."""
+    return (coalition for coalition in coalitions if (coalition & exclude).id == 0)
 
 
 def get_known_coalitions(game: IncompleteGame) -> Iterable[Coalition]:

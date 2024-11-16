@@ -1,18 +1,18 @@
 from itertools import chain, combinations
 from unittest import TestCase
-from unittest.mock import MagicMock
 
 from incomplete_cooperative.coalitions import (Coalition, all_coalitions,
                                                exclude_coalition,
                                                minimal_game_coalitions,
                                                player_to_coalition)
+from incomplete_cooperative.game import IncompleteCooperativeGame
 
 
 class TestCoalitions(TestCase):
 
     def setUp(self) -> None:
         self.number_of_players = 6
-        self.game = MagicMock(number_of_players=self.number_of_players)
+        self.game = IncompleteCooperativeGame(self.number_of_players)
 
     def test_coalition_from_players(self):
         self.assertEqual(Coalition.from_players([0, 1, 2]).id,
@@ -73,9 +73,11 @@ class TestCoalitions(TestCase):
     def test_exclude_coalition(self) -> None:
         for coalition_id in range(1, 2**self.number_of_players):
             coalition = Coalition(coalition_id)
+            assert self.number_of_players == self.game.number_of_players
+            assert len(list(all_coalitions(self.game))) == 2**self.number_of_players
             self.coalition_filtering_function_tester(
-                lambda x: x & coalition == Coalition(0),
-                exclude_coalition(coalition, filter(lambda x: len(x), all_coalitions(self.game)))
+                lambda x: (x & coalition) == Coalition(0),
+                exclude_coalition(coalition, all_coalitions(self.game))
             )
 
     def test_contains(self):
