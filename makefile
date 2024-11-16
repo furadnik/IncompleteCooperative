@@ -10,6 +10,7 @@ $(VENV)/bin/activate: setup.cfg
 	$(PIP) install --upgrade .[dev]
 
 test_unittest: $(VENV)/bin/activate
+	$(PYTHON) -m coverage erase
 	$(PYTHON) -m coverage run -m unittest --locals --failfast -k incomplete_cooperative.tests
 	$(PYTHON) -m coverage report --show-missing --fail-under=$(FAIL_UNDER)
 	
