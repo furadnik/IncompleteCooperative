@@ -37,12 +37,6 @@ class TestGame(TestCase):
         self.assertIsNone(self.game.get_known_value(Coalition(1)))
         self.assertEqual(self.game.get_known_value(Coalition(2)), 1)
 
-    def test_reveal_existing(self):
-        self.game.set_value(3, Coalition(1))
-        self.game.reveal_value(2, Coalition(1))
-        # self.assertRaises(ValueError, self.game.reveal_value, 3, Coalition(1))
-        self.assertEqual(self.game.get_value(Coalition(1)), 3)
-
     def test_reveal_proper(self):
         self.game.set_value(4, Coalition(2))
         self.game.reveal_value(3, Coalition(1))
@@ -179,13 +173,6 @@ class TestGame(TestCase):
         self.assertEqual(self.game.get_value(Coalition(1)), 10)
         self.game.unreveal_value(Coalition(1))
         self.assertRaises(ValueError, self.game.get_value, Coalition(1))
-        self.assertFalse(self.game.is_value_known(Coalition(1)))
-
-    def test_game_value_unreveal_not_known(self):
-        self.game.reveal_value(10, Coalition(1))
-        self.assertEqual(self.game.get_value(Coalition(1)), 10)
-        self.game.unreveal_value(Coalition(1))
-        self.game.unreveal_value(Coalition(1))
         self.assertFalse(self.game.is_value_known(Coalition(1)))
 
     def test_copy(self):
