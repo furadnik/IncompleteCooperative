@@ -22,5 +22,12 @@ test_docs: $(VENV)/bin/activate
 test_security: $(VENV)/bin/activate
 	$(PYTHON) -m bandit -r incomplete_cooperative -s B101
 
-.PHONY: test test_unittest test_types test_docs test_security
+clean:
+	rm -rf build
+	rm -rf incomplete_cooperative.*
+	rm -rf .venv
+	find . -name __pycache__ -exec rm -rf {} \;
+	rm -rf *.png *.json
+
+.PHONY: test test_unittest test_types test_docs test_security clean
 
