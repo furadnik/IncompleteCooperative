@@ -4,6 +4,7 @@ PIP=$(VENV)/bin/pip
 
 FAIL_UNDER=100
 UNITTEST_MODULE=incomplete_cooperative.tests
+PYTEST_FILE=incomplete_cooperative/tests
 
 test: test_unittest test_types test_docs test_security
 
@@ -13,7 +14,7 @@ $(VENV)/bin/activate: setup.cfg
 
 test_unittest: $(VENV)/bin/activate
 	$(PYTHON) -m coverage erase
-	$(PYTHON) -m coverage run -m unittest --locals --failfast -k $(UNITTEST_MODULE)
+	$(PYTHON) -m coverage run -m pytest $(PYTEST_FILE)
 	$(PYTHON) -m coverage report -i --show-missing --fail-under=$(FAIL_UNDER)
 	
 test_types: $(VENV)/bin/activate
