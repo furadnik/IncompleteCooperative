@@ -14,8 +14,8 @@ def evaluate(get_next_step: Callable, env: Gym,
     for repetition in range(repetitions):
         _, base_info = env.reset()
         game = base_info["game"]
-        incomplete_game = env.incomplete_game.copy()
-        known_coalitions = env.initially_known_coalitions.copy()
+        incomplete_game = env.get_wrapper_attr("incomplete_game").copy()
+        known_coalitions = env.get_wrapper_attr("initially_known_coalitions").copy()
 
         incomplete_game.set_known_values(game.get_values(known_coalitions), known_coalitions)
         incomplete_game.compute_bounds()
