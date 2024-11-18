@@ -3,7 +3,6 @@ PYTHON=$(VENV)/bin/python
 PIP=$(VENV)/bin/pip
 
 FAIL_UNDER=100
-UNITTEST_MODULE=incomplete_cooperative.tests
 PYTEST_FILE=incomplete_cooperative/tests
 
 test: test_unittest test_types test_docs test_security

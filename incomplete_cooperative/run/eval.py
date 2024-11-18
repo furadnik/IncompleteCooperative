@@ -16,7 +16,7 @@ def eval_func(instance: ModelInstance, parsed_args) -> None:
 
     def eval_next_step(env):
         action_masks = get_action_masks(env)
-        obs = env.state
+        obs = env.get_wrapper_attr("state")
         action, _ = model.predict(
             obs, action_masks=action_masks, deterministic=parsed_args.eval_deterministic)
         return action

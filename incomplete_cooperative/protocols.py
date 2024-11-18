@@ -176,6 +176,9 @@ class Gym(Protocol):
     def explorable_coalitions(self) -> list[Coalition]:
         """A list of coalitions that aren't initially known."""
 
+    def get_wrapper_attr(self, _: str) -> Any:
+        """Replace the __attr__ old approach."""
+
 
 class Solver(Protocol):
     """A solver of incomplete games.
