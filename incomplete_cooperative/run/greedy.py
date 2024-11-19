@@ -45,7 +45,7 @@ def get_greedy_rewards(env: ICG_Gym, max_steps: int, repetitions: int, gap_func:
     incomplete_game = env.incomplete_game
     generated_games = [env.generator() for _ in range(repetitions)]
 
-    possible_actions = set(env.explorable_coalitions)
+    possible_actions = set(env.get_wrapper_attr("explorable_coalitions"))
     action_sequence: list[Coalition] = []
     possible_next_action_sequences: list[list[Coalition]] = [[]]
     while len(action_sequence) < max_steps:

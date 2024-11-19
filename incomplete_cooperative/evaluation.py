@@ -23,7 +23,7 @@ def evaluate(get_next_step: Callable, env: Gym,
         for episode in range(run_steps_limit):
             action = get_next_step(env)
             _, _, done, _, info = env.step(action)
-            known_coalitions.append(env.explorable_coalitions[action])
+            known_coalitions.append(env.get_wrapper_attr("explorable_coalitions")[action])
 
             # reveal the same coalitions on the non-normalized game, compute its exploitability
             incomplete_game.set_known_values(game.get_values(known_coalitions), known_coalitions)
