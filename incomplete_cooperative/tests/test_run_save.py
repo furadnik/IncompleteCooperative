@@ -36,7 +36,7 @@ class TestJsonSerializer(TestCase):
                                  {"data": expected})
 
 
-class TestSaverMixin:
+class SaverMixin:
 
     func: str
 
@@ -57,7 +57,7 @@ class TestSaverMixin:
         self.assertEqual(list(x.name for x in self.path.iterdir()), [self.func])
 
 
-class TestJsonSaver(TestSaverMixin, TestCase):
+class TestJsonSaver(SaverMixin, TestCase):
 
     func = "data.json"
 
@@ -107,7 +107,7 @@ class TestJsonSaver(TestSaverMixin, TestCase):
         self.assertTrue(np.isnan(new_output.actions[0, 0]))
 
 
-class TestExplPlotSave(TestSaverMixin, TestCase):
+class TestExplPlotSave(SaverMixin, TestCase):
 
     func = "data_plots"
 
