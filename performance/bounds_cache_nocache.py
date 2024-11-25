@@ -1,5 +1,9 @@
 """Compare the time of cached vs non-cached bounds compuing."""
+import cProfile
+import pstats
 import timeit
+from os import getenv
+from pathlib import Path
 
 import numpy as np
 
@@ -9,8 +13,9 @@ from incomplete_cooperative.coalitions import (Coalition,
                                                minimal_game_coalitions)
 from incomplete_cooperative.generators import factory_generator
 
-NUM_PL = 6
-NUM = 1000
+NUM_PL = int(getenv("NUMBER_OF_PLAYERS") or 10)
+NUM = int(getenv("NUMBER_OF_REPET") or 100)
+OUTPUT = Path(getenv("SAVE_PATH") or ".")
 
 
 def try_computing_bounds(number_of_players, bounds_computer):
@@ -28,6 +33,21 @@ def try_computing_bounds(number_of_players, bounds_computer):
         incomplete_game.compute_bounds()
 
 
+def do_profile(func, file=None) -> None:
+    """Do a profiling."""
+    pr = cProfile.Profile()
+    pr.enable()
+
+    func()
+
+    pr.disable()
+    ps = pstats.Stats(pr).sort_stats(pstats.SortKey.CUMULATIVE)
+    ps.print_stats()
+    if file:
+        ps.dump_stats(file)
+
+
+do_profile(lambda: try_computing_bounds(NUM_PL, compute_bounds_superadditive_cached), file=OUTPUT / "fast.prof")
+do_profile(lambda: try_computing_bounds(NUM_PL, compute_bounds_superadditive), file=OUTPUT / "slow.prof")
 print(timeit.timeit(lambda: try_computing_bounds(NUM_PL, compute_bounds_superadditive), number=NUM))
 print(timeit.timeit(lambda: try_computing_bounds(NUM_PL, compute_bounds_superadditive_cached), number=NUM))
-print(timeit.timeit(lambda: try_computing_bounds(NUM_PL, compute_bounds_superadditive), number=NUM))
