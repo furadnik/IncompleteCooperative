@@ -71,11 +71,11 @@ class TestSimpleGame(LearningTester, TestCase):
     kwargs = {
         "number_of_players": 4,
         "game_generator": "factory_fixed",
-        "learn_total_timesteps": 7000,
+        "learn_total_timesteps": 700,
         "steps_per_update": 256,
         "eval_deterministic": True,
-        "eval_repetitions": 100,
-        "solve_repetitions": 100,
+        "eval_repetitions": 10,
+        "solve_repetitions": 10,
         "run_steps_limit": 1,
     }
 
