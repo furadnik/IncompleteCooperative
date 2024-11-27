@@ -13,7 +13,7 @@ $(VENV)/bin/activate: setup.cfg
 
 test_unittest: $(VENV)/bin/activate
 	$(PYTHON) -m coverage erase
-	$(PYTHON) -m coverage run -m pytest $(PYTEST_FILE)
+	$(PYTHON) -m coverage run -m pytest --full-trace $(PYTEST_FILE)
 	$(PYTHON) -m coverage report -i --show-missing --fail-under=$(FAIL_UNDER)
 	
 test_types: $(VENV)/bin/activate
