@@ -72,7 +72,7 @@ class TestSimpleGame(LearningTester, TestCase):
         "number_of_players": 4,
         "game_generator": "factory_fixed",
         "learn_total_timesteps": 700,
-        "steps_per_update": 256,
+        "steps_per_update": 64,
         "eval_deterministic": True,
         "eval_repetitions": 10,
         "solve_repetitions": 10,
