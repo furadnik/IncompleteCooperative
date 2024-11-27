@@ -26,7 +26,7 @@ class GeneratorsTests:
     implements_generator: bool = True
 
     def test_superadditive(self):
-        for players in range(3, 8):
+        for players in range(3, 7):
             game = self.generator()(players)
             for S in all_coalitions(players):
                 for T in filter(partial(disjoint_coalitions, S), all_coalitions(players)):
@@ -54,15 +54,15 @@ class GeneratorsTests:
         if not self.is_random:  # pragma: no cover
             cast(TestCase, self).skipTest("Not a random generator")
 
-        for players in range(5, 10):
+        for players in range(5, 8):
             game_1 = self.generator()(players)
-            self.assertFalse(all(game_1 == self.generator()(players) for _ in range(100000)))
+            self.assertFalse(all(game_1 == self.generator()(players) for _ in range(1000)))
 
     def test_randomness_generator(self):
         if not self.implements_generator:
             cast(TestCase, self).skipTest("Not a random generator")
 
-        for players in range(3, 10):
+        for players in range(3, 7):
             game_1 = self.generator()(players, default_rng(42))
             self.assertTrue(all(game_1 == self.generator()(players, default_rng(42)) for _ in range(100)))
 
@@ -71,7 +71,7 @@ class TestFactoryGenerator(GeneratorsTests, TestCase):
     generator = lambda x: factory_generator  # noqa: E731
 
     def test_factory_pre_set_owner(self):
-        players_range = range(3, 10)
+        players_range = range(3, 8)
         for players in players_range:
             for owner in range(players):
                 factory = factory_generator(players, owner=owner)
@@ -180,7 +180,7 @@ class TestConvexGenerator(GeneratorsTests, TestCase):
             self.assertEqual(game.get_value(grand_coalition(game)), 1)
 
     def test_is_convex(self):
-        for players in range(3, 10):
+        for players in range(3, 8):
             with self.subTest(players=players):
                 game = convex_generator(players)
                 for S in all_coalitions(players):

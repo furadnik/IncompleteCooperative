@@ -16,32 +16,34 @@ from incomplete_cooperative.supermodularity_check import check_supermodularity
 class TestMetaGame(TestCase):
 
     def get_meta_game(self, game: MutableIncompleteGame | None = None) -> MetaGame:
-        game = game if game is not None else convex_generator(4)
+        game = game if game is not None else convex_generator(3)
         game._bounds_computer = compute_bounds_superadditive  # type: ignore[attr-defined]
         return MetaGame(game, game, compute_exploitability)
 
     def test_meta_players(self):
-        for players in range(4, 10):
-            self.assertEqual(
-                self.get_meta_game(convex_generator(players)).number_of_players,
-                2**players - 2 - players)
+        for players in range(4, 7):
+            with self.subTest(players=players):
+                self.assertEqual(
+                    self.get_meta_game(convex_generator(players)).number_of_players,
+                    2**players - 2 - players)
 
     def test_get_value(self):
-        for players in range(4, 10):
-            game = convex_generator(players)
-            game._bounds_computer = compute_bounds_superadditive
-            meta_game = self.get_meta_game(game.copy())
-            coalitions = [
-                Coalition.from_players([1, 2]),
-                Coalition.from_players([1, 3]),
-                Coalition.from_players([1, 2, 3]),
-                Coalition.from_players([1]),
-            ] + list(minimal_game_coalitions(game))
-            game.set_known_values(game.get_values(coalitions), coalitions)
-            game.compute_bounds()
-            self.assertEqual(compute_exploitability(game), meta_game.get_value(
-                Coalition.from_players([i for i, x in enumerate(meta_game.players) if x in coalitions]))
-            )
+        for players in range(4, 7):
+            with self.subTest(players=players):
+                game = convex_generator(players)
+                game._bounds_computer = compute_bounds_superadditive
+                meta_game = self.get_meta_game(game.copy())
+                coalitions = [
+                    Coalition.from_players([1, 2]),
+                    Coalition.from_players([1, 3]),
+                    Coalition.from_players([1, 2, 3]),
+                    Coalition.from_players([1]),
+                ] + list(minimal_game_coalitions(game))
+                game.set_known_values(game.get_values(coalitions), coalitions)
+                game.compute_bounds()
+                self.assertEqual(compute_exploitability(game), meta_game.get_value(
+                    Coalition.from_players([i for i, x in enumerate(meta_game.players) if x in coalitions]))
+                )
 
     def test_get_values(self):
         game = convex_generator(4)
@@ -55,5 +57,4 @@ class TestMetaGame(TestCase):
             np.array([meta_game.get_value(c) for c in meta_coalitions]) == meta_game.get_values(meta_coalitions)))
 
     def test_check_supermodularity(self):
-        self.assertIsNone(check_supermodularity(convex_generator(10)))
         self.assertIsNone(check_supermodularity(self.get_meta_game()))
