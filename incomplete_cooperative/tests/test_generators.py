@@ -10,6 +10,7 @@ from incomplete_cooperative.coalitions import (Coalition, all_coalitions,
                                                disjoint_coalitions,
                                                grand_coalition)
 from incomplete_cooperative.exploitability import compute_exploitability
+from incomplete_cooperative.game_properties import is_superadditive
 from incomplete_cooperative.generators import (
     GENERATORS, additive, convex_generator, factory_cheerleader_next_generator,
     factory_generator, predictible_factory_generator, xos)
@@ -28,12 +29,7 @@ class GeneratorsTests:
     def test_superadditive(self):
         for players in range(3, 7):
             game = self.generator()(players)
-            for S in all_coalitions(players):
-                for T in filter(partial(disjoint_coalitions, S), all_coalitions(players)):
-                    with self.subTest(S=S, T=T):
-                        self.assertGreaterEqual(
-                            game.get_value(S | T) + EPSILON,
-                            game.get_value(S) + game.get_value(T))
+            self.assertTrue(is_superadditive(game))
 
     def test_value_types(self):
         for players in range(3, 10):
