@@ -102,7 +102,7 @@ def test_sam_apx_stronger_than_sa(game_sam_apx, game, rep, gen):
         game_sam_apx.set_value(random_sam.get_value(Coalition.from_players([player])), Coalition.from_players([player]))
         game.set_value(random_sam.get_value(Coalition.from_players([player])), Coalition.from_players([player]))
     for coalition in all_coalitions(game):
-        if (not game.is_value_known(coalition)) and random.randint(0, 1) == 1:
+        if (not game.is_value_known(coalition)) and random.randint(0, 1) == 1:  # nosec
             game_sam_apx.set_value(random_sam.get_value(coalition), coalition)
             game.set_value(random_sam.get_value(coalition), coalition)
     game_sam_apx.compute_bounds()
