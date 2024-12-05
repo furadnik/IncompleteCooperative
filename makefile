@@ -1,4 +1,5 @@
 VENV=.venv
+PYTEST_OPT=
 PYTHON=$(VENV)/bin/python
 PIP=$(VENV)/bin/pip
 
@@ -13,7 +14,7 @@ $(VENV)/bin/activate: setup.cfg
 
 test_unittest: $(VENV)/bin/activate
 	$(PYTHON) -m coverage erase
-	$(PYTHON) -m coverage run -m pytest --full-trace $(PYTEST_FILE)
+	$(PYTHON) -m coverage run -m pytest $(PYTEST_OPT) $(PYTEST_FILE)
 	$(PYTHON) -m coverage report -i --show-missing --fail-under=$(FAIL_UNDER)
 	
 test_types: $(VENV)/bin/activate
