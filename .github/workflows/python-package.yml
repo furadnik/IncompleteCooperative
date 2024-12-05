@@ -24,4 +24,4 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Test.
       run: |
-        make -Bj test
+        make -Bj test PYTEST_OPT=--full-trace
