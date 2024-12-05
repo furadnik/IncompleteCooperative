@@ -1,14 +1,14 @@
 """Validate properties of games."""
 import numpy as np
 
-from .coalition_ids import all_coalitions, sub_coalitions
+from .coalition_ids import get_all_coalitions, sub_coalitions
 from .protocols import Game
 
 
 def is_superadditive(game: Game, rtol=1e-9, atol=0) -> bool:
     """Test that `game` is superadditive."""
     values = game.get_values()
-    for U in all_coalitions(game.number_of_players):
+    for U in get_all_coalitions(game.number_of_players):
         Ss = sub_coalitions(U, game.number_of_players)
         Ts = U - Ss
         lhs = values[Ss] + values[Ts]
@@ -24,7 +24,7 @@ def is_superadditive(game: Game, rtol=1e-9, atol=0) -> bool:
 def is_monotone_decreasing(game: Game) -> bool:
     """Test that game values are monotone increasing."""
     values = game.get_values()
-    for U in all_coalitions(game.number_of_players):
+    for U in get_all_coalitions(game.number_of_players):
         Ss = sub_coalitions(U, game.number_of_players)
         if not np.all(values[Ss] >= values[U]):
             return False

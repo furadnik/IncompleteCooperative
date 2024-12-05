@@ -1,13 +1,19 @@
+import random
+from functools import partial
+
 import numpy as np
 import pytest
 
-from incomplete_cooperative.bounds import (compute_bounds_superadditive,
-                                           compute_bounds_superadditive_cached)
+from incomplete_cooperative.bounds import (
+    compute_bounds_superadditive, compute_bounds_superadditive_cached,
+    compute_bounds_superadditive_monotone_approx_cached)
 from incomplete_cooperative.coalitions import (Coalition, all_coalitions,
                                                grand_coalition,
                                                minimal_game_coalitions)
 from incomplete_cooperative.game import IncompleteCooperativeGame
-from incomplete_cooperative.generators import convex_generator
+from incomplete_cooperative.generators import (convex_generator,
+                                               covg_fn_generator,
+                                               k_budget_generator)
 
 
 def dummy_fill(game: IncompleteCooperativeGame) -> None:
@@ -17,6 +23,7 @@ def dummy_fill(game: IncompleteCooperativeGame) -> None:
 
 
 NUMBER_OF_PLAYERS = 6
+SAM_GENERATORS = [covg_fn_generator, k_budget_generator]
 
 
 @pytest.fixture
@@ -68,3 +75,56 @@ def test_cached_nocached_same(rep):
         incomplete_game_cached.compute_bounds()
         assert np.allclose(incomplete_game_cached.get_upper_bounds(), incomplete_game.get_upper_bounds())
         assert np.allclose(incomplete_game_cached.get_lower_bounds(), incomplete_game.get_lower_bounds())
+
+
+@pytest.fixture
+def game_sam_apx():
+    return IncompleteCooperativeGame(6, partial(compute_bounds_superadditive_monotone_approx_cached, repetitions=10))
+
+
+def test_full_game_sam_apx(game_sam_apx):
+    dummy_fill(game_sam_apx)
+    game_sam_apx.compute_bounds()
+    for coalition in all_coalitions(game_sam_apx):
+        assert game_sam_apx.get_value(coalition) == game_sam_apx.get_upper_bound(coalition)
+        assert game_sam_apx.get_value(coalition) == game_sam_apx.get_lower_bound(coalition)
+
+
+@pytest.mark.parametrize("rep", range(100))
+@pytest.mark.parametrize("gen", SAM_GENERATORS)
+def test_sam_apx_stronger_than_sa(game_sam_apx, game, rep, gen):
+    """Test that the SAM bounds always give a stronger bound than simple SA bounds."""
+    assert game_sam_apx.number_of_players == game.number_of_players
+    random_sam = gen(game_sam_apx.number_of_players)
+    game_sam_apx.set_value(random_sam.get_value(grand_coalition(random_sam)), grand_coalition(game_sam_apx))
+    game.set_value(random_sam.get_value(grand_coalition(random_sam)), grand_coalition(game_sam_apx))
+    for player in range(game_sam_apx.number_of_players):
+        game_sam_apx.set_value(random_sam.get_value(Coalition.from_players([player])), Coalition.from_players([player]))
+        game.set_value(random_sam.get_value(Coalition.from_players([player])), Coalition.from_players([player]))
+    for coalition in all_coalitions(game):
+        if (not game.is_value_known(coalition)) and random.randint(0, 1) == 1:
+            game_sam_apx.set_value(random_sam.get_value(coalition), coalition)
+            game.set_value(random_sam.get_value(coalition), coalition)
+    game_sam_apx.compute_bounds()
+    game.compute_bounds()
+
+    for coalition in all_coalitions(game_sam_apx):
+        assert game_sam_apx.get_upper_bound(coalition) <= game.get_upper_bound(coalition)
+        assert game_sam_apx.get_lower_bound(coalition) <= game.get_lower_bound(coalition)
+
+
+@pytest.mark.parametrize("gen", SAM_GENERATORS)
+def test_min_game_sam_apx_eq_sa(game_sam_apx, game, gen):
+    assert game_sam_apx.number_of_players == game.number_of_players
+    random_sam = gen(game_sam_apx.number_of_players)
+    game_sam_apx.set_value(random_sam.get_value(grand_coalition(random_sam)), grand_coalition(game_sam_apx))
+    game.set_value(random_sam.get_value(grand_coalition(random_sam)), grand_coalition(game_sam_apx))
+    for player in range(game_sam_apx.number_of_players):
+        game_sam_apx.set_value(random_sam.get_value(Coalition.from_players([player])), Coalition.from_players([player]))
+        game.set_value(random_sam.get_value(Coalition.from_players([player])), Coalition.from_players([player]))
+    game_sam_apx.compute_bounds()
+    game.compute_bounds()
+
+    for coalition in all_coalitions(game_sam_apx):
+        assert game_sam_apx.get_lower_bound(coalition) == game.get_lower_bound(coalition)
+        assert game_sam_apx.get_upper_bound(coalition) == game.get_upper_bound(coalition)
