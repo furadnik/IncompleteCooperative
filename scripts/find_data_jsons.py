@@ -1,5 +1,6 @@
 """Helper script for finding data.json files in a path."""
 from pathlib import Path
+from sys import stderr
 from typing import Iterator
 
 from incomplete_cooperative.run.save import Output, get_outputs_from_file
@@ -8,7 +9,7 @@ from incomplete_cooperative.run.save import Output, get_outputs_from_file
 def find_data_jsons(path: Path) -> Iterator[Path]:
     """Find all data.json files in the subdirectories."""
     if (path / "data.json").exists():
-        print(path)
+        print(path, file=stderr)
         yield path / "data.json"
         return
 
