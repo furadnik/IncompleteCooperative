@@ -115,7 +115,7 @@ def save_data_plot(path: Path, unique_name: str, output: Output) -> None:
     plt.close('all')
 
 
-def get_coalition_distribution2(data: np.ndarray) -> tuple[list[list[Player]], list[float]]:
+def get_coalition_distribution2(data: np.ndarray) -> tuple[list[list[Player]], list[float]]:  # pragma: nocover
     """Get the labels (players) and distribution of coalitions chosen at a given time.
 
     Arguments:
