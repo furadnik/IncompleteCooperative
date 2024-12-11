@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import sys
 from argparse import Namespace
 from dataclasses import dataclass
 from pathlib import Path
@@ -114,6 +115,38 @@ def save_data_plot(path: Path, unique_name: str, output: Output) -> None:
     plt.close('all')
 
 
+def get_coalition_distribution2(data: np.ndarray) -> tuple[list[list[Player]], list[float]]:
+    """Get the labels (players) and distribution of coalitions chosen at a given time.
+
+    Arguments:
+        number_of_coalitions: the total coalitions in the game (lower estimate).
+        data: the chosen coalitions in a given time slice.
+        minimal_game: the coalitions in a minimal game (NOT USED)
+    """
+    labels, some_counts = np.unique(data, return_counts=True)
+    print(labels, file=sys.stderr)
+    number_of_coalitions = int(np.max(labels[np.logical_not(np.isnan(labels))]) + 1)
+    counts = np.zeros(number_of_coalitions)
+
+    for label, count in zip(labels, some_counts / data.shape[0]):
+        if not np.isnan(label):
+            counts[int(label)] = count
+
+    # combine them together
+    all_coals_with_counts = zip((Coalition(x) for x in range(number_of_coalitions)), counts)
+
+    # filter out minimal game's coalitions, get just coal's players, sort by coal length
+    labels_with_counts = sorted(
+        ((list(coal.players), n) for coal, n in all_coals_with_counts if len(coal) > 1),
+        key=lambda x: len(x[0])
+    )
+
+    # now split them apart again, but sorted
+    new_labels = [x[0] for x in labels_with_counts]
+    new_counts = [x[1] for x in labels_with_counts]
+    return new_labels, new_counts
+
+
 def get_coalition_distribution(number_of_coalitions: int, data: np.ndarray,
                                minimal_game: list[Coalition]) -> tuple[list[list[Player]], list[float]]:
     """Get the labels (players) and distribution of coalitions chosen at a given time.
@@ -121,7 +154,7 @@ def get_coalition_distribution(number_of_coalitions: int, data: np.ndarray,
     Arguments:
         number_of_coalitions: the total coalitions in the game (lower estimate).
         data: the chosen coalitions in a given time slice.
-        minimal_game: the coalitions in a minimal game (will not be shown in the plot).
+        minimal_game: the coalitions in a minimal game (NOT USED)
     """
     labels, some_counts = np.unique(data, return_counts=True)
     counts = np.zeros(number_of_coalitions)
@@ -135,7 +168,7 @@ def get_coalition_distribution(number_of_coalitions: int, data: np.ndarray,
 
     # filter out minimal game's coalitions, get just coal's players, sort by coal length
     labels_with_counts = sorted(
-        ((list(coal.players), n) for coal, n in all_coals_with_counts if coal not in minimal_game),
+        ((list(coal.players), n) for coal, n in all_coals_with_counts if len(coal) > 1),
         key=lambda x: len(x[0])
     )
 
