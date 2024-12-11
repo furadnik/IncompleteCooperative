@@ -1,0 +1,59 @@
+\documentclass{article}
+
+\usepackage{tikz,pgfplots}
+\pgfplotsset{compat=1.18}
+\usepgfplotslibrary{fillbetween}
+\usepackage{pgffor}
+\usepgfplotslibrary{groupplots}
+\pgfplotsset{ytick style={draw=none}}
+\pgfplotsset{ymajorgrids=true}
+\pgfplotsset{xmajorgrids=true}
+
+% filepath, column_name, color, display_name
+\def\coalitionsplot#1#2#3#4#5{
+	\addplot [style=very thick, fill=#3, color=#3, mark=none] table [col sep=space, x=coalition, y=#2_#5] {#1};
+}
+
+\begin{document}
+
+\begin{figure}[t!]
+\centering
+\begin{tikzpicture}
+\begin{groupplot}[
+		group style = {
+	    group size = 3 by 4,
+	    vertical sep = 30pt,
+	    horizontal sep = 5pt,
+		ylabels at=edge left,
+		xlabels at=edge bottom,
+		xticklabels at=edge bottom,
+		yticklabels at=edge left,
+	},
+	x tick label style={font=\tiny, rotate=90},
+	width=0.44\textwidth,
+	height=0.25\textheight,
+	title={\texttt{supermodular}($ n $)},
+	ylabel={Utopian Gap},
+	xlabel={Coalition Sizes},
+	enlargelimits=false,
+	% symbolic x coords={
+	% {[0,1]},{[0,2]},{[1,2]},{[0,3]},{[1,3]},{[2,3]},{[0,4]},{[1,4]},{[2,4]},{[3,4]},{[0,1,2]},{[0,1,3]},{[0,2,3]},{[1,2,3]},{[0,1,4]},{[0,2,4]},{[1,2,4]},{[0,3,4]},{[1,3,4]},{[2,3,4]},{[0,1,2,3]},{[0,1,2,4]},{[0,1,3,4]},{[0,2,3,4]},{[1,2,3,4]}
+	% },
+	ybar interval=.3
+]
+	\pgfplotsinvokeforeach{0,...,11}{
+		\nextgroupplot[ title={$\tau = #1$} ]
+		\coalitionsplot{cumulative_coalitions_test}{random_eval}{yellow}{Random}{#1}
+		\coalitionsplot{cumulative_coalitions_test}{largest_coalitions}{gray}{Largest Coalitions}{#1}
+		\coalitionsplot{cumulative_coalitions_test}{best_states}{blue}{Oracle Optimal}{#1}
+		\coalitionsplot{cumulative_coalitions_test}{solve_greedy}{cyan}{Oracle Greedy}{#1}
+		\coalitionsplot{cumulative_coalitions_test}{expected_best_states}{violet}{Offline Optimal}{#1}
+		\coalitionsplot{cumulative_coalitions_test}{expected_greedy}{purple}{Offline Greedy}{#1}
+		\coalitionsplot{cumulative_coalitions_test}{eval}{orange}{PPO}{#1}
+	}
+\end{groupplot}
+\end{tikzpicture}
+\end{figure}
+
+
+\end{document}
