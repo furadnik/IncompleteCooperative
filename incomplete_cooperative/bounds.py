@@ -1,5 +1,5 @@
 """Compute bounds for an incomplete game."""
-from functools import cache
+from functools import cache, partial
 from typing import Any
 
 import numpy as np
@@ -97,4 +97,5 @@ def compute_bounds_superadditive_monotone_approx_cached(game: BoundableIncomplet
 BOUNDS = {
     "superadditive": compute_bounds_superadditive,
     "superadditive_cached": compute_bounds_superadditive_cached,
+    **{f"sam_apx_{i}": partial(compute_bounds_superadditive_monotone_approx_cached, repetitions=i) for i in [1, 10, 100, 1000]}
 }

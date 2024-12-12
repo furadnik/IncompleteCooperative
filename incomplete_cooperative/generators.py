@@ -320,4 +320,6 @@ GENERATORS: dict[str, GeneratorFn] = {
     "xs2": partial(xs, num_unit_demand=2),
     "xs3": partial(xs, num_unit_demand=3),
     "xs6": partial(xs, num_unit_demand=6),
+    "k_budget_generator": k_budget_generator,
+    "covg_fn_generator": covg_fn_generator,
 }
