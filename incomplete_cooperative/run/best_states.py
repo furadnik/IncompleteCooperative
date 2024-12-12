@@ -20,7 +20,7 @@ def best_states_func(instance: ModelInstance, parsed_args) -> None:
     exploitability = None
     best_coalitions: list[list[list[int]]] = []
     for repetition in range(parsed_args.eval_repetitions):
-        exploitability_rep, new_best_coalitions = get_best_exploitability(instance.env, instance.run_steps_limit,
+        exploitability_rep, new_best_coalitions = get_best_exploitability(instance.get_env(), instance.run_steps_limit,
                                                                           parsed_args.sampling_repetitions,
                                                                           instance.gap_function_callable,
                                                                           processes=instance.parallel_environments)

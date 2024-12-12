@@ -55,7 +55,7 @@ class ICG_Gym(gym.Env):
             dtype=Value)
         self.action_space = gym.spaces.Discrete(len(self.explorable_coalitions))
 
-    def valid_action_mask(self) -> np.ndarray:
+    def action_masks(self) -> np.ndarray:
         """Get valid actions for the agent."""
         return np.invert(self.incomplete_game.are_values_known(self.explorable_coalitions))
 
@@ -72,10 +72,13 @@ class ICG_Gym(gym.Env):
     @property
     def done(self) -> bool:
         """Decide whether we are done -- all values are known."""
-        if self.done_after_n_actions is None:
-            return bool(np.all(
-                (self.incomplete_game.get_upper_bounds() - self.incomplete_game.get_lower_bounds()) == 0))
-        return self.steps_taken >= self.done_after_n_actions
+        return (
+            self.done_after_n_actions is not None and self.steps_taken >= self.done_after_n_actions
+        ) or (
+            not np.any(self.action_masks())
+        ) or bool(np.all(
+            (self.incomplete_game.get_upper_bounds() - self.incomplete_game.get_lower_bounds()) == 0
+        ))
 
     def reset(self, seed: int | None = None, options: dict[str, Any] | None = None) -> tuple[State, Info]:
         """Reset the game into initial state."""

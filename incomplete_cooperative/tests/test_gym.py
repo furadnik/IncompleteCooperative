@@ -41,10 +41,10 @@ class TestICGGym(TestCase, GymMixin):
 
     def test_action_mask(self):
         self.assertEqual(len(self.icg_gym.explorable_coalitions),
-                         len(self.icg_gym.valid_action_mask()))
+                         len(self.icg_gym.action_masks()))
 
         self.game.reveal_value(3, Coalition(3))
-        mask = list(self.icg_gym.valid_action_mask())
+        mask = list(self.icg_gym.action_masks())
         for i in range(len(self.icg_gym.explorable_coalitions)):
             with self.subTest(i=i, coalition=self.icg_gym.explorable_coalitions[i]):
                 if self.icg_gym.explorable_coalitions[i] == Coalition(3):
@@ -54,7 +54,7 @@ class TestICGGym(TestCase, GymMixin):
 
     def test_step(self):
         self.icg_gym.step(2)
-        mask = list(self.icg_gym.valid_action_mask())
+        mask = list(self.icg_gym.action_masks())
         for i in range(len(self.icg_gym.explorable_coalitions)):
             if i == 2:
                 self.assertEqual(mask[i], 0)
@@ -68,12 +68,12 @@ class TestICGGym(TestCase, GymMixin):
         for i, coalition in enumerate(self.icg_gym.explorable_coalitions):
             with self.subTest(i=i, coalition=coalition):
                 self.assertFalse(self.game.is_value_known(coalition))
-                self.assertEqual(self.icg_gym.valid_action_mask()[i], 1)
+                self.assertEqual(self.icg_gym.action_masks()[i], 1)
                 state, _, done, _, _ = self.icg_gym.step(i)
                 # self.assertFalse(done) if i < len(self.icg_gym.explorable_coalitions) - 1 else self.assertTrue(done)
                 self.assertTrue(self.game.is_value_known(coalition))
                 self.assertEqual(state[i], self.game.get_value(coalition))
-                self.assertEqual(self.icg_gym.valid_action_mask()[i], 0)
+                self.assertEqual(self.icg_gym.action_masks()[i], 0)
                 self.assertEqual(self.game.get_value(coalition),
                                  self.full_game.get_value(coalition))
 

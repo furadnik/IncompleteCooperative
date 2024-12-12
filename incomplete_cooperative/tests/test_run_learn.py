@@ -7,10 +7,9 @@ from typing import cast
 from unittest import TestCase
 from unittest.mock import patch
 
-from incomplete_cooperative.coalitions import Coalition
 from incomplete_cooperative.run.eval import eval_func
 from incomplete_cooperative.run.learn import learn_func
-from incomplete_cooperative.run.model import ModelInstance, _env_generator
+from incomplete_cooperative.run.model import ModelInstance
 from incomplete_cooperative.run.save import Output
 from incomplete_cooperative.run.solve import solve_func
 
@@ -82,7 +81,7 @@ class TestSimpleGame(LearningTester, TestCase):
     def test_found_optimal(self):
         args, instance = self.get_instance(**self.kwargs)
         results = self.get_learning_results(**self.kwargs)
-        env = _env_generator(instance).env
+        env = instance.env
 
         best_reward = -100000
         best_actions = []

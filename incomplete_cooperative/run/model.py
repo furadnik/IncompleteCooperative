@@ -45,12 +45,6 @@ GAP_FUNCTIONS: dict[str, Callable[[IncompleteGame], Value]] = {
 }
 
 
-def _env_generator(instance: ModelInstance) -> ActionMasker:  # pragma: nocover
-    """Generate environment."""
-    env = instance.env
-    return ActionMasker(env, cast(Callable[[Env], np.ndarray], ICG_Gym.valid_action_mask))
-
-
 @dataclass
 class ModelInstance:
     """Model instance class."""
@@ -88,8 +82,7 @@ class ModelInstance:
             self.model_path = self.model_dir / "model"
         self.game_generator_rng = np.random.default_rng(self.seed)
 
-    @property
-    def env(self) -> ICG_Gym:
+    def get_env(self) -> ICG_Gym:
         """Get env."""
         bounds_computer = BOUNDS[self.game_class]
         incomplete_game = IncompleteCooperativeGame(self.number_of_players, bounds_computer)
@@ -116,15 +109,10 @@ class ModelInstance:
         """TODO: implement later."""
         return ENVIRONMENTS.get(self.environment, DummyVecEnv)
 
-    def non_vec_env_generator(self) -> ActionMasker:
-        """Get the masked env, not as vector."""
-        return _env_generator(self)
-
     def env_generator(self) -> VecEnv:
         """Create parallel environments."""
-        return make_vec_env(_env_generator, vec_env_cls=self.environment_class,
-                            n_envs=self.parallel_environments,
-                            env_kwargs={"instance": self})
+        return make_vec_env(self.get_env, vec_env_cls=self.environment_class,
+                            n_envs=self.parallel_environments)
 
     @property
     def policy_activation_fn_choice(self) -> Any:
