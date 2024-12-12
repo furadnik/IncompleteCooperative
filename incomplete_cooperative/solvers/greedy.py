@@ -17,7 +17,7 @@ class GreedySolver:
 
     def next_step(self, gym: Gym) -> int:
         """Get the locally best next move."""
-        valid_actions = [x for x in range(gym.valid_action_mask().shape[0]) if gym.valid_action_mask()[x]]
+        valid_actions = [x for x in range(gym.action_masks().shape[0]) if gym.action_masks()[x]]
         action_values = [self._next_action_value(gym, act) for act in valid_actions]
         max_action_value = max(action_values)  # type: ignore[type-var]
         best_actions = (act for act, val in zip(valid_actions, action_values) if val == max_action_value)

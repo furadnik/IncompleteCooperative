@@ -29,7 +29,7 @@ class TestSolverMixin(GymMixin, ABC):
             prev_values = gym.incomplete_game._values.tolist()
             action = solver.next_step(gym)
             self.assertTrue(gym.incomplete_game._values.tolist() == prev_values)
-            self.assertTrue(gym.valid_action_mask()[action])
+            self.assertTrue(gym.action_masks()[action])
             gym.step(action)
 
 

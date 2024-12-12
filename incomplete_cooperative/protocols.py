@@ -161,7 +161,7 @@ class Gym(Protocol):
         Return the new state, reward, whether we're done, and some (empty) additional info.
         """
 
-    def valid_action_mask(self) -> np.ndarray:
+    def action_masks(self) -> np.ndarray:
         """Get valid actions for the agent."""
 
     @property
@@ -178,6 +178,9 @@ class Gym(Protocol):
 
     def get_wrapper_attr(self, _: str) -> Any:
         """Replace the __attr__ old approach."""
+
+
+GymGenerator = Callable[[], Gym]
 
 
 class Solver(Protocol):
