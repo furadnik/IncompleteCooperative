@@ -9,7 +9,7 @@ from .coalition_ids import sub_coalitions as get_sub_coalitions_id
 from .coalition_ids import super_coalitions as get_super_coalitions_id
 from .coalitions import (Coalition, all_coalitions, get_sub_coalitions,
                          get_super_coalitions)
-from .protocols import BoundableIncompleteGame
+from .protocols import BoundableIncompleteGame, GameBoundsComputer
 
 
 def compute_bounds_superadditive(game: BoundableIncompleteGame) -> None:
@@ -94,7 +94,7 @@ def compute_bounds_superadditive_monotone_approx_cached(game: BoundableIncomplet
         game.set_upper_bound(upper_bound, Coalition(coalition))
 
 
-BOUNDS = {
+BOUNDS: dict[str, GameBoundsComputer] = {
     "superadditive": compute_bounds_superadditive,
     "superadditive_cached": compute_bounds_superadditive_cached,
     **{f"sam_apx_{i}": partial(compute_bounds_superadditive_monotone_approx_cached, repetitions=i) for i in [1, 10, 100, 1000]}
