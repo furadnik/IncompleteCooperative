@@ -56,9 +56,9 @@ def get_greedy_rewards(env: ICG_Gym, max_steps: int, repetitions: int, gap_func:
 
         if random is not None:
             best_action_value = np.min(np.mean(expected_exploitabilities, axis=1))
-            best_action_index = random.choice([  # nosec
-                action for action in range(expected_exploitabilities.shape[0])
-                if np.mean(expected_exploitabilities[action, :]) - best_action_value < EPSILON])
+            best_action_index = random.choice(
+                np.arange(expected_exploitabilities.shape[0])[np.mean(expected_exploitabilities, axis=1) - best_action_value < EPSILON]
+            )
         else:
             best_action_index = int(np.argmin(np.mean(expected_exploitabilities, axis=1)))
 
