@@ -81,7 +81,7 @@ class TestSimpleGame(LearningTester, TestCase):
     def test_found_optimal(self):
         args, instance = self.get_instance(**self.kwargs)
         results = self.get_learning_results(**self.kwargs)
-        env = instance.env
+        env = instance.get_env()
 
         best_reward = -100000
         best_actions = []
