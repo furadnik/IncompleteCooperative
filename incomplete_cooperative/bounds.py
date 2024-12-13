@@ -14,8 +14,12 @@ from .protocols import BoundableIncompleteGame, GameBoundsComputer
 
 def compute_bounds_superadditive(game: BoundableIncompleteGame) -> None:
     """Compute the bounds given a superadditive incomplete game."""
+    assert game.is_value_known(Coalition(2**game.number_of_players - 1))
+    assert game.is_value_known(Coalition(0))
+    assert all(game.is_value_known(Coalition.from_players([i])) for i in range(game.number_of_players))
     for coalition in sorted(filter(lambda x: not game.is_value_known(x), all_coalitions(game)), key=len):
         sub_coalitions = [x for x in get_sub_coalitions(coalition) if x != coalition and x != Coalition(0)]
+        assert sub_coalitions
         complementary_coalitions = [coalition - x for x in sub_coalitions]
         lower_bound = np.max(game.get_lower_bounds(sub_coalitions) + game.get_lower_bounds(complementary_coalitions))
         game.set_lower_bound(lower_bound, coalition)
@@ -23,6 +27,7 @@ def compute_bounds_superadditive(game: BoundableIncompleteGame) -> None:
     for coalition in filter(lambda x: not game.is_value_known(x), all_coalitions(game)):
         known_super_coalitions = [x for x in get_super_coalitions(coalition, game.number_of_players)
                                   if game.is_value_known(x)]
+        assert known_super_coalitions
         complementary_coalitions = [x - coalition for x in known_super_coalitions]
         upper_bound = np.min(game.get_values(known_super_coalitions) - game.get_lower_bounds(complementary_coalitions))
         game.set_upper_bound(upper_bound, coalition)
@@ -84,12 +89,13 @@ def compute_bounds_superadditive_monotone_approx_cached(game: BoundableIncomplet
                 sub_coalitions = all_coalitions[
                     np.logical_or(coal_structure[coalition] == 1, coal_structure[coalition] == 0)
                 ]
+            assert i > 0 or coalition not in sub_coalitions
             complementary_coalitions = coalition ^ sub_coalitions
             lower_bound = np.max(game.get_lower_bounds()[sub_coalitions] + game.get_lower_bounds()[complementary_coalitions])
             game.set_lower_bound(lower_bound, Coalition(coalition))
         for coalition in unknown_sorted:
-            sub_coalitions = all_coalitions[np.logical_or(coal_structure[coalition] == 2, coal_structure[coalition] == 0)]
-            lower_bound = np.max(game.get_lower_bounds()[sub_coalitions])
+            super_coalitions = all_coalitions[np.logical_or(coal_structure[coalition] == 2, coal_structure[coalition] == 0)]
+            lower_bound = np.max(game.get_lower_bounds()[super_coalitions])
             game.set_lower_bound(lower_bound, Coalition(coalition))
 
     for coalition in unknown_sorted:
