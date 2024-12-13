@@ -85,7 +85,7 @@ class TestSimpleGame(LearningTester, TestCase):
 
         best_reward = -100000
         best_actions = []
-        for i in range(env.valid_action_mask().shape[0]):
+        for i in range(env.action_masks().shape[0]):
             _, reward, _, _, out_dict = env.step(i)
             action = out_dict["chosen_coalition"]
             env.reset()
