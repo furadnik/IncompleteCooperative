@@ -107,6 +107,6 @@ class TestICGGym(TestCase, GymMixin):
 
     def test_gym_reset_original(self):
         _, info = self.icg_gym.reset()
-        self.assertNotEqual(info["game"], self.icg_gym.full_game)
+        self.assertNotEqual(info["game"], self.icg_gym.normalized_game)
         normalize_game(info["game"])
-        self.assertEqual(info["game"], self.icg_gym.full_game)
+        self.assertEqual(info["game"], self.icg_gym.normalized_game)

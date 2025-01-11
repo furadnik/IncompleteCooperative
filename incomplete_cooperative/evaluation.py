@@ -5,6 +5,7 @@ from typing import Callable
 
 import numpy as np
 
+from .coalitions import Coalition
 from .protocols import GapFunction, Gym, GymGenerator
 
 
@@ -30,26 +31,17 @@ def eval_one(get_next_step: Callable, env: Gym, run_steps_limit: int, gap_func: 
     """Evaluate one environment."""
     exploitability = np.zeros(run_steps_limit + 1)
     actions_all = np.zeros(run_steps_limit)
-    _, base_info = env.reset()
-    game = base_info["game"]
-    incomplete_game = env.get_wrapper_attr("incomplete_game").copy()
-    known_coalitions = env.get_wrapper_attr("initially_known_coalitions").copy()
+    env.reset()
 
-    incomplete_game.set_known_values(game.get_values(known_coalitions), known_coalitions)
-    incomplete_game.compute_bounds()
-    exploitability[0] = gap_func(incomplete_game)
+    exploitability[0] = env.reward
     for episode in range(run_steps_limit):
         action = get_next_step(env)
-        _, _, done, _, info = env.step(action)
-        known_coalitions.append(env.get_wrapper_attr("explorable_coalitions")[action])
-
-        # reveal the same coalitions on the non-normalized game, compute its exploitability
-        incomplete_game.set_known_values(game.get_values(known_coalitions), known_coalitions)
-        incomplete_game.compute_bounds()
-        exploitability[episode + 1] = gap_func(incomplete_game)
+        _, reward, done, _, info = env.step(action)
+        chosen_coalition = Coalition(info["chosen_coalition"])
+        exploitability[episode + 1] = reward
 
         # map the `action` (index in explorable coalitions) to `coalition`.
-        actions_all[episode] = info["chosen_coalition"]
+        actions_all[episode] = chosen_coalition.id
 
         if done:  # pragma: no cover
             break
