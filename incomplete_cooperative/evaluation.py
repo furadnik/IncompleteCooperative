@@ -5,7 +5,6 @@ from typing import Callable
 
 import numpy as np
 
-from .coalitions import Coalition
 from .protocols import GapFunction, Gym, GymGenerator
 
 
@@ -37,11 +36,11 @@ def eval_one(get_next_step: Callable, env: Gym, run_steps_limit: int, gap_func: 
     for episode in range(run_steps_limit):
         action = get_next_step(env)
         _, reward, done, _, info = env.step(action)
-        chosen_coalition = Coalition(info["chosen_coalition"])
+        chosen_coalition = info["chosen_coalition"]
         exploitability[episode + 1] = reward
 
         # map the `action` (index in explorable coalitions) to `coalition`.
-        actions_all[episode] = chosen_coalition.id
+        actions_all[episode] = chosen_coalition
 
         if done:  # pragma: no cover
             break
