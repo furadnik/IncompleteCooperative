@@ -34,6 +34,8 @@ class ICG_Gym(gym.Env):
 
         self.incomplete_game = game
         self.generator = game_generator
+        self.full_game = self.generator()
+        self.normalized_game = self.full_game.copy()
 
         self.gap_func = gap_func
         self.done_after_n_actions = done_after_n_actions
