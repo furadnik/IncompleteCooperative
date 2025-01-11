@@ -32,7 +32,7 @@ def eval_one(get_next_step: Callable, env: Gym, run_steps_limit: int, gap_func: 
     actions_all = np.zeros(run_steps_limit)
     env.reset()
 
-    exploitability[0] = env.reward
+    exploitability[0] = -env.reward
     for episode in range(run_steps_limit):
         action = get_next_step(env)
         _, reward, done, _, info = env.step(action)
