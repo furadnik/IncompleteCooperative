@@ -16,10 +16,10 @@ if TYPE_CHECKING:  # pragma: no cover
     from .coalitions import Coalition
     from .run.model import ModelInstance
 
-Player = int
-Value = np.float64
-ValueIn = Value | float | int
-Values = np.ndarray[Any, np.dtype[Value]]
+type Player = int
+type Value = np.float64
+type ValueIn = Value | float | int
+type Values = np.ndarray[Any, np.dtype[Value]]
 
 
 @runtime_checkable
