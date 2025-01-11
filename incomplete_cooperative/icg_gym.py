@@ -51,8 +51,7 @@ class ICG_Gym(gym.Env):
         self.reset()
         self.observation_space = gym.spaces.Box(
             low=np.zeros(len(self.explorable_coalitions), Value),
-            high=np.ones(len(self.explorable_coalitions), Value) * self.full_game.get_value(
-                grand_coalition(self.full_game)),
+            high=np.ones(len(self.explorable_coalitions), Value),
             dtype=Value)
         self.action_space = gym.spaces.Discrete(len(self.explorable_coalitions))
 
