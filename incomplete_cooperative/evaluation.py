@@ -14,7 +14,7 @@ def evaluate(get_next_step: Callable, env_generator: GymGenerator,
     """Evaluate a game solver."""
     call_arg_sequence = ((get_next_step, env_generator(), run_steps_limit, gap_func) for _ in range(repetitions))
     if processes > 1:
-        with Pool(processes=processes) as p:
+        with Pool(processes=processes) as p:  # TODO: seed
             exploitabilities_and_actions = p.starmap(eval_one, call_arg_sequence)
     else:  # do not use multiprocessing if we only have one process
         exploitabilities_and_actions = list(starmap(eval_one, call_arg_sequence))

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import sys
 from typing import (TYPE_CHECKING, Any, Callable, Iterable, Literal, Protocol,
-                    runtime_checkable)
+                    TypeAlias, runtime_checkable)
 
 import numpy as np
 
@@ -16,10 +16,10 @@ if TYPE_CHECKING:  # pragma: no cover
     from .coalitions import Coalition
     from .run.model import ModelInstance
 
-type Player = int
-type Value = np.float64
-type ValueIn = Value | float | int
-type Values = np.ndarray[Any, np.dtype[Value]]
+Player: TypeAlias = int
+Value: TypeAlias = np.float64
+ValueIn: TypeAlias = Value | float | int
+Values: TypeAlias = np.ndarray[Any, np.dtype[Value]]
 
 
 @runtime_checkable
