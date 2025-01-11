@@ -37,7 +37,7 @@ def eval_one(get_next_step: Callable, env: Gym, run_steps_limit: int, gap_func: 
         action = get_next_step(env)
         _, reward, done, _, info = env.step(action)
         chosen_coalition = info["chosen_coalition"]
-        exploitability[episode + 1] = reward
+        exploitability[episode + 1] = -reward
 
         # map the `action` (index in explorable coalitions) to `coalition`.
         actions_all[episode] = chosen_coalition
