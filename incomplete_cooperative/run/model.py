@@ -91,7 +91,8 @@ class ModelInstance:
                        self.game_generator_fn,
                        minimal_game_coalitions(incomplete_game),
                        self.gap_function_callable,
-                       done_after_n_actions=self.run_steps_limit)
+                       done_after_n_actions=self.run_steps_limit
+                       )
 
     @property
     def gap_function_callable(self) -> GapFunction:

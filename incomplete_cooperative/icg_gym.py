@@ -27,14 +27,13 @@ class ICG_Gym(gym.Env):
 
         `game` is an object that has the necessary `bound_computer` functions.
         `full_game` is the game with all known values. We'll use it when we reveal new values.
+        `normalized_game` is the same as full_game, but with values normalized using `normalize_game`.
         `initially_known_coalitions` are the codes of coalitions, whose values will be in the `game` from the start.
         """
         super().__init__()
 
         self.incomplete_game = game
         self.generator = game_generator
-        self.full_game = self.generator()
-        normalize_game(self.full_game)
 
         self.gap_func = gap_func
         self.done_after_n_actions = done_after_n_actions
@@ -62,7 +61,9 @@ class ICG_Gym(gym.Env):
     @property
     def state(self) -> np.ndarray[Any, np.dtype[Value]]:
         """Get the current state."""
-        return np.nan_to_num(self.incomplete_game.get_known_values(self.explorable_coalitions))
+        normalized_values = self.normalized_game.get_values(self.explorable_coalitions)
+        values_known = self.incomplete_game.are_values_known(self.explorable_coalitions)
+        return normalized_values * values_known
 
     @property
     def reward(self) -> Value:  # type: ignore
@@ -84,14 +85,15 @@ class ICG_Gym(gym.Env):
         """Reset the game into initial state."""
         super().reset(seed=seed, options=options)
         self.full_game = self.generator()
-        original = self.full_game.copy()
-        normalize_game(self.full_game)
+        self.normalized_game = self.full_game.copy()
+        normalize_game(self.normalized_game)
+
         self.incomplete_game.set_known_values(self.full_game.get_values(self.initially_known_coalitions),
                                               self.initially_known_coalitions)
         self.incomplete_game.compute_bounds()
         self.steps_taken = 0
 
-        return self.state, {"game": original}
+        return self.state, {"game": self.full_game}
 
     def step(self, action: int) -> StepResult:
         """Implement one step of the arbitor, reveal coalition and compute exploitability.
