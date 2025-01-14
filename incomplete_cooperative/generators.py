@@ -179,6 +179,18 @@ def additive(number_of_players: int, generator: np.random.Generator = np.random.
     return ig
 
 
+def xos_norandom(number_of_players: int, generator: np.random.Generator = np.random.default_rng(), *args, **kwargs) -> IncompleteCooperativeGame:
+    """Generate a random OSX game out of `number_of_additive` additive games.
+
+    It uses `additive_gen` to generate the additive games.
+    `normalize` normalizes the grand coalition of the resulting game to 1.
+    `normalize_additive` normalizes all the generated additive games BEFORE doing the XOR
+    (reaching "less random" distribution of the games, presumably).
+    """
+    generator = np.random.Generator(42)
+    return xos(number_of_players, generator, *args, **kwargs)
+
+
 def xos(number_of_players: int, generator: np.random.Generator = np.random.default_rng(), number_of_additive: int = 6,
         additive_gen: GeneratorFn = additive, normalize: bool = True,
         normalize_additive: bool = False) -> IncompleteCooperativeGame:
@@ -308,6 +320,7 @@ GENERATORS: dict[str, GeneratorFn] = {
     }.items()},
     "graph_cycle": cycle,
     "xos": xos,
+    "xos_one": xos_norandom,
     "xos2": partial(xos, number_of_additive=2),
     "xos3": partial(xos, number_of_additive=3),
     "xos12": partial(xos, number_of_additive=12),
