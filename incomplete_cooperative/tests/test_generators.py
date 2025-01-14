@@ -289,3 +289,8 @@ class TestOXSGenerator(GeneratorsTests, TestCase):
 
 class TestXS6Generator(GeneratorsTests, TestCase):
     generator = lambda x: GENERATORS["xs6"]
+
+
+class TestXOSOneGenerator(GeneratorsTests, TestCase):
+    generator = lambda x: GENERATORS["xos_one"]
+    is_random = False
