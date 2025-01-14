@@ -187,7 +187,7 @@ def xos_norandom(number_of_players: int, generator: np.random.Generator = np.ran
     `normalize_additive` normalizes all the generated additive games BEFORE doing the XOR
     (reaching "less random" distribution of the games, presumably).
     """
-    generator = np.random.Generator(42)
+    generator = np.random.default_rng(42)
     return xos(number_of_players, generator, *args, **kwargs)
 
 
