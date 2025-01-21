@@ -1,6 +1,9 @@
+from functools import partial
 from unittest import TestCase
 
+from incomplete_cooperative.evaluation import eval_one
 from incomplete_cooperative.icg_gym_linear import ICG_Gym_Linear
+from incomplete_cooperative.run.eval import _eval_next_step
 from incomplete_cooperative.tests.utils import GymMixin
 from sb3_contrib import MaskablePPO
 
@@ -47,4 +50,5 @@ class TestICGGymLinear(TestCase, GymMixin):
         icg_gym_wrapper = ICG_Gym_Linear(icg_gym)
         model = MaskablePPO("MlpPolicy", icg_gym_wrapper, verbose=0)
         model.learn(total_timesteps=10)
+        eval_one(partial(_eval_next_step, model=model, deterministic=True), icg_gym_wrapper, 4, None)
         self.assertTrue(True)
