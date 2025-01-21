@@ -1,11 +1,12 @@
 from functools import partial
 from unittest import TestCase
 
+from sb3_contrib import MaskablePPO
+
 from incomplete_cooperative.evaluation import eval_one
 from incomplete_cooperative.icg_gym_linear import ICG_Gym_Linear
 from incomplete_cooperative.run.eval import _eval_next_step
 from incomplete_cooperative.tests.utils import GymMixin
-from sb3_contrib import MaskablePPO
 
 
 class TestICGGymLinear(TestCase, GymMixin):
@@ -31,6 +32,7 @@ class TestICGGymLinear(TestCase, GymMixin):
         icg_gym_wrapper = ICG_Gym_Linear(icg_gym)
         state, info = icg_gym_wrapper.reset()
         self.assertEqual(state.shape, (icg_gym_wrapper.N,))
+        self.assertFalse(icg_gym_wrapper.done)
         self.assertEqual(info, {"game": icg_gym.full_game})
 
     def test_step(self):
