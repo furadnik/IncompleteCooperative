@@ -7,9 +7,7 @@ from tempfile import TemporaryDirectory
 from unittest import TestCase
 from unittest.mock import patch
 
-from stable_baselines3.common.vec_env import DummyVecEnv  # type: ignore
-from stable_baselines3.common.vec_env import SubprocVecEnv
-
+from incomplete_cooperative.icg_gym_linear import ICG_Gym_Linear
 from incomplete_cooperative.run.best_states import (add_best_states_parser,
                                                     best_states_func)
 from incomplete_cooperative.run.eval import add_eval_parser, eval_func
@@ -18,6 +16,8 @@ from incomplete_cooperative.run.learn import add_learn_parser, learn_func
 from incomplete_cooperative.run.model import ModelInstance, add_model_arguments
 from incomplete_cooperative.run.save import SAVERS
 from incomplete_cooperative.run.solve import add_solve_parser, solve_func
+from stable_baselines3.common.vec_env import DummyVecEnv  # type: ignore
+from stable_baselines3.common.vec_env import SubprocVecEnv
 
 
 class TestAddModelArguments(TestCase):
@@ -66,6 +66,9 @@ class TestModelInstance(TestCase):
     def test_env_generator_proper_parallel_envs(self):
         self.assertEqual(self.model.env_generator().num_envs,
                          self.model.parallel_environments)
+
+    def test_env_generator_linear(self):
+        self.assertIsInstance(ModelInstance(linear=True).get_env(), ICG_Gym_Linear)
 
     def test_save_and_load(self):
         orig_model = self.model.model

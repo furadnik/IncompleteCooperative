@@ -1,9 +1,8 @@
 """Evaluating script."""
 from functools import partial
 
-from sb3_contrib.common.maskable.utils import get_action_masks  # type: ignore
-
 from incomplete_cooperative.evaluation import evaluate
+from sb3_contrib.common.maskable.utils import get_action_masks  # type: ignore
 
 from .model import ModelInstance
 from .save import Output, save
@@ -26,7 +25,7 @@ def eval_func(instance: ModelInstance, parsed_args) -> None:
 
     exploitability, actions_all = evaluate(
         partial(_eval_next_step, model=model, deterministic=parsed_args.eval_deterministic),
-        instance.get_env, parsed_args.eval_repetitions,
+        instance.get_env, parsed_args.eval_repetitions,  # type: ignore
         instance.run_steps_limit,
         instance.gap_function_callable,
         processes=1  # the PPO model doesn't support multiprocessing
