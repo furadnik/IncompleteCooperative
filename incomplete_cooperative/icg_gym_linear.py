@@ -39,6 +39,11 @@ class ICG_Gym_Linear(gym.Env):
         linear_state = self._sum_values_of_the_same_size(state)
         return linear_state, info
 
+    @property
+    def state(self) -> ndarray:
+        """Fetch the state of the underlying gym and make it linear."""
+        return self._sum_values_of_the_same_size(self.icg_gym.state)
+
     def step(self, coalition_size: int) -> StepResult:
         """Perform one step.
 
