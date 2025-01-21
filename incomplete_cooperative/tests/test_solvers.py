@@ -19,7 +19,7 @@ class TestSolverMixin(GymMixin, ABC):
 
     def test_solver_in_solvers(self):
         solver = self.get_solver()
-        self.assertTrue(any(isinstance(solver, x) for x in SOLVERS.values()))
+        self.assertTrue(any(isinstance(x, type) and isinstance(solver, x) for x in SOLVERS.values()))
 
     def test_valid_run(self):
         """Test that the gym isn't affected at any point."""
@@ -37,6 +37,12 @@ class TestGreedy(TestSolverMixin, TestCase):
 
     def get_solver(self) -> Solver:
         return GreedySolver()
+
+
+class TestWorstGreedy(TestSolverMixin, TestCase):
+
+    def get_solver(self) -> Solver:
+        return GreedySolver(worst=True)
 
 
 class TestRandom(TestSolverMixin, TestCase):
