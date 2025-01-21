@@ -30,11 +30,12 @@ class ICG_Gym_Linear(gym.Env):
         return np.bincount(self.subset_sizes, weights=x)
 
     def action_masks(self) -> np.ndarray:
-        """An action is allowed if at least one Coalition of given size is unknown."""
+        """Allow an action if at least one Coalition of given size is unknown."""
         exponential_mask = self.icg_gym.action_masks()
         return self._sum_values_of_the_same_size(exponential_mask).astype(bool)
 
     def reset(self, **kwargs) -> tuple[ndarray, dict[str, Any]]:
+        """Reset the environment."""
         state, info = self.icg_gym.reset()
         linear_state = self._sum_values_of_the_same_size(state)
         return linear_state, info
@@ -61,8 +62,10 @@ class ICG_Gym_Linear(gym.Env):
 
     @property
     def done(self) -> bool:
+        """Return whether or not we are done."""
         return self.icg_gym.done
 
     @property
     def reward(self) -> Value:
+        """Return reward in this state."""
         return self.icg_gym.reward
