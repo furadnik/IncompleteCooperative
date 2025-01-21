@@ -3,7 +3,6 @@ from functools import partial
 from random import Random
 
 import numpy as np
-
 from incomplete_cooperative.coalitions import Coalition
 from incomplete_cooperative.gameplay import \
     get_stacked_exploitabilities_of_action_sequences
@@ -21,7 +20,9 @@ def greedy_func(instance: ModelInstance, parsed_args, randomize: bool = False) -
     rng = Random(instance.seed) if randomize else None  # nosec
     if instance.run_steps_limit is None:  # pragma: no cover
         instance.run_steps_limit = 2**instance.number_of_players
-    exploitability, best_coalitions = get_greedy_rewards(instance.get_env(), instance.run_steps_limit,
+    env = instance.get_env()
+    assert isinstance(env, ICG_Gym)
+    exploitability, best_coalitions = get_greedy_rewards(env, instance.run_steps_limit,
                                                          parsed_args.sampling_repetitions,
                                                          instance.gap_function_callable,
                                                          instance.parallel_environments,

@@ -23,6 +23,7 @@ from ..exploitability import compute_exploitability
 from ..game import IncompleteCooperativeGame
 from ..generators import GENERATORS
 from ..icg_gym import ICG_Gym
+from ..icg_gym_linear import ICG_Gym_Linear
 from ..normalize import NormalizableGame
 from ..norms import l1_norm, l2_norm, linf_norm
 from ..protocols import GapFunction, IncompleteGame, Value
@@ -63,6 +64,7 @@ class ModelInstance:
     policy_activation_fn: str = "relu"
     gamma: float = 1
     ent_coef: float = 0.1
+    linear: bool = False
     seed: int = int(datetime.now().timestamp() * 1000)
 
     @property
@@ -82,17 +84,16 @@ class ModelInstance:
             self.model_path = self.model_dir / "model"
         self.game_generator_rng = np.random.default_rng(self.seed)
 
-    def get_env(self) -> ICG_Gym:
+    def get_env(self) -> ICG_Gym | ICG_Gym_Linear:
         """Get env."""
         bounds_computer = BOUNDS[self.game_class]
         incomplete_game = IncompleteCooperativeGame(self.number_of_players, bounds_computer)
 
-        return ICG_Gym(incomplete_game,
-                       self.game_generator_fn,
-                       minimal_game_coalitions(incomplete_game),
-                       self.gap_function_callable,
-                       done_after_n_actions=self.run_steps_limit
-                       )
+        gym = ICG_Gym(incomplete_game, self.game_generator_fn, minimal_game_coalitions(incomplete_game),
+                      self.gap_function_callable, done_after_n_actions=self.run_steps_limit)
+        if self.linear:
+            return ICG_Gym_Linear(gym)
+        return gym
 
     @property
     def gap_function_callable(self) -> GapFunction:
@@ -157,4 +158,6 @@ def add_model_arguments(ap) -> None:
                     default=defaults.policy_activation_fn)
     ap.add_argument("--gap-function", type=str, choices=GAP_FUNCTIONS.keys(), required=False,
                     default=defaults.gap_function)
+    ap.add_argument("--linear", action="store_true",
+                    help="Choose only the selected coalition size, not the specific coalition, yielding a linear size of action set.")
     ap.add_argument("--seed", type=int, required=False, default=defaults.seed)
