@@ -7,6 +7,9 @@ from tempfile import TemporaryDirectory
 from unittest import TestCase
 from unittest.mock import patch
 
+from stable_baselines3.common.vec_env import DummyVecEnv  # type: ignore
+from stable_baselines3.common.vec_env import SubprocVecEnv
+
 from incomplete_cooperative.icg_gym_linear import ICG_Gym_Linear
 from incomplete_cooperative.run.best_states import (add_best_states_parser,
                                                     best_states_func)
@@ -16,8 +19,6 @@ from incomplete_cooperative.run.learn import add_learn_parser, learn_func
 from incomplete_cooperative.run.model import ModelInstance, add_model_arguments
 from incomplete_cooperative.run.save import SAVERS
 from incomplete_cooperative.run.solve import add_solve_parser, solve_func
-from stable_baselines3.common.vec_env import DummyVecEnv  # type: ignore
-from stable_baselines3.common.vec_env import SubprocVecEnv
 
 
 class TestAddModelArguments(TestCase):
@@ -143,15 +144,15 @@ class TestEval(TestCase):
         self.run_eval_test(path)
 
     def test_both_parsed(self):
-        parsed = self.ap.parse_args(["--eval-repetitions", "1", "--eval-deterministic"])
+        parsed = self.ap.parse_args(["--eval-repetitions", "1", "--eval-nondeterministic"])
         self.assertEqual(parsed.eval_repetitions, 1)
-        self.assertTrue(parsed.eval_deterministic)
+        self.assertTrue(parsed.eval_nondeterministic)
 
     def test_eval_deterministic(self):
         parsed = self.ap.parse_args(["--eval-repetitions", "1"])
-        self.assertFalse(parsed.eval_deterministic)
-        parsed = self.ap.parse_args(["--eval-deterministic"])
-        self.assertTrue(parsed.eval_deterministic)
+        self.assertFalse(parsed.eval_nondeterministic)
+        parsed = self.ap.parse_args(["--eval-nondeterministic"])
+        self.assertTrue(parsed.eval_nondeterministic)
 
 
 class TestSolve(TestCase):
