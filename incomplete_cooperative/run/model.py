@@ -5,12 +5,10 @@ from argparse import Namespace
 from dataclasses import dataclass, fields
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, cast
+from typing import Any, Callable
 
 import numpy as np
-from gymnasium import Env  # type: ignore
 from sb3_contrib import MaskablePPO  # type: ignore
-from sb3_contrib.common.wrappers import ActionMasker  # type: ignore
 from stable_baselines3.common.env_util import make_vec_env  # type: ignore
 from stable_baselines3.common.vec_env import DummyVecEnv  # type: ignore
 from stable_baselines3.common.vec_env import SubprocVecEnv  # type: ignore
@@ -20,6 +18,7 @@ from torch.nn.modules.activation import ReLU, Tanh  # type: ignore
 from ..bounds import BOUNDS
 from ..coalitions import minimal_game_coalitions
 from ..exploitability import compute_exploitability
+from ..feature_extractors import EXTRACTORS
 from ..game import IncompleteCooperativeGame
 from ..generators import GENERATORS
 from ..icg_gym import ICG_Gym
@@ -66,6 +65,7 @@ class ModelInstance:
     ent_coef: float = 0.1
     linear: bool = False
     seed: int = int(datetime.now().timestamp() * 1000)
+    features_extractor: str | None = None
 
     @property
     def seed_32(self) -> int:
@@ -108,7 +108,7 @@ class ModelInstance:
 
     @property
     def environment_class(self) -> type[DummyVecEnv] | type[SubprocVecEnv]:
-        """TODO: implement later."""
+        """Get the environment class."""
         return ENVIRONMENTS.get(self.environment, DummyVecEnv)
 
     def env_generator(self) -> VecEnv:
@@ -125,9 +125,14 @@ class ModelInstance:
     def model(self) -> MaskablePPO:
         """Get model."""
         envs = self.env_generator()
+
+        policy_kwargs = {"activation_fn": self.policy_activation_fn_choice}
+        if self.features_extractor is not None:
+            policy_kwargs["features_extractor_class"] = EXTRACTORS[self.features_extractor]
+
         return MaskablePPO.load(self.model_path, envs) if self.model_path.with_suffix(".zip").exists() \
             else MaskablePPO("MlpPolicy", envs, n_steps=self.steps_per_update, ent_coef=self.ent_coef,
-                             policy_kwargs={"activation_fn": self.policy_activation_fn_choice},
+                             policy_kwargs=policy_kwargs,
                              verbose=10, gamma=self.gamma, seed=self.seed_32)
 
     def save(self, model: MaskablePPO) -> None:
@@ -160,4 +165,6 @@ def add_model_arguments(ap) -> None:
                     default=defaults.gap_function)
     ap.add_argument("--linear", action="store_true",
                     help="Choose only the selected coalition size, not the specific coalition, yielding a linear size of action set.")
+    ap.add_argument("--features-extractor", choices=EXTRACTORS.keys(), required=False,
+                    help="Choose a features extractor of PPO. Leave blank for default.")
     ap.add_argument("--seed", type=int, required=False, default=defaults.seed)
