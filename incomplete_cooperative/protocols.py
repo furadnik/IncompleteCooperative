@@ -138,9 +138,9 @@ GameBoundsComputer = Callable[[BoundableIncompleteGame], None]
 GameGenerator = Callable[[int], Game]
 
 
-State = np.ndarray
-Info = dict[str, Any]
-StepResult = tuple[np.ndarray[Any, np.dtype[Value]], Value, bool, bool, Info]
+State: TypeAlias = np.ndarray
+Info: TypeAlias = dict[str, Any]
+StepResult: TypeAlias = tuple[np.ndarray[Any, np.dtype[Value]], Value, bool, bool, Info]
 
 
 class Gym(Protocol):
