@@ -33,7 +33,11 @@ CMAP = colormaps["inferno"]
 NAME_MAP = {k: "{\\sc " + v + "}" for k, v in {
     "random_eval": "Random",
     "eval": "PPO",
+    "eval_ln": "PPO+LN",
+    "eval_lin": "PPO+Lin",
+    "eval_ln_lin": "PPO+LN+Lin",
     "solve_greedy": "Oracle Greedy",
+    "solve_greedy_worst": "Oracle Greedy - Worst",
     "solve_ugreedy": "Oracle Uniform Greedy",
     "best_states": "Oracle Optimal",
     "expected_greedy": "Offline Greedy",
