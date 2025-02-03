@@ -202,5 +202,11 @@ class Solver(Protocol):
         This is meant to be close to the interface of `gym.Env`.
         """
 
+    def after_reset(self, gym: Gym) -> None:
+        """Get the gym state after reset.
+
+        The subsequent calls to next_step are guaranteed to be within the same reset window.
+        """
+
 
 GapFunction = Callable[[IncompleteGame], Value]
