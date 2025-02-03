@@ -8,7 +8,7 @@ from incomplete_cooperative.protocols import IncompleteGame, Value
 
 def lp_norm(game: IncompleteGame, ord: int | float | None = None) -> Value:
     """Compute an lp norm on vectors."""
-    return np.linalg.norm((game.get_upper_bounds() - game.get_lower_bounds()), ord)
+    return Value(np.linalg.norm((game.get_upper_bounds() - game.get_lower_bounds()), ord))
 
 
 l2_norm = partial(lp_norm, ord=2)
