@@ -14,7 +14,8 @@ def solve_func(instance: ModelInstance, parsed_args) -> None:
         solver.next_step, instance.get_env, parsed_args.solve_repetitions,  # type: ignore
         instance.run_steps_limit or 2**instance.number_of_players,
         instance.gap_function_callable,
-        instance.parallel_environments
+        instance.parallel_environments,
+        solver.after_reset
     )
 
     save(instance.model_dir, instance.unique_name,

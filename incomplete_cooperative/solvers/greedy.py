@@ -23,3 +23,6 @@ class GreedySolver:
         max_action_value = max(action_values) if not self.worst else min(action_values)  # type: ignore[type-var]
         best_actions = (act for act, val in zip(valid_actions, action_values) if val == max_action_value)
         return next(best_actions)
+
+    def after_reset(self, gym: Gym) -> None:
+        """Do nothing."""

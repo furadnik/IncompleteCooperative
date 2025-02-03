@@ -25,6 +25,7 @@ class TestSolverMixin(GymMixin, ABC):
         """Test that the gym isn't affected at any point."""
         solver = self.get_solver()
         gym = self.get_gym(number_of_players=4)
+        solver.after_reset(gym)
         while not gym.done:
             prev_values = gym.incomplete_game._values.tolist()
             action = solver.next_step(gym)
@@ -61,6 +62,7 @@ class TestLargest(TestSolverMixin, TestCase):
         for i in range(3, 7):
             with self.subTest(number_of_players=i):
                 gym = self.get_gym(number_of_players=i)
+                solver.after_reset(gym)
                 last_coalition_size = i
                 while not gym.done:
                     action = solver.next_step(gym)
