@@ -18,3 +18,6 @@ class RandomSolver:
         if not valid_actions:  # pragma: no cover
             return 0
         return self._generator.choice(valid_actions)  # nosec - random not used as a security feature
+
+    def after_reset(self, gym: Gym) -> None:
+        """Do nothing."""
