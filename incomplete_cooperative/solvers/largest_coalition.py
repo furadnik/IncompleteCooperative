@@ -16,3 +16,6 @@ class LargestSolver:
         max_coalition_size = max(map(len, valid_coalitions))
         best_actions = (act for act, coal in zip(valid_actions, valid_coalitions) if len(coal) == max_coalition_size)
         return next(best_actions)
+
+    def after_reset(self, gym: Gym) -> None:
+        """Do nothing."""
