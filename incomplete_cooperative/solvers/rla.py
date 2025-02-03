@@ -1,4 +1,4 @@
-"""A solver using Root Linear Approximation algorithm."""
+"""A greedy solver."""
 
 from ..protocols import Gym
 from ..run.model import ModelInstance
@@ -11,7 +11,14 @@ class RLASolver:
     """Solve by Root Linear Approximation."""
 
     def __init__(self, instance: ModelInstance | None = None) -> None:
-        """Precompute the Root Linear Approximation."""
+        """Initialize the variables."""
+        
+        self.rla = None
+        self.num_of_queries = 0
+        self.remaining_coalitions = []
+    
+
+    def on_reset(self, gym: Gym) -> None:
         icg_gym = instance.get_env()
 
         inverted_game = icg_gym.incomplete_game
