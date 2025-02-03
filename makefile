@@ -9,6 +9,7 @@ PYTEST_FILE=incomplete_cooperative/tests
 test: test_unittest test_types test_docs test_security
 
 $(VENV)/bin/activate: setup.cfg
+	rm -rf $(VENV) || echo "venv dir didn't exist"
 	python -m venv $(VENV)
 	$(PIP) install --upgrade .[dev]
 
