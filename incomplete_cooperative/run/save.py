@@ -46,12 +46,12 @@ class Output:
     @property
     def data_list(self) -> list[list[float]]:
         """Turn data to a list."""
-        return self.data.tolist()
+        return self.data.tolist()  # type: ignore[return-value]
 
     @property
     def actions_list(self) -> list[list[float]]:
         """Turn data to a list."""
-        return self.actions.tolist()
+        return self.actions.tolist()  # type: ignore[return-value]
 
     @property
     def json(self) -> dict:
@@ -144,7 +144,7 @@ def get_coalition_distribution2(data: np.ndarray) -> tuple[list[list[Player]], l
     # now split them apart again, but sorted
     new_labels = [x[0] for x in labels_with_counts]
     new_counts = [x[1] for x in labels_with_counts]
-    return new_labels, new_counts
+    return new_labels, new_counts  # type: ignore[return-value]
 
 
 def get_coalition_distribution(number_of_coalitions: int, data: np.ndarray,
@@ -175,7 +175,7 @@ def get_coalition_distribution(number_of_coalitions: int, data: np.ndarray,
     # now split them apart again, but sorted
     new_labels = [x[0] for x in labels_with_counts]
     new_counts = [x[1] for x in labels_with_counts]
-    return new_labels, new_counts
+    return new_labels, new_counts  # type: ignore[return-value]
 
 
 def approx_game(all_data: np.ndarray) -> tuple[int, int, list[Coalition]]:

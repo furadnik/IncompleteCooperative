@@ -117,7 +117,7 @@ class IncompleteCooperativeGame:
 
     def get_interval(self, coalition: Coalition) -> np.ndarray[tuple[Literal[2]], np.dtype[Value]]:
         """Get the interval, ie. both the upper and lower bounds."""
-        return self._values[coalition.id, self._values_lower_index:self._values_upper_index + 1]
+        return self._values[coalition.id, self._values_lower_index:self._values_upper_index + 1]  # type: ignore[return-value]
 
     def get_intervals(self, coalitions: Iterable[Coalition] | None = None
                       ) -> np.ndarray[tuple[Any, Literal[2]], np.dtype[Value]]:
