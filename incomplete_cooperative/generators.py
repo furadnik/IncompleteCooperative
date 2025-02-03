@@ -223,7 +223,7 @@ def xs(number_of_players: int, generator: np.random.Generator = np.random.defaul
             player = generator.integers(number_of_players)
             singletons[player] = max(singletons[player], generator.random())
     else:
-        singletons = np.array([generator.random() for _ in range(number_of_players)])
+        singletons = np.array([generator.random() for _ in range(number_of_players)])  # type: ignore[assignment]
     coalitions = all_coalitions(number_of_players)
     players_in_coalitions = [list(coalition.players) for coalition in coalitions]
     values = np.array([np.max(singletons[players], initial=0) for players in players_in_coalitions])

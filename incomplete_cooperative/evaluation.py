@@ -10,9 +10,9 @@ from .protocols import GapFunction, Gym, GymGenerator
 
 def evaluate(get_next_step: Callable, env_generator: GymGenerator,
              repetitions: int, run_steps_limit: int, gap_func: GapFunction,
-             processes: int = 1) -> tuple[np.ndarray, np.ndarray]:
+             processes: int = 1, after_reset: Callable[[Gym], None] = lambda _: None) -> tuple[np.ndarray, np.ndarray]:
     """Evaluate a game solver."""
-    call_arg_sequence = ((get_next_step, env_generator(), run_steps_limit, gap_func) for _ in range(repetitions))
+    call_arg_sequence = ((get_next_step, env_generator(), run_steps_limit, gap_func, after_reset) for _ in range(repetitions))
     if processes > 1:
         with Pool(processes=processes) as p:  # TODO: seed
             exploitabilities_and_actions = p.starmap(eval_one, call_arg_sequence)
@@ -25,12 +25,14 @@ def evaluate(get_next_step: Callable, env_generator: GymGenerator,
     return exploitability, actions_all
 
 
-def eval_one(get_next_step: Callable, env: Gym, run_steps_limit: int, gap_func: GapFunction
+def eval_one(get_next_step: Callable, env: Gym, run_steps_limit: int, gap_func: GapFunction,
+             after_reset: Callable[[Gym], None] = lambda _: None
              ) -> tuple[np.ndarray, np.ndarray]:
     """Evaluate one environment."""
     exploitability = np.zeros(run_steps_limit + 1)
     actions_all = np.zeros(run_steps_limit)
     env.reset()
+    after_reset(env)
 
     exploitability[0] = -env.reward
     for episode in range(run_steps_limit):
