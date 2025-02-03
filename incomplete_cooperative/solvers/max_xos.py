@@ -1,4 +1,4 @@
-"""A greedy using Max Xos Approximation Algorithm."""
+"""A greedy solver."""
 
 from ..protocols import Gym
 from ..run.model import ModelInstance
@@ -11,7 +11,13 @@ class MaxXosSolver:
     """Solve by Max XOS Approximation."""
 
     def __init__(self, instance: ModelInstance | None = None) -> None:
-        """Precompute the Max XOS Approximation."""
+        """Initialize the variables."""
+            
+            self.max_xos = None
+            self.num_of_queries = 0
+            self.remaining_coalitions = []
+        
+    def on_reset(self, gym: Gym) -> None:
         icg_gym = instance.get_env()
 
         inverted_game = icg_gym.incomplete_game
@@ -25,7 +31,6 @@ class MaxXosSolver:
         all_coalitions = np.arange(1, 2**icg_gym.incomplete_game.number_of_players)
         filtered_coalitions = all_coalitions[~np.isin(all_coalitions, self.max_xos.queried_coalitions)]
         self.remaining_coalitions = np.random.shuffle(filtered_coalitions)
-        
 
     def next_step(self, gym: Gym) -> int:
         """Get the locally best next move."""
