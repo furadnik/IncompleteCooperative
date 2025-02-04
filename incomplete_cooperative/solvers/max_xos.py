@@ -13,9 +13,9 @@ class MaxXosSolver:
     def __init__(self, instance: ModelInstance | None = None) -> None:
         """Initialize the variables."""
             
-            self.max_xos = None
-            self.num_of_queries = 0
-            self.remaining_coalitions = []
+        self.max_xos = None
+        self.num_of_queries = 0
+        self.remaining_coalitions = []
         
     def after_reset(self, gym: Gym) -> None:
         icg_gym = instance.get_env()
