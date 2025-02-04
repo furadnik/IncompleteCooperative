@@ -18,7 +18,7 @@ class RLASolver:
         self.remaining_coalitions = []
     
 
-    def on_reset(self, gym: Gym) -> None:
+    def after_reset(self, gym: Gym) -> None:
         icg_gym = instance.get_env()
 
         inverted_game = icg_gym.incomplete_game
