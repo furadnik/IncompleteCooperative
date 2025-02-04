@@ -9,12 +9,12 @@
 import numpy as np
 from math import log, sqrt, log2, floor
 
-from coalitions import (
+from .coalitions import (
     Coalition,
     all_coalitions,
     player_to_coalition,
 )
-from game import IncompleteCooperativeGame
+from .game import IncompleteCooperativeGame
 
 
 class RootLinearApproximation:
