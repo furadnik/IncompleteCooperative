@@ -1,8 +1,8 @@
-"""A greedy solver."""
+"""An RLA solver."""
 
 from ..protocols import Gym
 from ..run.model import ModelInstance
-from ..multiplicative import RootLinearApproximation
+from ..rla_approximation import compute_rla_approximation
 
 import numpy as np
 
@@ -13,35 +13,35 @@ class RLASolver:
     def __init__(self, instance: ModelInstance | None = None) -> None:
         """Initialize the variables."""
         
-        self.rla = None
+        self.queried_coalition_ids = []
+        self.multiplicative_factor = 0
         self.num_of_queries = 0
-        self.remaining_coalitions = []
+        self.remaining_coalition_ids = []
     
 
     def after_reset(self, gym: Gym) -> None:
-        icg_gym = instance.get_env()
+        icg_gym = gym.get_env()
 
-        inverted_game = icg_gym.incomplete_game
-        inverted_game.values = icg_gym.incomplete_game.values * -1 # The approximation algorithm needs submodular game
+        game = icg_gym.incomplete_game
+        game._values[:, [game._values_lower_index, game._values_upper_index]] *= -1 # TODO: Do this in a clean way
 
-        self.rla = RootLinearApproximation(inverted_game)
+        self.queried_coalition_ids, self.multiplicative_factor = compute_rla_approximation(game)
 
-        self.num_of_queries = len(self.rla.queried_coalitions) # This is stored so we can later learn when to stop plotting the graph
+        self.num_of_queries = len(self.queried_coalition_ids) # This is stored so we can later learn when to stop plotting the graph
 
         # Compute the rest of the coalitions and shuffle them
-        all_coalitions = np.arange(1, 2**icg_gym.incomplete_game.number_of_players)
-        filtered_coalitions = all_coalitions[~np.isin(all_coalitions, self.rla.queried_coalitions)]
-        self.remaining_coalitions = np.random.shuffle(filtered_coalitions)
+        all_coalitions = np.arange(1, 2**game.number_of_players)
+        filtered_coalition_ids = all_coalitions[~np.isin(all_coalitions, self.queried_coalition_ids)]
+        self.remaining_coalition_ids = np.random.shuffle(filtered_coalition_ids)
         
 
     def next_step(self, gym: Gym) -> int:
         """Get the locally best next move."""
-        if self.rla.queried_coalitions.size > 0:
-            popped_coalition = self.rla.queried_coalitions[-1]
-            self.rla.queried_coalitions = self.rla.queried_coalitions[:-1]
+        if self.queried_coalition_ids.size > 0:
+            popped_coalition = self.queried_coalition_ids[-1]
+            self.queried_coalition_ids = self.queried_coalition_ids[:-1]
             return popped_coalition
         else:
             popped_coalition = self.remaining_coalitions[-1]
-            self.remaining_coalitions = self.remaining_coalitions[:-1]
+            self.remaining_coalition_ids = self.remaining_coalition_ids[:-1]
             return popped_coalition
-
