@@ -1,11 +1,12 @@
 import numpy as np
 from math import sqrt
 
+
 from .coalitions import Coalition, all_coalitions, player_to_coalition
 from .game import IncompleteCooperativeGame
 
 
-def compute_rla_approximation(game: IncompleteCooperativeGame, epsilon: float = 0.05) -> tuple[np.array, float]:
+def compute_rla_approximation(game: IncompleteCooperativeGame, epsilon: float = 0.05) -> np.array:
     """Computes a sketch of a cooperative game using a root linear function, i.e. sqrt(c_1 x_1 + ... c_n x_n) where
     - c_i ... weight of agent i
     - x_i ... indicator variable of player i
@@ -13,15 +14,20 @@ def compute_rla_approximation(game: IncompleteCooperativeGame, epsilon: float = 
     """
     
     weights, queried_coalition_ids = compute_weights_and_queries(game, epsilon)
-    multiplicative_factor = compute_multiplicative_factor(game, weights)
+    
+    #multiplicative_factor = compute_multiplicative_factor(game, weights)
 
-    return queried_coalition_ids, multiplicative_factor
+    approximated_values = get_approximated_values(game.number_of_players, weights)
+    approximated_game = IncompleteCooperativeGame(game.number_of_players)
+    approximated_game.set_values(approximated_values)
+
+    return queried_coalition_ids, approximated_game#, multiplicative_factor
 
 
 def compute_weights_and_queries(game: IncompleteCooperativeGame, epsilon: float) -> tuple[np.array, np.array]:
     """Computes the sketch of the game using the ASFE algorithm."""
 
-    queried_coalition_ids = []
+    queried_coalition_ids = np.array([])
 
     diagonal_entries = np.array([game.number_of_players / game.get_value(player_to_coalition(i)) ** 2 for i in range(game.number_of_players)])
 
@@ -29,8 +35,8 @@ def compute_weights_and_queries(game: IncompleteCooperativeGame, epsilon: float)
     weight_matrix = np.diag(diagonal_entries)
 
     while True:
-        vector, new_queried_coalition_ids = approximate_max_on_polymatroid(game.number_of_players, weight_matrix)
-        queried_coalition_ids = np.concatenate(queried_coalition_ids, new_queried_coalition_ids)
+        vector, new_queried_coalition_ids = approximate_max_on_polymatroid(game, weight_matrix)
+        queried_coalition_ids = np.concatenate([queried_coalition_ids, new_queried_coalition_ids])
 
         if sqrt((vector.T @ weight_matrix @ vector).item()) > (
             sqrt(game.number_of_players) + epsilon
@@ -48,7 +54,7 @@ def approximate_max_on_polymatroid(game : IncompleteCooperativeGame, weights_mat
     More specifically, the maximum is approximated for a modified set function g(S) = c_1 * [f([2,k]) - f([1,k])] + ... + c_k[f([k,k]) - f([k-1,k])].
     The maximum is then attained greedily by adding the player, which maximizes the marginal gain.
     """
-    queried_coalition_ids = []
+    queried_coalition_ids = np.array([])
     res_vector = np.zeros(game.number_of_players)
 
     coalition = Coalition(0)
@@ -61,7 +67,7 @@ def approximate_max_on_polymatroid(game : IncompleteCooperativeGame, weights_mat
             g_value, new_queried_coalition_ids = query_values_and_compute_g_function(
                 game, coalition + player, weights_matrix
                 )
-            queried_coalition_ids = np.concatenate(queried_coalition_ids, new_queried_coalition_ids)
+            queried_coalition_ids = np.concatenate([queried_coalition_ids, new_queried_coalition_ids])
             if g_value > temp_max:
                 temp_max = g_value
                 player_to_add = player
@@ -90,7 +96,7 @@ def compute_larger_ellipsoid(num_of_players : int, weight_matrix: np.array, vect
 def query_values_and_compute_g_function(game : IncompleteCooperativeGame, coalition: Coalition, weights_matrix: np.array) -> tuple[int, np.ndarray]:
     """Returns the value of the function g(S) = c_1 * [f([2,k]) - f([1,k])] + ... + c_k[f([k,k]) - f([k-1,k])]."""
 
-    queried_coalition_ids = []
+    queried_coalition_ids = np.array([])
 
     weights = np.diag(weights_matrix)
 
@@ -103,13 +109,17 @@ def query_values_and_compute_g_function(game : IncompleteCooperativeGame, coalit
     for i in sorted_indices:
         old_temp_id = temp_id
         temp_id += 2**i
-        queried_coalition_ids.append(temp_id)
+        queried_coalition_ids = np.append(queried_coalition_ids, temp_id)
         result += weights[i] * (game.get_value(Coalition(temp_id)) - game.get_value(Coalition(old_temp_id)))
-    return result, queried_coalition_ids
+    return result, np.array(queried_coalition_ids)
 
 def get_value(coalition: Coalition, weights: np.ndarray) -> float:
     """Return value of the Root Linear approximation for a given coalition."""
     return sqrt(sum(weights[i] for i in coalition.players))
+
+def get_approximated_values(num_of_players: int, weights: np.ndarray) -> np.nadrray:
+    """Return the approximation of the game given the weights."""
+    return np.array([get_value(coalition, weights) for coalition in all_coalitions(num_of_players)])
 
 def compute_multiplicative_factor(game : IncompleteCooperativeGame, weights: np.array) -> float:
     """Computes the multiplicative factor of the approximation. It is aprox(S) / v(S) <= alpha, as opposed to the other algorithm."""
