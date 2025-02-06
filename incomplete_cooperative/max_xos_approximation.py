@@ -1,12 +1,12 @@
 import numpy as np
 from math import sqrt
 
-from coalitions import (
+from .coalitions import (
     Coalition,
     all_coalitions,
     player_to_coalition,
 )
-from game import IncompleteCooperativeGame
+from .game import IncompleteCooperativeGame
 
 
 def compute_max_xos_approximation(game : IncompleteCooperativeGame, alpha: float = 3.7844223824, beta: float = 1, eps: float = 0.05) -> tuple[np.array, float]:
@@ -15,12 +15,14 @@ def compute_max_xos_approximation(game : IncompleteCooperativeGame, alpha: float
     candidate_coalitions, queried_coalition_ids = compute_candidate_coalitions_and_query_values(
         game, k_values, r_values, alpha, beta, eps
         )
-
+    
     approximated_values = compute_approximation(game, candidate_coalitions, k_values, r_values, alpha, beta)
+    approximated_game = IncompleteCooperativeGame(game.number_of_players)
+    approximated_game.set_values(approximated_values)
+    
+    #multiplicative_factor = compute_multiplicative_factor(game, approximated_values)
 
-    multiplicative_factor = compute_multiplicative_factor(game, approximated_values)
-
-    return queried_coalition_ids, multiplicative_factor
+    return queried_coalition_ids, approximated_game#, multiplicative_factor
 
 
 
@@ -43,6 +45,8 @@ def get_k_r_values(number_of_players: int) -> tuple[list[int], list[int]]: #TODO
     return k_values, r_values
 
 def compute_candidate_coalitions_and_query_values(game: IncompleteCooperativeGame, k_values: list[int], r_values: list[int], alpha: float, beta: float, eps: float) -> tuple[np.ndarray, np.ndarray]:
+    queried_coalition_ids = np.array([])
+    
     candidate_coalitions = np.empty((len(k_values), len(r_values)), dtype=object)
 
     heavy_players = np.zeros((len(k_values), len(r_values), game.number_of_players))
@@ -55,7 +59,7 @@ def compute_candidate_coalitions_and_query_values(game: IncompleteCooperativeGam
         for r in range(len(r_values)):
             candidate_coalitions[k, r] = []
 
-            heavy_players[k, r, :] = singleton_values >= (
+            heavy_players[k, r, :] = np.array(singleton_values) >= (
                 k_values[k] * r_values[r] / sqrt(game.number_of_players)
             )
             light_players[k, r] = 1 - heavy_players[k, r]
@@ -64,12 +68,12 @@ def compute_candidate_coalitions_and_query_values(game: IncompleteCooperativeGam
             remaining_coalition = Coalition.from_players(remaining_players)
 
             coalition, new_queried_coalition_ids = max_subroutine(game, remaining_coalition, k_values[k], eps)
-            queried_coalition_ids = np.concatenate(queried_coalition_ids, new_queried_coalition_ids)
+            queried_coalition_ids = np.concatenate([queried_coalition_ids, new_queried_coalition_ids])
 
             while game.get_value(coalition) >= k_values[k] * r_values[r] / (2 * alpha):
 
                 additive_vector, new_queried_coalition_ids = approx_xos_subroutine(game, coalition)
-                queried_coalition_ids = np.concatenate(queried_coalition_ids, new_queried_coalition_ids)
+                queried_coalition_ids = np.concatenate([queried_coalition_ids, new_queried_coalition_ids])
                 subcoalition = coalition
 
                 for player in coalition.players:
@@ -78,7 +82,7 @@ def compute_candidate_coalitions_and_query_values(game: IncompleteCooperativeGam
                 candidate_coalitions[k, r].append(subcoalition)
 
                 coalition, new_queried_coalition_ids = max_subroutine(game, coalition - subcoalition, k_values[k], eps)
-                queried_coalition_ids = np.concatenate(queried_coalition_ids, new_queried_coalition_ids)
+                queried_coalition_ids = np.concatenate([queried_coalition_ids, new_queried_coalition_ids])
     
     return np.array(candidate_coalitions), np.unique(queried_coalition_ids)
 
@@ -123,7 +127,7 @@ def approx_xos_subroutine(game: IncompleteCooperativeGame, coalition: Coalition)
         extended_subcoalition += player
         queried_coalition_ids.append(extended_subcoalition.id)
 
-        additive_vector[player] = (game.get_value(extended_subcoalition) - game.get_value(subcoalition.id))
+        additive_vector[player] = (game.get_value(extended_subcoalition) - game.get_value(subcoalition))
 
     return additive_vector, np.array(queried_coalition_ids)
 
@@ -131,7 +135,7 @@ def compute_approximation(game: IncompleteCooperativeGame, candidate_coalitions:
     # Constructing the approximation based on candidate_coalitions
     approximated_values = np.zeros(2**game.number_of_players)
 
-    singleton_values = [game.get_value(player_to_coalition(player)) for player in range(game.number_of_players)]
+    singleton_values = np.array([game.get_value(player_to_coalition(player)) for player in range(game.number_of_players)])
 
     for coalition in all_coalitions(game.number_of_players):
         if coalition.id != 0:
@@ -142,7 +146,7 @@ def compute_approximation(game: IncompleteCooperativeGame, candidate_coalitions:
                 for r in range(len(r_values)):
                     for candidate_coalition in candidate_coalitions[k, r]:
                         new_value = (
-                            len(candidate_coalition * coalition) * r
+                            len(candidate_coalition & coalition) * r
                             / (4 * alpha * beta)
                         )
                         if new_value > max_value:
