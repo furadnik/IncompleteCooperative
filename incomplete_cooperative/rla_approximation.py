@@ -6,7 +6,7 @@ from .coalitions import Coalition, all_coalitions, player_to_coalition
 from .game import IncompleteCooperativeGame
 
 
-def compute_rla_approximation(game: IncompleteCooperativeGame, epsilon: float = 0.05) -> np.array:
+def compute_rla_approximation(game: IncompleteCooperativeGame, epsilon: float = 0.05) -> tuple[np.ndarray, IncompleteCooperativeGame]:
     """Computes a sketch of a cooperative game using a root linear function, i.e. sqrt(c_1 x_1 + ... c_n x_n) where
     - c_i ... weight of agent i
     - x_i ... indicator variable of player i
@@ -24,7 +24,7 @@ def compute_rla_approximation(game: IncompleteCooperativeGame, epsilon: float = 
     return queried_coalition_ids, approximated_game#, multiplicative_factor
 
 
-def compute_weights_and_queries(game: IncompleteCooperativeGame, epsilon: float) -> tuple[np.array, np.array]:
+def compute_weights_and_queries(game: IncompleteCooperativeGame, epsilon: float) -> tuple[np.ndarray, np.ndarray]:
     """Computes the sketch of the game using the ASFE algorithm."""
 
     queried_coalition_ids = np.array([])
@@ -79,7 +79,7 @@ def approximate_max_on_polymatroid(game : IncompleteCooperativeGame, weights_mat
 
     return res_vector.reshape(-1, 1), queried_coalition_ids
 
-def compute_larger_ellipsoid(num_of_players : int, weight_matrix: np.array, vector: np.array) -> np.array:
+def compute_larger_ellipsoid(num_of_players : int, weight_matrix: np.ndarray, vector: np.ndarray) -> np.ndarray:
     """Based on a matrix representation of an ellipsoid and vector, computes a larger ellipsoid (its matrix). Formula from Lemma 2 in paper."""
 
     
@@ -93,7 +93,7 @@ def compute_larger_ellipsoid(num_of_players : int, weight_matrix: np.array, vect
     )
     return larger_ellipsoid
 
-def query_values_and_compute_g_function(game : IncompleteCooperativeGame, coalition: Coalition, weights_matrix: np.array) -> tuple[int, np.ndarray]:
+def query_values_and_compute_g_function(game : IncompleteCooperativeGame, coalition: Coalition, weights_matrix: np.ndarray) -> tuple[int, np.ndarray]:
     """Returns the value of the function g(S) = c_1 * [f([2,k]) - f([1,k])] + ... + c_k[f([k,k]) - f([k-1,k])]."""
 
     queried_coalition_ids = np.array([])
@@ -117,11 +117,11 @@ def get_value(coalition: Coalition, weights: np.ndarray) -> float:
     """Return value of the Root Linear approximation for a given coalition."""
     return sqrt(sum(weights[i] for i in coalition.players))
 
-def get_approximated_values(num_of_players: int, weights: np.ndarray) -> np.nadrray:
+def get_approximated_values(num_of_players: int, weights: np.ndarray) -> np.ndarray:
     """Return the approximation of the game given the weights."""
     return np.array([get_value(coalition, weights) for coalition in all_coalitions(num_of_players)])
 
-def compute_multiplicative_factor(game : IncompleteCooperativeGame, weights: np.array) -> float:
+def compute_multiplicative_factor(game : IncompleteCooperativeGame, weights: np.ndarray) -> float:
     """Computes the multiplicative factor of the approximation. It is aprox(S) / v(S) <= alpha, as opposed to the other algorithm."""
     multiplicative_factor = 0
     for coalition in all_coalitions(game.number_of_players):
@@ -132,3 +132,4 @@ def compute_multiplicative_factor(game : IncompleteCooperativeGame, weights: np.
             get_value(coalition, weights) / game.get_value(Coalition(coalition.id)),
         )
     return multiplicative_factor
+
