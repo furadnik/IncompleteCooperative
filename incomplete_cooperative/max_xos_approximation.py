@@ -156,12 +156,10 @@ def compute_approximation(game: IncompleteCooperativeGame, candidate_coalitions:
 
 def compute_multiplicative_factor(game: IncompleteCooperativeGame, approximated_values: np.ndarray) -> float:
     """Computes the multiplicative factor of the approximation. It is v(S) / aprox(S) <= alpha, as opposed to the other algorithm."""
-    multiplicative_factor = 0
+    multiplicative_factor: float = 0.0
     for coalition in all_coalitions(game.number_of_players):
         multiplicative_factor = max(
             multiplicative_factor,
-            game.get_value(coalition) / approximated_values[coalition.id],
+            approximated_values[coalition.id] / game.get_value(coalition),
         )
     return multiplicative_factor
-
-
