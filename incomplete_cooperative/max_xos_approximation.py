@@ -9,7 +9,7 @@ from .coalitions import (
 from .game import IncompleteCooperativeGame
 
 
-def compute_max_xos_approximation(game : IncompleteCooperativeGame, alpha: float = 3.7844223824, beta: float = 1, eps: float = 0.05) -> tuple[np.array, float]:
+def compute_max_xos_approximation(game : IncompleteCooperativeGame, alpha: float = 3.7844223824, beta: float = 1, eps: float = 0.05) -> tuple[np.ndarray, IncompleteCooperativeGame]:
     k_values, r_values = get_k_r_values(game.number_of_players)
 
     candidate_coalitions, queried_coalition_ids = compute_candidate_coalitions_and_query_values(
@@ -107,11 +107,11 @@ def max_subroutine(game: IncompleteCooperativeGame, coalition: Coalition, size: 
                     if game.get_value(constructed_coalition + player) - game.get_value(constructed_coalition) >= reduced_limit:
                         constructed_coalition += player
                 else:
-                    return constructed_coalition, queried_coalition_ids
+                    return constructed_coalition, np.array(queried_coalition_ids)
 
             reduced_limit = reduced_limit * (1 - eps)
 
-        return constructed_coalition, queried_coalition_ids
+        return constructed_coalition, np.array(queried_coalition_ids)
 
 def approx_xos_subroutine(game: IncompleteCooperativeGame, coalition: Coalition) -> tuple[np.ndarray, np.ndarray]:
     """Computes beta-XOS clause for coalition with respect to valuation of the game."""
@@ -165,100 +165,3 @@ def compute_multiplicative_factor(game: IncompleteCooperativeGame, approximated_
     return multiplicative_factor
 
 
-class MaxXosApproximation:
-    def __init__(
-        self, game: IncompleteCooperativeGame, alpha: float = 3.7844223824, beta: float = 1, eps: float = 0.05
-    ):
-        self.number_of_players = game.number_of_players
-        self.values = game._values[:, 1]
-        # self.values = np.array([0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5])  # For testing purposes
-        self.alpha = alpha
-        self.beta = beta
-        self.eps = eps
-        self.queried_coalitions = []
-        self.approximation = self.construct_approximation()
-
-        # Remove duplicates
-        self.queried_coalitions = np.array(list(set(self.queried_coalitions)))
-        self.multiplicative_factor = self.compute_multiplicative_factor()
-
-    def construct_approximation(self):
-        """Constructs the approximation of the game using the Max XOS algorithm."""
-
-        
-
-    def max_subroutine(self, coalition: Coalition, size: int) -> Coalition:
-        """Computes approximate solution of k-bounded max problem for set function restricted to coalition."""
-
-        if coalition == Coalition(0):
-            return Coalition(0)
-        else:
-            singleton_ids = 2 ** np.arange(self.number_of_players)
-            singleton_values = self.values[singleton_ids]
-
-            initial_limit = np.max(singleton_values[list(coalition.players)])
-            constructed_coalition = Coalition(0)  # Empty coalition
-            reduced_limit = initial_limit
-            while reduced_limit >= self.eps * initial_limit / self.number_of_players:
-                for player in (coalition - constructed_coalition).players:
-                    if len(constructed_coalition) + 1 < size:
-                        self.queried_coalitions.append(
-                            (constructed_coalition + player).id
-                        )  # Here, values are queried
-                        if (
-                            self.values[(constructed_coalition + player).id]
-                            - self.values[constructed_coalition.id]
-                            >= reduced_limit
-                        ):
-                            constructed_coalition += player
-                    else:
-                        return constructed_coalition
-
-                reduced_limit = reduced_limit * (1 - self.eps)
-
-            return constructed_coalition
-
-    def approx_xos_subroutine(self, coalition: Coalition) -> np.ndarray:
-        """Computes beta-XOS clause for coalition with respect to valuation of the game."""
-
-        additive_vector = np.zeros(self.number_of_players)
-
-        subcoalition = Coalition(0)
-        extended_subcoalition = Coalition(0)
-
-        for player in coalition.players:
-            subcoalition = extended_subcoalition
-            extended_subcoalition += player
-            self.queried_coalitions.append(extended_subcoalition.id)  # Here, values are queried
-
-            additive_vector[player] = (self.values[extended_subcoalition.id] - self.values[subcoalition.id])
-
-        return additive_vector
-
-    def get_k_r_values(self):
-        """Computes parameters of the algorith. I am too exhausted to write it in a better way."""
-        k_values = []
-        k = 0
-        square = sqrt(self.number_of_players)
-        while (2**k) * square < self.number_of_players:
-            k_values.append(2**k * square)
-            k += 1
-        k_values.append(self.number_of_players)
-
-        r_values = []
-        r = 0
-        while 2**r < self.number_of_players**2:
-            r_values.append(2**r)
-            r += 1
-        r_values.append(self.number_of_players**2)
-        return k_values, r_values
-
-    def compute_multiplicative_factor(self):
-        """Computes the multiplicative factor of the approximation. It is v(S) / aprox(S) <= alpha, as opposed to the other algorithm."""
-        multiplicative_factor = 0
-        for coalition in all_coalitions(self.number_of_players):
-            multiplicative_factor = max(
-                multiplicative_factor,
-                self.values[coalition.id] / self.approximation[coalition.id],
-            )
-        return multiplicative_factor
