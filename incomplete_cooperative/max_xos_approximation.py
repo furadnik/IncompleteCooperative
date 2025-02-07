@@ -5,10 +5,10 @@ import numpy as np
 
 from .coalitions import Coalition, all_coalitions, player_to_coalition
 from .game import IncompleteCooperativeGame
-from .protocols import Game, IncompleteGame
+from .protocols import Game
 
 
-def compute_max_xos_approximation(game: IncompleteGame, alpha: float = 3.7844223824,
+def compute_max_xos_approximation(game: Game, alpha: float = 3.7844223824,
                                   beta: float = 1, eps: float = 0.05) -> tuple[np.ndarray, IncompleteCooperativeGame]:
     """Compute the Max XOS approximation.
 
@@ -49,7 +49,7 @@ def _get_k_r_values(number_of_players: int) -> tuple[list[int], list[int]]:  # T
 
 
 def _compute_candidate_coalitions_and_query_values(
-    game: IncompleteGame, k_values: list[int], r_values: list[int], alpha: float, beta: float, eps: float
+    game: Game, k_values: list[int], r_values: list[int], alpha: float, beta: float, eps: float
 ) -> tuple[np.ndarray, np.ndarray]:
     queried_coalition_ids = np.array([])
 
@@ -59,6 +59,7 @@ def _compute_candidate_coalitions_and_query_values(
     light_players = np.zeros((len(k_values), len(r_values), game.number_of_players))
 
     singleton_values = np.array([game.get_value(player_to_coalition(player)) for player in range(game.number_of_players)])
+    assert np.all(singleton_values >= 1)
 
     # Constructing candidate_coalitions, translate to numpy for more efficiency
     for k in range(len(k_values)):
@@ -93,7 +94,7 @@ def _compute_candidate_coalitions_and_query_values(
     return np.array(candidate_coalitions), np.unique(queried_coalition_ids)
 
 
-def _max_subroutine(game: IncompleteGame, coalition: Coalition,
+def _max_subroutine(game: Game, coalition: Coalition,
                     size: int, eps: float) -> tuple[Coalition, np.ndarray]:
     """Compute approximate solution of k-bounded max problem for set function restricted to coalition."""
     queried_coalition_ids: list[int] = []
@@ -103,6 +104,7 @@ def _max_subroutine(game: IncompleteGame, coalition: Coalition,
     else:
 
         singleton_values = np.array([game.get_value(player_to_coalition(player)) for player in coalition.players])
+        assert np.all(singleton_values >= 1)
         initial_limit = np.max(singleton_values)
 
         constructed_coalition = Coalition(0)
@@ -121,7 +123,7 @@ def _max_subroutine(game: IncompleteGame, coalition: Coalition,
         return constructed_coalition, np.array(queried_coalition_ids)
 
 
-def _approx_xos_subroutine(game: IncompleteGame, coalition: Coalition) -> tuple[np.ndarray, np.ndarray]:
+def _approx_xos_subroutine(game: Game, coalition: Coalition) -> tuple[np.ndarray, np.ndarray]:
     """Compute beta-XOS clause for coalition with respect to valuation of the game."""
     additive_vector = np.zeros(game.number_of_players)
     queried_coalition_ids = []
@@ -139,12 +141,13 @@ def _approx_xos_subroutine(game: IncompleteGame, coalition: Coalition) -> tuple[
     return additive_vector, np.array(queried_coalition_ids)
 
 
-def _compute_approximation(game: IncompleteGame, candidate_coalitions: np.ndarray, k_values: list[int],
+def _compute_approximation(game: Game, candidate_coalitions: np.ndarray, k_values: list[int],
                            r_values: list[int], alpha: float, beta: float) -> np.ndarray:
     """Construct the approximation based on candidate_coalitions."""
     approximated_values = np.zeros(2**game.number_of_players)
     singleton_values = np.array([game.get_value(player_to_coalition(player))
                                  for player in range(game.number_of_players)])
+    assert np.all(singleton_values >= 1)
 
     for coalition in all_coalitions(game.number_of_players):
         if coalition.id != 0:

@@ -5,16 +5,19 @@ import numpy as np
 
 from .coalitions import Coalition, all_coalitions, player_to_coalition
 from .game import IncompleteCooperativeGame
-from .protocols import IncompleteGame
+from .protocols import Game
 
 
-def compute_rla_approximation(game: IncompleteGame,
-                              epsilon: float = 0.05) -> tuple[np.ndarray, IncompleteCooperativeGame]:
+def compute_rla_approximation(game: Game, epsilon: float = 0.05) -> tuple[np.ndarray, IncompleteCooperativeGame]:
     """Compute a sketch of a cooperative game using a root linear function, i.e. sqrt(c_1 x_1 + ... c_n x_n).
 
     - c_i ... weight of agent i
     - x_i ... indicator variable of player i
     - f(S) = sum_{i_in_S} c_i x_i.
+
+    The game is assumed to be subadditive and monotone.
+
+    Return the array of ids of queried coalitions, along with the approximated game.
     """
     weights, queried_coalition_ids = _compute_weights_and_queries(game, epsilon)
 
@@ -25,11 +28,8 @@ def compute_rla_approximation(game: IncompleteGame,
     return queried_coalition_ids, approximated_game
 
 
-def _compute_weights_and_queries(game: IncompleteGame, epsilon: float) -> tuple[np.ndarray, np.ndarray]:
-    """Compute the sketch of the game using the ASFE algorithm.
-
-    The game is assumed to be subadditive and monotone.
-    """
+def _compute_weights_and_queries(game: Game, epsilon: float) -> tuple[np.ndarray, np.ndarray]:
+    """Compute the sketch of the game using the ASFE algorithm."""
     queried_coalition_ids = np.array([])
     weights = np.array([game.number_of_players / game.get_value(player_to_coalition(i)) ** 2
                         for i in range(game.number_of_players)])
@@ -55,7 +55,7 @@ def _compute_weights_and_queries(game: IncompleteGame, epsilon: float) -> tuple[
     return weights, np.unique(queried_coalition_ids)
 
 
-def _approximate_max_on_polymatroid(game: IncompleteGame, weights: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+def _approximate_max_on_polymatroid(game: Game, weights: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """Approximates the maximum | |x||_weight_matrix on the polymatroid given by the set function.
 
     More specifically, the maximum is approximated for a modified set function
@@ -106,7 +106,7 @@ def _compute_larger_ellipsoid(num_of_players: int, weight_matrix: np.ndarray, ve
     return larger_ellipsoid
 
 
-def _query_values_and_compute_g_function(game: IncompleteGame, coalition: Coalition,
+def _query_values_and_compute_g_function(game: Game, coalition: Coalition,
                                          weights: np.ndarray) -> tuple[int, np.ndarray]:
     """Return the value of the function g(S) = c_1 * [f([2, k]) - f([1, k])] + ... + c_k[f([k, k]) - f([k - 1, k])]."""
     queried_coalition_ids = np.array([])
