@@ -31,30 +31,30 @@ def _compute_weights_and_queries(game: IncompleteGame, epsilon: float) -> tuple[
     The game is assumed to be subadditive and monotone.
     """
     queried_coalition_ids = np.array([])
-    diagonal_entries = np.array([game.number_of_players / game.get_value(player_to_coalition(i)) ** 2
+    weights = np.array([game.number_of_players / game.get_value(player_to_coalition(i)) ** 2
                                  for i in range(game.number_of_players)])
 
-    # Weights are iteratively computed and stored on diagonal
-    weight_matrix = np.diag(diagonal_entries)
-
     while True:
-        vector, new_queried_coalition_ids = _approximate_max_on_polymatroid(game, weight_matrix)
+        
+        vector, new_queried_coalition_ids = _approximate_max_on_polymatroid(game, weights)
         queried_coalition_ids = np.concatenate([queried_coalition_ids, new_queried_coalition_ids])
 
+        weight_matrix = np.diag(weights)
+      
         if sqrt((vector.T @ weight_matrix @ vector).item()) > (
             sqrt(game.number_of_players) + epsilon
         ):
             temp_matrix = _compute_larger_ellipsoid(game.number_of_players, weight_matrix, vector)
 
             # diag is twice to get diag matrix, not just vector of diag elements
-            weight_matrix = np.linalg.inv(np.diag(np.diag(np.linalg.inv(temp_matrix))))
+            weights = np.diag(np.linalg.inv(np.diag(np.diag(np.linalg.inv(temp_matrix)))))
         else:
             break
 
-    return np.diag(weight_matrix), np.unique(queried_coalition_ids)
+    return weights, np.unique(queried_coalition_ids)
 
 
-def _approximate_max_on_polymatroid(game: IncompleteGame, weights_matrix: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+def _approximate_max_on_polymatroid(game: IncompleteGame, weights: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """Approximates the maximum | |x||_weight_matrix on the polymatroid given by the set function.
 
     More specifically, the maximum is approximated for a modified set function
@@ -74,7 +74,7 @@ def _approximate_max_on_polymatroid(game: IncompleteGame, weights_matrix: np.nda
         temp_max = 0
         for player in complement_coalition.players:
             g_value, new_queried_coalition_ids = _query_values_and_compute_g_function(
-                game, coalition + player, weights_matrix
+                game, coalition + player, weights
             )
             queried_coalition_ids = np.concatenate([queried_coalition_ids, new_queried_coalition_ids])
             if g_value > temp_max:
@@ -106,10 +106,9 @@ def _compute_larger_ellipsoid(num_of_players: int, weight_matrix: np.ndarray, ve
 
 
 def _query_values_and_compute_g_function(game: IncompleteGame, coalition: Coalition,
-                                         weights_matrix: np.ndarray) -> tuple[int, np.ndarray]:
+                                         weights: np.ndarray) -> tuple[int, np.ndarray]:
     """Return the value of the function g(S) = c_1 * [f([2, k]) - f([1, k])] + ... + c_k[f([k, k]) - f([k - 1, k])]."""
     queried_coalition_ids = np.array([])
-    weights = np.diag(weights_matrix)
     coalition_weights = weights[list(coalition.players)]
     sorted_indices = np.argsort(coalition_weights)[::-1]
 
