@@ -32,3 +32,19 @@ def mul_factor_to_lower_bound(game: Game, incomplete_game: IncompleteGame) -> fl
     original_values_nonzero = original_values != 0
 
     return np.max(lower_bounds[original_values_nonzero] / original_values[original_values_nonzero])
+
+
+def mul_factor_lower_upper_bound(incomplete_game: IncompleteGame) -> float:
+    """Compute the multiplicative factor of the lower bound.
+
+    It is the smallest alpha, such that v(S) / lb(S) <= alpha.
+    """
+    incomplete_game.compute_bounds()
+
+    lower_bounds = incomplete_game.get_lower_bounds()
+    upper_bounds = incomplete_game.get_upper_bounds()
+
+    # we don't want to divide by zero
+    upper_bounds_nonzero = upper_bounds != 0
+
+    return np.max(lower_bounds[upper_bounds_nonzero] / upper_bounds[upper_bounds_nonzero])
