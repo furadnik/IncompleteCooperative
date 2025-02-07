@@ -29,7 +29,7 @@ def compute_max_xos_approximation(game: Game, alpha: float = 3.7844223824,
     return queried_coalition_ids, approximated_game
 
 
-def _get_k_r_values(number_of_players: int) -> tuple[list[int], list[int]]:  # TODO: Rewrite, ugly
+def _get_k_r_values(number_of_players: int) -> tuple[list[int], list[int]]:
     """Compute parameters of the Max XOS apx algorithm."""
     k_values = []
     k = 0
