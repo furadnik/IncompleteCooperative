@@ -1,0 +1,24 @@
+"""Test the multiplicative module."""
+import numpy as np
+import pytest
+
+from incomplete_cooperative.coalitions import player_to_coalition
+from incomplete_cooperative.generators import xos
+from incomplete_cooperative.multiplicative.max_xos_approximation import \
+    compute_max_xos_approximation
+from incomplete_cooperative.multiplicative.rla_approximation import \
+    compute_rla_approximation
+
+
+@pytest.mark.parametrize("rep", range(10))
+@pytest.mark.parametrize("players", range(4, 10))
+@pytest.mark.parametrize("approximator", [compute_rla_approximation, compute_max_xos_approximation])
+def test_is_lower_bound(rep, approximator, players):
+    game = xos(players, normalize=False, normalize_additive=False)
+
+    singleton_values = -game.get_values([player_to_coalition(player) for player in range(players)])
+    # we need to generate a game with all singletons bigger than 1
+    game.set_values(-game.get_values() / np.min(singleton_values))
+
+    _, approx_game = approximator(game)
+    assert np.all(approx_game.get_values() <= game.get_values()), np.max(approx_game.get_values() - game.get_values())
