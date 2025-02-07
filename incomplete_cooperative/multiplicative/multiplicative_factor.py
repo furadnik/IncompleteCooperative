@@ -1,7 +1,7 @@
 """Compute multiplicative factors."""
 import numpy as np
 
-from .protocols import Game, IncompleteGame
+from ..protocols import Game, IncompleteGame
 
 
 def mul_factor_to_approximation(game: Game, approximated_game: Game) -> float:

@@ -3,9 +3,9 @@ from math import sqrt
 
 import numpy as np
 
-from .coalitions import Coalition, all_coalitions, player_to_coalition
-from .game import IncompleteCooperativeGame
-from .protocols import Game
+from ..coalitions import Coalition, all_coalitions, player_to_coalition
+from ..game import IncompleteCooperativeGame
+from ..protocols import Game
 
 
 def compute_max_xos_approximation(game: Game, alpha: float = 3.7844223824,
