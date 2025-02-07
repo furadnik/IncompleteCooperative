@@ -46,8 +46,9 @@ def _compute_weights_and_queries(game: IncompleteGame, epsilon: float) -> tuple[
         ):
             temp_matrix = _compute_larger_ellipsoid(game.number_of_players, weight_matrix, vector)
 
-            # diag is twice to get diag matrix, not just vector of diag elements
-            weights = np.diag(np.linalg.inv(np.diag(np.diag(np.linalg.inv(temp_matrix)))))
+            inverted_matrix = np.linalg.inv(temp_matrix)
+            weights = 1 / np.diag(inverted_matrix)
+
         else:
             break
 
