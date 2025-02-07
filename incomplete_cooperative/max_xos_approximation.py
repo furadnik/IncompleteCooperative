@@ -58,19 +58,18 @@ def _compute_candidate_coalitions_and_query_values(
     heavy_players = np.zeros((len(k_values), len(r_values), game.number_of_players))
     light_players = np.zeros((len(k_values), len(r_values), game.number_of_players))
 
-    singleton_values = [game.get_value(player_to_coalition(player)) for player in range(game.number_of_players)]
+    singleton_values = np.array([game.get_value(player_to_coalition(player)) for player in range(game.number_of_players)])
 
     # Constructing candidate_coalitions, translate to numpy for more efficiency
     for k in range(len(k_values)):
         for r in range(len(r_values)):
             candidate_coalitions[k, r] = []
 
-            heavy_players[k, r, :] = np.array(singleton_values) >= (
+            heavy_players[k, r, :] = singleton_values >= (
                 k_values[k] * r_values[r] / sqrt(game.number_of_players)
             )
             light_players[k, r] = 1 - heavy_players[k, r]
 
-            # TODO: funguje toto tak, jak chci?
             remaining_players = np.arange(game.number_of_players)[light_players[k, r].astype(bool)]
             remaining_coalition = Coalition.from_players(remaining_players)
 
@@ -103,7 +102,7 @@ def _max_subroutine(game: IncompleteGame, coalition: Coalition,
         return Coalition(0), np.array([])
     else:
 
-        singleton_values = [game.get_value(player_to_coalition(player)) for player in coalition.players]
+        singleton_values = np.array([game.get_value(player_to_coalition(player)) for player in coalition.players])
         initial_limit = np.max(singleton_values)
 
         constructed_coalition = Coalition(0)
