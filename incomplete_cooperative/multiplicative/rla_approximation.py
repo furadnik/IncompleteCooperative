@@ -8,7 +8,7 @@ from ..game import IncompleteCooperativeGame
 from ..protocols import Game
 
 
-def compute_rla_approximation(game: Game, epsilon: float = 0.05) -> tuple[np.ndarray, IncompleteCooperativeGame]:
+def compute_rla_approximation(game: Game, epsilon: float = 0.000001) -> tuple[np.ndarray, IncompleteCooperativeGame]:
     """Compute a sketch of a cooperative game using a root linear function, i.e. sqrt(c_1 x_1 + ... c_n x_n).
 
     - c_i ... weight of agent i
@@ -31,7 +31,7 @@ def compute_rla_approximation(game: Game, epsilon: float = 0.05) -> tuple[np.nda
 def _compute_weights_and_queries(game: Game, epsilon: float) -> tuple[np.ndarray, np.ndarray]:
     """Compute the sketch of the game using the ASFE algorithm."""
     queried_coalition_ids = np.array([])
-    weights = np.array([game.number_of_players / game.get_value(player_to_coalition(i)) ** 2
+    weights = np.array([(game.number_of_players / game.get_value(player_to_coalition(i))) ** 2
                         for i in range(game.number_of_players)])
 
     while True:
@@ -72,11 +72,12 @@ def _approximate_max_on_polymatroid(game: Game, weights: np.ndarray) -> tuple[np
 
     last_max = 0
     for _ in range(game.number_of_players):
-        temp_max = 0
+        temp_max = -1
         for player in complement_coalition.players:
             g_value, new_queried_coalition_ids = _query_values_and_compute_g_function(
                 game, coalition + player, weights
             )
+            assert g_value >= 0, f"Negative value of g function: {g_value}"
             queried_coalition_ids = np.concatenate([queried_coalition_ids, new_queried_coalition_ids])
             if g_value > temp_max:
                 temp_max = g_value
@@ -99,7 +100,7 @@ def _compute_larger_ellipsoid(num_of_players: int, weight_matrix: np.ndarray, ve
     frac = (norm_sqr - 1) / (num_of_players - 1)
 
     larger_ellipsoid = (num_of_players / norm_sqr * frac * weight_matrix) + (
-        (num_of_players / (norm_sqr**2)) * (1 - (norm_sqr - 1) / (num_of_players - 1)) * (
+        (num_of_players / (norm_sqr**2)) * (1 - ((norm_sqr - 1) / (num_of_players - 1))) * (
             weight_matrix @ vector @ vector.T @ weight_matrix
         )
     )
@@ -109,18 +110,20 @@ def _compute_larger_ellipsoid(num_of_players: int, weight_matrix: np.ndarray, ve
 def _query_values_and_compute_g_function(game: Game, coalition: Coalition,
                                          weights: np.ndarray) -> tuple[int, np.ndarray]:
     """Return the value of the function g(S) = c_1 * [f([2, k]) - f([1, k])] + ... + c_k[f([k, k]) - f([k - 1, k])]."""
+    player_weight_pairs = np.array([(weights[i],i) for i in coalition.players])
+    sorted_pairs = np.sort(player_weight_pairs, axis=0)[::-1]
     queried_coalition_ids = np.array([])
-    coalition_weights = weights[list(coalition.players)]
-    sorted_indices = np.argsort(coalition_weights)[::-1]
 
     result = 0
     temp_id = 0
 
-    for i in sorted_indices:
+    for (weight, player) in sorted_pairs:
         old_temp_id = temp_id
-        temp_id += 2**i
+        #breakpoint()
+        temp_id += 2**player
         queried_coalition_ids = np.append(queried_coalition_ids, temp_id)
-        result += weights[i] * (game.get_value(Coalition(temp_id)) - game.get_value(Coalition(old_temp_id)))
+        result += weight * (game.get_value(Coalition(int(temp_id))) - game.get_value(Coalition(int(old_temp_id))))
+
     return result, np.array(queried_coalition_ids)
 
 

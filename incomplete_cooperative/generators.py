@@ -277,10 +277,10 @@ def covg_fn_generator(number_of_players: int, generator: np.random.Generator = n
 def k_budget_generator(number_of_players: int, generator: np.random.Generator = np.random.default_rng()
                        ) -> IncompleteCooperativeGame:
     """Generate a K-budget function, where v(S) = min(K,|S|)."""
-    k = generator.integers(number_of_players)
+    k = generator.integers(number_of_players-1)+1
     game = IncompleteCooperativeGame(number_of_players)
     for coalition in all_coalitions(game):
-        game.set_value(-max(k, len(coalition)), coalition)
+        game.set_value(-min(k, len(coalition)), coalition)
     assert is_sam(game)
     return game
 
