@@ -32,15 +32,15 @@ def _compute_weights_and_queries(game: IncompleteGame, epsilon: float) -> tuple[
     """
     queried_coalition_ids = np.array([])
     weights = np.array([game.number_of_players / game.get_value(player_to_coalition(i)) ** 2
-                                 for i in range(game.number_of_players)])
+                        for i in range(game.number_of_players)])
 
     while True:
-        
+
         vector, new_queried_coalition_ids = _approximate_max_on_polymatroid(game, weights)
         queried_coalition_ids = np.concatenate([queried_coalition_ids, new_queried_coalition_ids])
 
         weight_matrix = np.diag(weights)
-      
+
         if sqrt((vector.T @ weight_matrix @ vector).item()) > (
             sqrt(game.number_of_players) + epsilon
         ):
