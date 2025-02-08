@@ -9,7 +9,6 @@ from networkx import (adjacency_matrix, connected_watts_strogatz_graph,
                       geographical_threshold_graph, gnp_random_graph,
                       random_geometric_graph, random_internet_as_graph)
 
-from .coalition_ids import get_all_coalitions, get_size
 from .coalitions import all_coalitions, disjoint_coalitions
 from .functoolz import powerset
 from .game import IncompleteCooperativeGame
@@ -179,7 +178,8 @@ def additive(number_of_players: int, generator: np.random.Generator = np.random.
     return ig
 
 
-def xos_norandom(number_of_players: int, generator: np.random.Generator = np.random.default_rng(), *args, **kwargs) -> IncompleteCooperativeGame:
+def xos_norandom(number_of_players: int, generator: np.random.Generator = np.random.default_rng(),
+                 *args, **kwargs) -> IncompleteCooperativeGame:
     """Generate a random OSX game out of `number_of_additive` additive games.
 
     It uses `additive_gen` to generate the additive games.
@@ -262,13 +262,15 @@ def covg_fn_generator(number_of_players: int, generator: np.random.Generator = n
                       universum_mult: int = 2, normalize: bool = True) -> IncompleteCooperativeGame:
     """Generate a set coverage fn."""
     universum = range(universum_mult * number_of_players)
-    powerset_list = list(powerset(list(universum)))
+    # we do not want empty set, as it would make the value of a singleton be zero.
+    powerset_list = [x for x in powerset(list(universum)) if len(x)]
     set_indices = generator.choice(len(powerset_list), number_of_players)
     game = IncompleteCooperativeGame(number_of_players)
     for coalition in all_coalitions(game):
         uni: set[int] = set()
         for i in coalition.players:
             uni = uni.union(powerset_list[set_indices[i]])
+        assert uni or (coalition.id == 0), f"Non-empty coalition with zero value, {coalition}"
         game.set_value(-len(uni), coalition)
     assert is_sam(game)
     return game
@@ -277,10 +279,10 @@ def covg_fn_generator(number_of_players: int, generator: np.random.Generator = n
 def k_budget_generator(number_of_players: int, generator: np.random.Generator = np.random.default_rng()
                        ) -> IncompleteCooperativeGame:
     """Generate a K-budget function, where v(S) = min(K,|S|)."""
-    k = generator.integers(number_of_players)
+    k = generator.integers(1, number_of_players)
     game = IncompleteCooperativeGame(number_of_players)
     for coalition in all_coalitions(game):
-        game.set_value(-max(k, len(coalition)), coalition)
+        game.set_value(-min(k, len(coalition)), coalition)
     assert is_sam(game)
     return game
 
