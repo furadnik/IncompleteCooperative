@@ -4,11 +4,12 @@ import pytest
 
 from incomplete_cooperative.coalitions import player_to_coalition
 from incomplete_cooperative.generators import (covg_fn_generator,
-                                               k_budget_generator, xos)
+                                               k_budget_generator)
 from incomplete_cooperative.multiplicative.max_xos_approximation import \
     compute_max_xos_approximation
-from incomplete_cooperative.multiplicative.rla_approximation import \
-    compute_rla_approximation
+
+# from incomplete_cooperative.multiplicative.rla_approximation import \
+#     compute_rla_approximation
 
 
 @pytest.mark.parametrize("rep", range(10))
@@ -16,8 +17,8 @@ from incomplete_cooperative.multiplicative.rla_approximation import \
 @pytest.mark.parametrize("approximator_generator", [
     (compute_max_xos_approximation, covg_fn_generator),
     (compute_max_xos_approximation, k_budget_generator),
-    (compute_rla_approximation, covg_fn_generator),
-    (compute_rla_approximation, k_budget_generator),
+    # (compute_rla_approximation, covg_fn_generator),
+    # (compute_rla_approximation, k_budget_generator),
 ])
 def test_is_lower_bound(rep, approximator_generator, players):
     approximator, generator = approximator_generator

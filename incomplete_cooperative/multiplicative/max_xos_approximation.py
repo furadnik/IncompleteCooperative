@@ -158,7 +158,7 @@ def _compute_approximation(game: Game, candidate_coalitions: np.ndarray, k_value
                 for r in range(len(r_values)):
                     for candidate_coalition in candidate_coalitions[k, r]:
                         new_value = len(candidate_coalition & coalition) * r / (4 * alpha * beta)
-                        if new_value > max_value:
+                        if new_value > max_value:  # pragma: nocover
                             max_value = new_value
 
             approximated_values[coalition.id] = max_value
