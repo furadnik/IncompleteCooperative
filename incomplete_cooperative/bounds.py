@@ -102,7 +102,10 @@ def compute_bounds_superadditive_monotone_approx_cached(game: BoundableIncomplet
         super_coalitions = all_coalitions[coal_structure[coalition] == 2]
         known_super_coalitions = super_coalitions[game.are_values_known()[super_coalitions]]
         complementary_coalitions = coalition ^ known_super_coalitions
-        upper_bound = np.min(game.get_lower_bounds()[known_super_coalitions] - game.get_lower_bounds()[complementary_coalitions])
+        sub_coalitions = all_coalitions[coal_structure[coalition] == 1]
+        known_sub_coalitions = sub_coalitions[game.are_values_known()[sub_coalitions]]
+        upper_bound = min(np.min(game.get_lower_bounds()[known_super_coalitions] - game.get_lower_bounds()[complementary_coalitions]),
+                          np.min(game.get_known_values()[known_sub_coalitions]))
         game.set_upper_bound(upper_bound, Coalition(coalition))
 
 
