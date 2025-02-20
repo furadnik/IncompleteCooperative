@@ -191,3 +191,13 @@ class TestGame(TestCase):
             self.assertEqual(value, orig)
             self.assertEqual(other_value, orig)
             self.assertEqual(added_value, 2 * orig)
+
+    def test_negation(self):
+        game = IncompleteCooperativeGame(5)
+        game.set_known_values([1, 2, 3], [Coalition(1), Coalition(2), Coalition(3)])
+        initial = game.get_known_values()
+        ngame = -game
+        assert np.all(ngame.get_known_values()[1 - np.isnan(initial)] == -initial[1 - np.isnan(initial)])
+        assert np.all(ngame.are_values_known() == game.are_values_known())
+        assert np.all(ngame.are_values_known() == 1 - np.isnan(initial))
+        assert np.all(game.get_known_values()[1 - np.isnan(initial)] == initial[1 - np.isnan(initial)])
