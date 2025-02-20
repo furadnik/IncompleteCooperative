@@ -59,7 +59,7 @@ def _compute_candidate_coalitions_and_query_values(
     light_players = np.zeros((len(k_values), len(r_values), game.number_of_players))
 
     singleton_values = np.array([game.get_value(player_to_coalition(player)) for player in range(game.number_of_players)])
-    assert np.all(singleton_values >= 1)
+    assert np.all(singleton_values >= 1), singleton_values
 
     # Constructing candidate_coalitions, translate to numpy for more efficiency
     for k in range(len(k_values)):

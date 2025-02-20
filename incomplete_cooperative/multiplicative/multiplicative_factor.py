@@ -18,6 +18,21 @@ def mul_factor_to_approximation(game: Game, approximated_game: Game) -> float:
     return np.max(approximated_values[original_values_nonzero] / original_values[original_values_nonzero])
 
 
+def mul_factor_upper_to_approximation(approximated_game: Game, incomplete_game: IncompleteGame) -> float:
+    """Compute the multiplicative factor of the approximation.
+
+    It is the smallest alpha, such that v(S) / aprox(S) <= alpha, as opposed to the other algorithm.
+    """
+    approximated_values = approximated_game.get_values()
+    incomplete_game.compute_bounds()
+    upper_values = incomplete_game.get_upper_bounds()
+
+    # we want to compare only where the original values aren't zero, as we'd get an error...
+    values_nonzero = upper_values != 0
+
+    return np.max(approximated_values[values_nonzero] / upper_values[values_nonzero])
+
+
 def mul_factor_to_lower_bound(game: Game, incomplete_game: IncompleteGame) -> float:
     """Compute the multiplicative factor of the lower bound.
 
