@@ -3,11 +3,13 @@ from functools import partial
 from random import Random
 
 import numpy as np
+
 from incomplete_cooperative.coalitions import Coalition
-from incomplete_cooperative.gameplay import \
-    get_stacked_exploitabilities_of_action_sequences
+from incomplete_cooperative.gameplay import (
+    get_exploitabilities_of_action_sequence,
+    get_stacked_exploitabilities_of_action_sequences)
 from incomplete_cooperative.icg_gym import ICG_Gym
-from incomplete_cooperative.protocols import GapFunction
+from incomplete_cooperative.protocols import GapFunction, Value
 
 from .model import ModelInstance
 from .save import Output, save
@@ -40,11 +42,14 @@ def get_greedy_rewards(env: ICG_Gym, max_steps: int, repetitions: int, gap_func:
         A `np.ndarray` with the best rewards in each step.
         A list of lists of chosen coalitions at each step for the best results.
     """
-    initial_exploitability = env.reward
-    best_exploitabilities = np.full((max_steps + 1, repetitions), -initial_exploitability)
+    best_exploitabilities = -np.ones((max_steps + 1, repetitions))
 
     incomplete_game = env.incomplete_game
     generated_games = [env.generator() for _ in range(repetitions)]
+
+    best_exploitabilities[0] = np.fromiter(get_exploitabilities_of_action_sequence(
+        incomplete_game, generated_games, [], gap_func, processes=processes
+    ), Value, count=repetitions)
 
     possible_actions = set(env.get_wrapper_attr("explorable_coalitions"))
     action_sequence: list[Coalition] = []
