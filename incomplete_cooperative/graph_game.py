@@ -40,6 +40,10 @@ class GraphCooperativeGame:
         """Representation of icg."""
         return f"GraphGame({self._graph_matrix})"
 
+    def __neg__(self) -> GraphCooperativeGame:
+        """Copy the game."""
+        return GraphCooperativeGame(-self._graph_matrix.copy())
+
     def get_value(self, coalition: Coalition) -> Value:
         """Get a value for coalition."""
         players = coalition.players
