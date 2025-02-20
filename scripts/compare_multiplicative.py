@@ -39,7 +39,9 @@ def main(out_data: list[tuple[float, ...]], samples: int | None = None) -> None:
         # their approximation
         queried_coal_ids, approximated_game = APPROXIMATOR(-game)
         approximated_game = -approximated_game
-        budget = len(queried_coal_ids)
+        pure_queried_coals = set(map(Coalition, map(int, queried_coal_ids))).difference(minimal_game)
+        queried_coals = list(pure_queried_coals.union(minimal_game))
+        budget = len(pure_queried_coals)  # only count those which weren't in the minimal game
 
         # compute our ratio
         revealed_sequence = OUR_ACTION_SEQUENCE[:budget]
@@ -49,7 +51,6 @@ def main(out_data: list[tuple[float, ...]], samples: int | None = None) -> None:
         lower_to_upper_ours = mul_factor_lower_upper_bound(-incomplete_game)
 
         # set up incomplete game from their revealed
-        queried_coals = list(set(map(Coalition, queried_coal_ids)).union(minimal_game))
         incomplete_game.set_known_values(game.get_values(queried_coals), queried_coals)
         incomplete_game.compute_bounds()
 
@@ -58,7 +59,7 @@ def main(out_data: list[tuple[float, ...]], samples: int | None = None) -> None:
         lower_to_upper_theirs = mul_factor_lower_upper_bound(-incomplete_game)
 
         sample += 1
-        out_data.append((len(queried_coal_ids), upper_to_approx, lower_to_upper_theirs, lower_to_upper_ours))
+        out_data.append((budget, upper_to_approx, lower_to_upper_theirs, lower_to_upper_ours))
         # print(*out_data[-1])
     _callback_fn()
 
