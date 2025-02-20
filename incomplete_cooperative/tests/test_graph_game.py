@@ -86,3 +86,10 @@ class TestGraphCG(GraphGameMixin, TestCase):
                 self.assertAlmostEqual(value, orig)
                 self.assertAlmostEqual(other_value, orig_o)
                 self.assertAlmostEqual(added_value, orig + other_value)
+
+    def test_negation(self):
+        game = self.get_game()
+        initial = game.get_values()
+        ngame = -game
+        assert np.all(ngame.get_values()[1 - np.isnan(initial)] == -initial[1 - np.isnan(initial)])
+        assert np.all(game.get_values()[1 - np.isnan(initial)] == initial[1 - np.isnan(initial)])

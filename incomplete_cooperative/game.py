@@ -43,6 +43,13 @@ class IncompleteCooperativeGame:
         """Representation of icg."""
         return f"ICG({self.are_values_known()})"
 
+    def __neg__(self) -> IncompleteCooperativeGame:
+        """Return the ICG with negative values."""
+        ret = self.copy()
+        ret._values[:, self._values_lower_index] = -self._values[:, self._values_lower_index]
+        ret._values[:, self._values_upper_index] = -self._values[:, self._values_upper_index]
+        return ret
+
     def _filter_out_coalitions(self, values: np.ndarray[Any, np.dtype[Value]],
                                coalitions: Iterable[Coalition] | None) -> np.ndarray[Any, np.dtype[Value]]:
         """Filter out coalitions."""
