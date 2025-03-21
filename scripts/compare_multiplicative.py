@@ -25,7 +25,7 @@ def get_action_sequence(model_path: Path, name: str) -> list[Coalition]:
     return [Coalition(int(action)) for action in output.actions[:, 0]]
 
 
-def main(out_data: list[tuple[float, ...]], args: argparse.Namespace) -> None:
+def run(out_data: list[tuple[float, ...]], args: argparse.Namespace) -> None:
     """Compare multiplicative algos to ours."""
     game_generator = GENERATORS[args.game_generator]
     bounds_computer = BOUNDS[args.bounds_computer]
@@ -84,7 +84,8 @@ def _callback_fn(a=None, b=None) -> None:
     sys.exit(0)
 
 
-if __name__ == '__main__':
+def main() -> None:
+    """Entrypoint for script."""
     parser = argparse.ArgumentParser(description='Compare multiplicative algorithms.')
     parser.add_argument('samples', type=int, nargs='?', default=None)
     parser.add_argument('--game_generator', type=str, default="k_budget_generator")
@@ -96,4 +97,8 @@ if __name__ == '__main__':
     parser.add_argument('--model_name', type=str, default="expected_greedy")
 
     signal.signal(signal.SIGINT, _callback_fn)
-    main(out_data, parser.parse_args())
+    run(out_data, parser.parse_args())
+
+
+if __name__ == '__main__':
+    main()
