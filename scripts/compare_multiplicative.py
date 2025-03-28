@@ -16,6 +16,7 @@ from incomplete_cooperative.generators import GENERATORS
 from incomplete_cooperative.multiplicative import APPROXIMATORS
 from incomplete_cooperative.multiplicative.multiplicative_factor import (
     mul_factor_lower_upper_bound, mul_factor_upper_to_approximation)
+from incomplete_cooperative.run.model import GAP_FUNCTIONS
 from incomplete_cooperative.run.save import Output
 
 
@@ -30,6 +31,7 @@ def run(out_data: list[tuple[float, ...]], args: argparse.Namespace) -> None:
     game_generator = GENERATORS[args.game_generator]
     bounds_computer = BOUNDS[args.bounds_computer]
     approximator = APPROXIMATORS[args.approximator]
+    divergence = GAP_FUNCTIONS[args.divergence]
     samples = args.samples
     rng = np.random.default_rng(args.seed)
     number_of_players = args.number_of_players
@@ -39,7 +41,7 @@ def run(out_data: list[tuple[float, ...]], args: argparse.Namespace) -> None:
     minimal_game = list(minimal_game_coalitions(number_of_players))
     print(minimal_game)
 
-    print("sample", "len_queried", "approx_to_upper", "lower_to_upper_theirs", "lower_to_upper_ours")
+    print("sample", "len_queried", "approx_to_upper", "lower_to_upper_theirs", "lower_to_upper_ours", "divg_theirs", "divg_ours")
     sample = 0
     while samples is None or sample < samples:
         game = game_generator(number_of_players, rng)
@@ -57,6 +59,7 @@ def run(out_data: list[tuple[float, ...]], args: argparse.Namespace) -> None:
                                          minimal_game + revealed_sequence)
         incomplete_game.compute_bounds()
         lower_to_upper_ours = mul_factor_lower_upper_bound(-incomplete_game)
+        divg_ours = divergence(incomplete_game)
 
         # set up incomplete game from their revealed
         incomplete_game.set_known_values(game.get_values(queried_coals), queried_coals)
@@ -65,9 +68,10 @@ def run(out_data: list[tuple[float, ...]], args: argparse.Namespace) -> None:
         # compute their ratios
         upper_to_approx = mul_factor_upper_to_approximation(-approximated_game, -incomplete_game)
         lower_to_upper_theirs = mul_factor_lower_upper_bound(-incomplete_game)
+        divg_theirs = divergence(incomplete_game)
 
         sample += 1
-        out_data.append((budget, upper_to_approx, lower_to_upper_theirs, lower_to_upper_ours))
+        out_data.append((budget, upper_to_approx, lower_to_upper_theirs, lower_to_upper_ours, divg_theirs, divg_ours))
         # print(*out_data[-1])
     _callback_fn()
 
@@ -92,6 +96,7 @@ def main() -> None:
     parser.add_argument('--number_of_players', type=int, default=6)
     parser.add_argument('--bounds_computer', type=str, default="sam_apx_1")
     parser.add_argument('--approximator', type=str, default="max_xos")
+    parser.add_argument('--divergence', type=str, choices=GAP_FUNCTIONS.keys(), default="l1_norm")
     parser.add_argument('--seed', type=int, default=42)
     parser.add_argument('--model', type=Path)
     parser.add_argument('--model_name', type=str, default="expected_greedy")
