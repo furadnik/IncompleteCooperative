@@ -128,3 +128,11 @@ class TestCustomFeatExtractor(TestSimpleGameParallel):
         **TestSimpleGameParallel.kwargs,
         "features_extractor": "ln_64",
     }
+
+
+class TestNoCritic(TestSimpleGameParallel):
+
+    kwargs = {
+        **TestSimpleGameParallel.kwargs,
+        "drop_critic": True,
+    }

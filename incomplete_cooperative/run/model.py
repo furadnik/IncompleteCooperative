@@ -66,6 +66,9 @@ class ModelInstance:
     linear: bool = False
     seed: int = int(datetime.now().timestamp() * 1000)
     features_extractor: str | None = None
+    learning_rate: float = 0.0003
+    drop_critic: bool = False
+    net_size: int = 64
 
     @property
     def seed_32(self) -> int:
@@ -126,13 +129,18 @@ class ModelInstance:
         """Get model."""
         envs = self.env_generator()
 
-        policy_kwargs = {"activation_fn": self.policy_activation_fn_choice}
+        policy_kwargs = {"activation_fn": self.policy_activation_fn_choice,
+                         "net_arch": dict(pi=[self.net_size, self.net_size],
+                                          vf=[self.net_size, self.net_size]),
+                         }
         if self.features_extractor is not None:
             policy_kwargs["features_extractor_class"] = EXTRACTORS[self.features_extractor]
+        if self.drop_critic:
+            policy_kwargs["net_arch"]["vf"] = [0]
 
         return MaskablePPO.load(self.model_path, envs) if self.model_path.with_suffix(".zip").exists() \
             else MaskablePPO("MlpPolicy", envs, n_steps=self.steps_per_update, ent_coef=self.ent_coef,
-                             policy_kwargs=policy_kwargs,
+                             policy_kwargs=policy_kwargs, learning_rate=self.learning_rate,
                              verbose=10, gamma=self.gamma, seed=self.seed_32)
 
     def save(self, model: MaskablePPO) -> None:
@@ -168,3 +176,10 @@ def add_model_arguments(ap) -> None:
     ap.add_argument("--features-extractor", choices=EXTRACTORS.keys(), required=False,
                     help="Choose a features extractor of PPO. Leave blank for default.")
     ap.add_argument("--seed", type=int, required=False, default=defaults.seed)
+    ap.add_argument("--learning-rate", type=float, required=False,
+                    default=defaults.learning_rate)
+    ap.add_argument("--drop-critic", action="store_true",
+                    help="Drop the critic network, only use the policy network.")
+    ap.add_argument("--net-size", type=int, required=False,
+                    default=defaults.net_size,
+                    help="Size of the MLP used in the policy network.")
