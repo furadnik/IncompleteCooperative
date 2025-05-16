@@ -8,6 +8,16 @@ PYTEST_FILE=incomplete_cooperative/tests
 
 test: test_unittest test_types test_docs test_security
 
+anonym.zip: setup.cfg clean
+	mkdir -p anonym
+	cp incomplete_cooperative scripts setup.cfg setup.py anonym -r
+	sed -i 's/Filip Úradník/Anonymous Author/' anonym/setup.cfg 
+	sed -i 's/filip.uradnik9/anonymous.author/' anonym/setup.cfg 
+	sed -i 's/pyfmtools.*/pyfmtools/' anonym/setup.cfg 
+	cat anonym/setup.cfg
+	zip -r anonym anonym
+	rm -r anonym
+
 $(VENV)/bin/activate: setup.cfg
 	rm -rf $(VENV) || echo "venv dir didn't exist"
 	python -m venv $(VENV)
