@@ -49,5 +49,5 @@ def main(args=parser.parse_args()) -> None:
         print("Sample", i + 1, "processed")
         print(f"Subadditive games: {subadditive_count / (i + 1) * 100:.2f}%")
 
-    np.save(filepath, set_functions[subadditive])
+    np.save(filepath, -set_functions[subadditive])
     print(f"Saved {len(subadditive)} subadditive set functions to {filepath}")
