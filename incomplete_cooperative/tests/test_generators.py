@@ -1,13 +1,10 @@
-from functools import partial
 from typing import Callable, cast
 from unittest import TestCase
 
-import numpy as np
 from numpy.random import Generator, default_rng
 
 from incomplete_cooperative.bounds import compute_bounds_superadditive
 from incomplete_cooperative.coalitions import (Coalition, all_coalitions,
-                                               disjoint_coalitions,
                                                grand_coalition)
 from incomplete_cooperative.exploitability import compute_exploitability
 from incomplete_cooperative.game_properties import is_superadditive
@@ -22,7 +19,9 @@ EPSILON = 1e-10
 
 
 class GeneratorsTests:
-    generator: Callable[[int], Callable[[int, Generator], Game]]
+    def generator(self):  # pragma: no cover
+        raise NotImplementedError("Subclasses must implement the generator method")
+
     is_random: bool = True
     implements_generator: bool = True
 
@@ -64,7 +63,8 @@ class GeneratorsTests:
 
 
 class TestFactoryGenerator(GeneratorsTests, TestCase):
-    generator = lambda x: factory_generator  # noqa: E731
+    def generator(self):
+        return factory_generator  # noqa: E731
 
     def test_factory_pre_set_owner(self):
         players_range = range(3, 8)
@@ -162,12 +162,14 @@ class TestFactoryGenerator(GeneratorsTests, TestCase):
 
 
 class TestGraphGenerator(GeneratorsTests, TestCase):
-    generator = lambda x: GENERATORS["graph"]  # noqa: E731
+    def generator(self):
+        return GENERATORS["graph"]  # noqa: E731
     implements_generator = False
 
 
 class TestConvexGenerator(GeneratorsTests, TestCase):
-    generator = lambda x: convex_generator  # noqa: E731
+    def generator(self):
+        return convex_generator  # noqa: E731
     implements_generator = False
 
     def test_is_normalized(self):
@@ -188,11 +190,13 @@ class TestConvexGenerator(GeneratorsTests, TestCase):
 
 
 class TestCheerleaderGenerator(GeneratorsTests, TestCase):
-    generator = lambda x: factory_cheerleader_next_generator  # noqa: E731
+    def generator(self):
+        return factory_cheerleader_next_generator  # noqa: E731
 
 
 class TestPredictibleFactoryGenerator(GeneratorsTests, TestCase):
-    generator = lambda x: predictible_factory_generator  # noqa: E731
+    def generator(self):
+        return predictible_factory_generator  # noqa: E731
     implements_generator = False
 
     def test_loop_around(self):
@@ -207,27 +211,33 @@ class TestPredictibleFactoryGenerator(GeneratorsTests, TestCase):
 
 
 class TestRandomGraphGenerator(GeneratorsTests, TestCase):
-    generator = lambda x: GENERATORS["graph_random"]
+    def generator(self):
+        return GENERATORS["graph_random"]
 
 
 class TestInternetGraphGenerator(GeneratorsTests, TestCase):
-    generator = lambda x: GENERATORS["graph_internet"]
+    def generator(self):
+        return GENERATORS["graph_internet"]
 
 
 class TestGeometricGraphGenerator(GeneratorsTests, TestCase):
-    generator = lambda x: GENERATORS["graph_geometric"]
+    def generator(self):
+        return GENERATORS["graph_geometric"]
 
 
 class TestGeographicalGraphGenerator(GeneratorsTests, TestCase):
-    generator = lambda x: GENERATORS["graph_geographical_treshold"]
+    def generator(self):
+        return GENERATORS["graph_geographical_treshold"]
 
 
 class TestCycleGraphGenerator(GeneratorsTests, TestCase):
-    generator = lambda x: GENERATORS["graph_cycle"]
+    def generator(self):
+        return GENERATORS["graph_cycle"]
 
 
 class TestAdditiveGenerator(GeneratorsTests, TestCase):
-    generator = lambda x: additive
+    def generator(self):
+        return additive
 
     def test_deterministic_singletons(self):
         singleton_values = [1, 2, 3, 4]
@@ -239,7 +249,8 @@ class TestAdditiveGenerator(GeneratorsTests, TestCase):
 
 
 class TestXOSGenerator(GeneratorsTests, TestCase):
-    generator = lambda x: xos
+    def generator(self):
+        return xos
 
     def test_single_is_identity(self):
         for i in range(2, 10):
@@ -276,21 +287,26 @@ class TestXOSGenerator(GeneratorsTests, TestCase):
 
 
 class TestXOSOtherGenerator(GeneratorsTests, TestCase):
-    generator = lambda x: GENERATORS["xos12"]
+    def generator(self):
+        return GENERATORS["xos12"]
 
 
 class TestXSGenerator(GeneratorsTests, TestCase):
-    generator = lambda x: GENERATORS["xs"]
+    def generator(self):
+        return GENERATORS["xs"]
 
 
 class TestOXSGenerator(GeneratorsTests, TestCase):
-    generator = lambda x: GENERATORS["oxs"]
+    def generator(self):
+        return GENERATORS["oxs"]
 
 
 class TestXS6Generator(GeneratorsTests, TestCase):
-    generator = lambda x: GENERATORS["xs6"]
+    def generator(self):
+        return GENERATORS["xs6"]
 
 
 class TestXOSOneGenerator(GeneratorsTests, TestCase):
-    generator = lambda x: GENERATORS["xos_one"]
+    def generator(self):
+        return GENERATORS["xos_one"]
     is_random = False

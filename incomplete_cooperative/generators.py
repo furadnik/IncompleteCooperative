@@ -68,7 +68,7 @@ def factory_cheerleader_generator(number_of_players: int,
     """Generate a `factory` game with a cheerleader."""
     owner = int(generator.integers(number_of_players) if owner is None else owner)  # nosec
     while cheerleader is None or cheerleader == owner:  # pragma: no cover
-        cheerleader = generator.integers(number_of_players)  # nosec
+        cheerleader = int(generator.integers(number_of_players))  # nosec
 
     game = IncompleteCooperativeGame(number_of_players, bounds_computer)
     for coalition in all_coalitions(game):
@@ -279,7 +279,7 @@ def covg_fn_generator(number_of_players: int, generator: np.random.Generator = n
 def k_budget_generator(number_of_players: int, generator: np.random.Generator = np.random.default_rng()
                        ) -> IncompleteCooperativeGame:
     """Generate a K-budget function, where v(S) = min(K,|S|)."""
-    k = generator.integers(1, number_of_players)
+    k = int(generator.integers(1, number_of_players))
     game = IncompleteCooperativeGame(number_of_players)
     for coalition in all_coalitions(game):
         game.set_value(-min(k, len(coalition)), coalition)
