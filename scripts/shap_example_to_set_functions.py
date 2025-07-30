@@ -12,6 +12,7 @@ from incomplete_cooperative.game_properties import is_superadditive
 
 parser = ArgumentParser(description="Turn a basic SHAP example into a dataset of subadditive set functions.")
 parser.add_argument("--filepath", type=Path, default=Path("shap_example_set_functions.npy"))
+parser.add_argument("--functions_limit", type=int, default=None)
 
 
 def main(args=parser.parse_args()) -> None:
@@ -49,5 +50,13 @@ def main(args=parser.parse_args()) -> None:
         print("Sample", i + 1, "processed")
         print(f"Subadditive games: {subadditive_count / (i + 1) * 100:.2f}%")
 
+    if args.functions_limit is not None and args.functions_limit < len(subadditive):
+        subadditive = subadditive[:args.functions_limit]
+        print(f"Limiting to the first {args.functions_limit} subadditive set functions.")
+
     np.save(filepath, -set_functions[subadditive])
     print(f"Saved {len(subadditive)} subadditive set functions to {filepath}")
+
+
+if __name__ == "__main__":
+    main()
