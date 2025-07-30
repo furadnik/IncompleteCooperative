@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Callable, cast
 from unittest import TestCase
 
@@ -9,8 +10,9 @@ from incomplete_cooperative.coalitions import (Coalition, all_coalitions,
 from incomplete_cooperative.exploitability import compute_exploitability
 from incomplete_cooperative.game_properties import is_superadditive
 from incomplete_cooperative.generators import (
-    GENERATORS, additive, convex_generator, factory_cheerleader_next_generator,
-    factory_generator, predictible_factory_generator, xos)
+    GENERATORS, FileGenerator, additive, convex_generator,
+    factory_cheerleader_next_generator, factory_generator,
+    predictible_factory_generator, xos)
 from incomplete_cooperative.graph_game import GraphCooperativeGame
 from incomplete_cooperative.normalize import normalize_game
 from incomplete_cooperative.protocols import Game, Value
@@ -310,3 +312,8 @@ class TestXOSOneGenerator(GeneratorsTests, TestCase):
     def generator(self):
         return GENERATORS["xos_one"]
     is_random = False
+
+
+class TestFileGenerator(GeneratorsTests, TestCase):
+    def generator(self):
+        return FileGenerator(Path("incomplete_cooperative/tests/test_file.npy"))
