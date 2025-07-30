@@ -19,7 +19,7 @@ EPSILON = 1e-10
 
 
 class GeneratorsTests:
-    def generator(self):
+    def generator(self):  # pragma: no cover
         raise NotImplementedError("Subclasses must implement the generator method")
 
     is_random: bool = True
