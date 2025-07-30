@@ -1,4 +1,6 @@
 """Generators of games."""
+from pathlib import Path
+from os import getenv
 from functools import partial
 from math import exp
 from typing import Callable, Protocol
@@ -287,6 +289,36 @@ def k_budget_generator(number_of_players: int, generator: np.random.Generator = 
     return game
 
 
+class FileGenerator:
+    """Represent a file generator."""
+
+    def __init__(self, file_name: Path | None = None) -> None:
+        """Get a file generator."""
+        if file_name is None:  # pragma: no cover
+            file_name = Path(getenv("ICG_FILE", "games.npt"))
+        self.file_name = file_name
+        self._functions: np.ndarray | None = None
+
+    @property
+    def functions(self) -> np.ndarray:
+        """Get functions in format (samples, 2**number_of_players)."""
+        if self._functions is None:
+            if not self.file_name.exists():
+                raise FileNotFoundError(f"File {self.file_name} does not exist.")
+            self._functions = np.load(self.file_name, allow_pickle=True)
+        return self._functions
+
+    def __call__(self, number_of_players: int, generator: np.random.Generator = np.random.default_rng()
+                 ) -> IncompleteCooperativeGame:
+        """Generate games from a file."""
+        if 2**number_of_players > self.functions.shape[1]:
+            raise ValueError(f"File {self.file_name} does not contain enough samples for {number_of_players} players.")
+        game = IncompleteCooperativeGame(number_of_players)
+        function = generator.integers(self.functions.shape[0])  # nosec
+        game.set_values(self.functions[function, :2**number_of_players])
+        return game
+
+
 GENERATORS: dict[str, GeneratorFn] = {
     "factory": factory_generator,
     "predictible_factory": predictible_factory_generator,
@@ -337,4 +369,5 @@ GENERATORS: dict[str, GeneratorFn] = {
     "xs6": partial(xs, num_unit_demand=6),
     "k_budget_generator": k_budget_generator,
     "covg_fn_generator": covg_fn_generator,
+    "file_generator": FileGenerator(),
 }
