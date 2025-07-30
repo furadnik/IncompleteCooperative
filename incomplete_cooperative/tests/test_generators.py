@@ -317,3 +317,12 @@ class TestXOSOneGenerator(GeneratorsTests, TestCase):
 class TestFileGenerator(GeneratorsTests, TestCase):
     def generator(self):
         return FileGenerator(Path("incomplete_cooperative/tests/test_file.npy"))
+
+    def test_no_file(self):
+        gen = FileGenerator(Path("foo/bar"))
+        self.assertRaises(FileNotFoundError, gen, 3)
+    
+    def test_too_many_players(self):
+        gen = self.generator()
+        self.assertRaises(ValueError, gen, 1000)
+    
